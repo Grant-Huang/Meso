@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>基础组件 — Meso Design System</title>
+  <style>
+    :root {
+      --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
+      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
+      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
+      --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
+      --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
+      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      font-size:14px; line-height:1.6;
+      background:var(--color-bg); color:var(--color-text);
+      height:100vh; overflow-y:auto;
+    }
+
+    .page { padding:32px; max-width:960px; margin:0 auto; }
+    .page-title { font-size:15px; font-weight:650; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .page-subtitle { font-size:12px; color:var(--color-text-secondary); margin-bottom:32px; }
+
+    .section-header { display:flex; align-items:center; gap:10px; margin:28px 0 16px; }
+    .section-line { flex:1; height:1px; background:var(--color-border); }
+    .section-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--color-text-muted); white-space:nowrap; }
+
+    /* ── Buttons ── */
+    .btn-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:8px 16px; border-radius:8px; border:none; cursor:pointer;
+      font-size:13px; font-weight:500; font-family:inherit;
+      transition:filter .15s, box-shadow .15s, background .15s;
+      line-height:1;
+    }
+    .btn:hover { filter:brightness(1.08); }
+    .btn:active { filter:brightness(.94); transform:translateY(1px); }
+    .btn-primary { background:var(--color-accent); color:#fff; }
+    .btn-success { background:var(--color-success); color:#fff; }
+    .btn-error   { background:var(--color-error); color:#fff; }
+    .btn-warning { background:var(--color-warning); color:#fff; }
+    .btn-outline {
+      background:transparent; color:var(--color-accent);
+      border:1.5px solid var(--color-accent);
+    }
+    .btn-ghost {
+      background:rgba(82,124,94,.1); color:var(--color-accent); border:none;
+    }
+    .btn-ghost:hover { background:rgba(82,124,94,.18); }
+
+    /* ── Inputs ── */
+    .input-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
+    .input-group { display:flex; flex-direction:column; gap:5px; }
+    .input-label { font-size:12px; font-weight:600; color:var(--color-text-secondary); }
+    .input-field {
+      padding:8px 12px; border-radius:8px;
+      border:1.5px solid var(--color-border);
+      background:var(--color-bg-white);
+      font-size:14px; font-family:inherit; color:var(--color-text);
+      outline:none; transition:border-color .15s, box-shadow .15s;
+      width:100%;
+    }
+    .input-field::placeholder { color:var(--color-text-muted); }
+    .input-field.focused { border-color:var(--color-accent); box-shadow:0 0 0 3px rgba(82,124,94,.15); }
+    .input-field.error-state { border-color:var(--color-error); }
+    .input-hint { font-size:11px; color:var(--color-text-muted); }
+    .input-error-hint { font-size:11px; color:var(--color-error); }
+
+    /* ── Tags / Badges ── */
+    .badge-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:3px 10px; border-radius:6px; font-size:12px; font-weight:500;
+    }
+    .badge-info    { background:rgba(82,124,94,.12); color:var(--color-accent); }
+    .badge-success { background:rgba(47,125,74,.12); color:var(--color-success); }
+    .badge-warning { background:rgba(180,83,9,.12); color:var(--color-warning); }
+    .badge-error   { background:rgba(192,57,43,.1); color:var(--color-error); }
+    .badge-neutral { background:rgba(47,58,50,.08); color:var(--color-text-secondary); }
+
+    .badge-dot { width:6px; height:6px; border-radius:50%; }
+    .badge-info    .badge-dot { background:var(--color-accent); }
+    .badge-success .badge-dot { background:var(--color-success); }
+    .badge-warning .badge-dot { background:var(--color-warning); }
+    .badge-error   .badge-dot { background:var(--color-error); }
+    .badge-neutral .badge-dot { background:var(--color-text-muted); }
+
+    /* ── Cards ── */
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+    .card {
+      border-radius:10px; border:1px solid var(--color-border);
+      padding:16px; position:relative; overflow:hidden;
+    }
+    .card-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; opacity:.6; }
+    .card-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+    .card-sub { font-size:12px; opacity:.6; line-height:1.5; }
+    .card-bg          { background:var(--color-bg); }
+    .card-bg-elevated { background:var(--color-bg-elevated); }
+    .card-bg-white    { background:var(--color-bg-white); }
+    .card-bg-sidebar  { background:var(--color-bg-sidebar); }
+    .card-accent      { background:var(--color-accent); color:#fff; border-color:transparent; }
+    .card-accent .card-label { color:#fff; }
+    .card-accent .card-title { color:#fff; }
+    .card-accent .card-sub   { color:rgba(255,255,255,.7); }
+
+    /* ── Border radius reference ── */
+    .radius-grid { display:flex; gap:12px; flex-wrap:wrap; }
+    .radius-chip {
+      background:var(--color-bg-white); border:1.5px solid var(--color-border);
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      padding:14px 18px;
+    }
+    .radius-box {
+      width:48px; height:48px;
+      background:rgba(82,124,94,.15); border:2px solid var(--color-accent);
+    }
+    .radius-name { font-size:11px; color:var(--color-text-secondary); text-align:center; }
+    .radius-val  { font-size:11px; font-family:"SF Mono","Fira Code",monospace; color:var(--color-accent); font-weight:600; }
+
+    /* ── Composer mini ── */
+    .composer-wrap {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:10px 12px;
+      display:flex; flex-direction:column; gap:8px;
+      max-width:560px;
+    }
+    .composer-textarea {
+      width:100%; border:none; outline:none; resize:none;
+      font-family:inherit; font-size:14px; color:var(--color-text);
+      background:transparent; line-height:1.6; min-height:60px;
+    }
+    .composer-textarea::placeholder { color:var(--color-text-muted); }
+    .composer-toolbar {
+      display:flex; align-items:center; gap:4px;
+      border-top:1px solid var(--color-border-light); padding-top:8px;
+    }
+    .composer-toolbar-spacer { flex:1; }
+    .tool-btn {
+      background:none; border:none; cursor:pointer;
+      padding:5px; border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--color-text-secondary);
+      transition:background .15s, color .15s;
+    }
+    .tool-btn:hover { background:rgba(82,124,94,.1); color:var(--color-accent); }
+    .send-btn {
+      background:var(--color-accent); color:#fff; border:none; cursor:pointer;
+      padding:6px 14px; border-radius:7px; font-size:13px; font-weight:500;
+      display:flex; align-items:center; gap:5px; font-family:inherit;
+      transition:filter .15s;
+    }
+    .send-btn:hover { filter:brightness(1.1); }
+
+    .section-wrap {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:20px 24px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="1" width="6" height="6" rx="1.5" fill="var(--color-accent)" opacity=".5"/>
+      <rect x="9" y="1" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+      <rect x="1" y="9" width="6" height="6" rx="1.5" fill="var(--color-accent)"/>
+      <rect x="9" y="9" width="6" height="6" rx="1.5" fill="var(--color-accent)" opacity=".5"/>
+    </svg>
+    基础组件
+  </div>
+  <div class="page-subtitle">按钮 · 输入框 · 标签 · 卡片 · 圆角参考 · 输入框</div>
+
+  <!-- 1. Buttons -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">1 · 按钮</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="section-wrap">
+    <div class="btn-row">
+      <button class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        新建会话
+      </button>
+      <button class="btn btn-success">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        保存记忆
+      </button>
+      <button class="btn btn-error">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        删除会话
+      </button>
+      <button class="btn btn-warning">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v5M7 10v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/></svg>
+        注意事项
+      </button>
+      <button class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        轮廓按钮
+      </button>
+      <button class="btn btn-ghost">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 12c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        幽灵按钮
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Inputs -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">2 · 输入框状态</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="section-wrap">
+    <div class="input-grid">
+      <div class="input-group">
+        <label class="input-label">默认状态</label>
+        <input class="input-field" type="text" value="PostgreSQL 查询优化" />
+        <span class="input-hint">输入会话名称</span>
+      </div>
+      <div class="input-group">
+        <label class="input-label">聚焦状态</label>
+        <input class="input-field focused" type="text" value="" placeholder="搜索记忆…" />
+        <span class="input-hint">按 Enter 确认搜索</span>
+      </div>
+      <div class="input-group">
+        <label class="input-label">占位符</label>
+        <input class="input-field" type="text" value="" placeholder="输入关键词或语义描述…" />
+        <span class="input-hint">&nbsp;</span>
+      </div>
+      <div class="input-group">
+        <label class="input-label">错误状态</label>
+        <input class="input-field error-state" type="text" value="invalid@#$" />
+        <span class="input-error-hint">名称包含非法字符</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Tags/Badges -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">3 · 标签 / 徽章</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="section-wrap">
+    <div class="badge-row">
+      <span class="badge badge-info"><span class="badge-dot"></span>信息</span>
+      <span class="badge badge-success"><span class="badge-dot"></span>成功</span>
+      <span class="badge badge-warning"><span class="badge-dot"></span>警告</span>
+      <span class="badge badge-error"><span class="badge-dot"></span>错误</span>
+      <span class="badge badge-neutral"><span class="badge-dot"></span>中性</span>
+    </div>
+    <div class="badge-row" style="margin-top:10px;">
+      <span class="badge badge-info">Python</span>
+      <span class="badge badge-success">已保存</span>
+      <span class="badge badge-warning">待审核</span>
+      <span class="badge badge-error">失败</span>
+      <span class="badge badge-neutral">草稿</span>
+      <span class="badge badge-info" style="border-radius:99px;">用户偏好</span>
+      <span class="badge badge-success" style="border-radius:99px;">项目背景</span>
+    </div>
+  </div>
+
+  <!-- 4. Cards -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">4 · 卡片变体</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="card-grid">
+    <div class="card card-bg">
+      <div class="card-label">--color-bg</div>
+      <div class="card-title">页面背景卡</div>
+      <div class="card-sub">border-radius: 10px · border: 1px solid --color-border</div>
+    </div>
+    <div class="card card-bg-elevated">
+      <div class="card-label">--color-bg-elevated</div>
+      <div class="card-title">提升背景卡</div>
+      <div class="card-sub">用于顶栏、Artifact 面板、工具提示</div>
+    </div>
+    <div class="card card-bg-white">
+      <div class="card-label">--color-bg-white</div>
+      <div class="card-title">纯白卡片</div>
+      <div class="card-sub">用于输入框、会话列表、弹窗内容</div>
+    </div>
+    <div class="card card-bg-sidebar">
+      <div class="card-label">--color-bg-sidebar</div>
+      <div class="card-title">侧栏背景卡</div>
+      <div class="card-sub">用于左侧导航栏及次级列表</div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-label">accent-filled</div>
+      <div class="card-title">强调色卡片</div>
+      <div class="card-sub">用于高亮状态、活跃选中项</div>
+    </div>
+  </div>
+
+  <!-- 5. Border radius reference -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">5 · 圆角参考</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="radius-grid">
+    <div class="radius-chip" style="border-radius:10px;">
+      <div class="radius-box" style="border-radius:10px;"></div>
+      <span class="radius-name">卡片</span>
+      <span class="radius-val">10px</span>
+    </div>
+    <div class="radius-chip" style="border-radius:10px;">
+      <div class="radius-box" style="border-radius:8px;"></div>
+      <span class="radius-name">按钮</span>
+      <span class="radius-val">8px</span>
+    </div>
+    <div class="radius-chip" style="border-radius:10px;">
+      <div class="radius-box" style="border-radius:6px;"></div>
+      <span class="radius-name">会话项</span>
+      <span class="radius-val">6px</span>
+    </div>
+    <div class="radius-chip" style="border-radius:10px;">
+      <div class="radius-box" style="border-radius:14px 14px 4px 14px; width:56px; height:36px;"></div>
+      <span class="radius-name">用户气泡</span>
+      <span class="radius-val">14/14/4/14</span>
+    </div>
+    <div class="radius-chip" style="border-radius:10px;">
+      <div class="radius-box" style="border-radius:8px; width:64px; height:32px;"></div>
+      <span class="radius-name">代码块</span>
+      <span class="radius-val">8px</span>
+    </div>
+    <div class="radius-chip" style="border-radius:10px;">
+      <div class="radius-box" style="border-radius:12px;"></div>
+      <span class="radius-name">弹窗</span>
+      <span class="radius-val">12px</span>
+    </div>
+  </div>
+
+  <!-- 6. Composer mini -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">6 · 输入框 (Composer)</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="composer-wrap">
+    <textarea class="composer-textarea" placeholder="向 Meso 发送消息…"></textarea>
+    <div class="composer-toolbar">
+      <!-- Attach -->
+      <button class="tool-btn" title="上传文件">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 10V12.5C3 13.33 3.67 14 4.5 14H11.5C12.33 14 13 13.33 13 12.5V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 2v8M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <!-- Knowledge -->
+      <button class="tool-btn" title="知识库">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <!-- Tool -->
+      <button class="tool-btn" title="工具">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M9.5 2.5a4 4 0 0 1-4 5.5L2 11.5 4.5 14l3.5-3.5A4 4 0 1 1 9.5 2.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="composer-toolbar-spacer"></div>
+      <!-- Send -->
+      <button class="send-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 1L1 5.5l5 2 2 5L13 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg>
+        发送
+      </button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meso 配色示例</title>
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --color-bg:             #ecefe9;
+      --color-bg-elevated:    #f4f6f2;
+      --color-bg-white:       #ffffff;
+      --color-bg-sidebar:     #f7f7f3;
+
+      --color-text:           #2f3a32;
+      --color-text-secondary: rgba(47,58,50,0.6);
+      --color-text-muted:     rgba(47,58,50,0.4);
+
+      --color-accent:         #527c5e;
+      --color-accent-dark:    #2f7d4a;
+
+      --color-border:         #d9dfd7;
+      --color-border-light:   rgba(47,58,50,0.1);
+
+      --color-error:          #c0392b;
+      --color-warning:        #b45309;
+      --color-success:        #2f7d4a;
+      --color-info:           #527c5e;
+
+      /* AI-KA reference */
+      --aika-primary:         #4f7f67;
+      --aika-bg-container:    #f3f5f0;
+
+      /* misc */
+      --splitter-hover:       #9cb8a8;
+      --session-active-bg:    rgba(82,124,94,0.12);
+    }
+
+    /* ── Reset / Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      background: var(--color-bg);
+      color: var(--color-text);
+      padding: 40px 32px 80px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 650;
+      margin-bottom: 4px;
+    }
+    h2 {
+      font-size: 15px;
+      font-weight: 650;
+      margin: 36px 0 14px;
+      color: var(--color-accent-dark);
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 6px;
+    }
+    .subtitle {
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+
+    /* ── Swatch grid ── */
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .swatch {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-white);
+    }
+    .swatch-color {
+      height: 72px;
+      width: 100%;
+    }
+    .swatch-info {
+      padding: 10px 12px;
+    }
+    .swatch-token {
+      font-size: 11px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--color-accent);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .swatch-hex {
+      font-size: 12px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--color-text-secondary);
+      display: block;
+      margin-bottom: 3px;
+    }
+    .swatch-desc {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    /* ── Live component demos ── */
+    .demo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: filter 0.15s;
+    }
+    .btn:hover { filter: brightness(0.93); }
+    .btn-primary   { background: var(--color-accent);      color: #fff; }
+    .btn-success   { background: var(--color-success);     color: #fff; }
+    .btn-error     { background: var(--color-error);       color: #fff; }
+    .btn-warning   { background: var(--color-warning);     color: #fff; }
+    .btn-outline   { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+    .btn-ghost     { background: var(--color-session-active, rgba(82,124,94,0.12)); color: var(--color-accent-dark); }
+
+    /* Input */
+    .input-demo {
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--color-text);
+      width: 260px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .input-demo:focus { border-color: var(--color-accent); }
+
+    /* Tags / Badges */
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .tag-info    { background: rgba(82,124,94,0.12);  color: var(--color-info); }
+    .tag-success { background: rgba(47,125,74,0.12);  color: var(--color-success); }
+    .tag-warning { background: rgba(180,83,9,0.12);   color: var(--color-warning); }
+    .tag-error   { background: rgba(192,57,43,0.12);  color: var(--color-error); }
+
+    /* Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+    }
+    .card-bg         { background: var(--color-bg-elevated); }
+    .card-white      { background: var(--color-bg-white); }
+    .card-sidebar    { background: var(--color-bg-sidebar); }
+    .card-accent     { background: var(--color-accent);      color: #fff; border-color: transparent; }
+    .card-accent-dk  { background: var(--color-accent-dark); color: #fff; border-color: transparent; }
+    .card-label {
+      font-size: 11px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-weight: 600;
+      opacity: 0.7;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .card-body { font-size: 13px; }
+
+    /* Session list mock */
+    .session-list {
+      background: var(--color-bg-sidebar);
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+      width: 260px;
+    }
+    .session-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      font-size: 13px;
+      color: var(--color-text);
+      transition: background 0.1s;
+    }
+    .session-item + .session-item {
+      border-top: 1px solid var(--color-border-light);
+    }
+    .session-item:hover {
+      background: rgba(82,124,94,0.06);
+    }
+    .session-item.active {
+      border-left-color: var(--color-accent);
+      background: var(--session-active-bg);
+      font-weight: 600;
+    }
+    .session-time {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      float: right;
+    }
+
+    /* Chat bubbles */
+    .chat-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 600px;
+    }
+    .bubble-user {
+      align-self: flex-end;
+      max-width: 75%;
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: 14px 14px 4px 14px;
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .bubble-ai {
+      align-self: flex-start;
+      max-width: 90%;
+      background: transparent;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .bubble-ai code {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-light);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 13px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--color-accent-dark);
+    }
+
+    /* Text hierarchy */
+    .text-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .text-primary   { color: var(--color-text); font-size: 15px; }
+    .text-secondary { color: var(--color-text-secondary); font-size: 14px; }
+    .text-muted     { color: var(--color-text-muted); font-size: 12px; }
+    .text-accent    { color: var(--color-accent); font-size: 14px; font-weight: 600; }
+    .text-link      { color: var(--color-accent); text-decoration: underline; cursor: pointer; font-size: 14px; }
+
+    /* Splitter bar */
+    .splitter {
+      width: 4px;
+      height: 80px;
+      background: var(--color-border);
+      border-radius: 2px;
+      cursor: col-resize;
+      transition: background 0.15s;
+      align-self: stretch;
+    }
+    .splitter:hover { background: var(--splitter-hover); }
+
+    /* Progress / Stage */
+    .stage-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding-left: 8px;
+      border-left: 1px solid var(--color-border);
+      list-style: none;
+    }
+    .stage-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 13px;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-done    { background: var(--color-success); }
+    .dot-active  { background: var(--color-accent); animation: spin 1s linear infinite; }
+    .dot-pending { background: transparent; border: 1.5px solid var(--color-border); }
+    .stage-done   { color: var(--color-text-secondary); }
+    .stage-active { color: var(--color-accent-dark); font-weight: 600; }
+    .stage-pending{ color: var(--color-text-muted); }
+    @keyframes spin {
+      0%  { box-shadow: 0 -4px 0 0 var(--color-accent); }
+      50% { box-shadow: 0  4px 0 0 var(--color-accent); }
+      100%{ box-shadow: 0 -4px 0 0 var(--color-accent); }
+    }
+
+    /* Divider */
+    .divider { height: 1px; background: var(--color-border-light); margin: 24px 0; }
+
+    /* Ant-design reference box */
+    .aika-box {
+      background: #f3f5f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      border: 1px solid #d0d9cf;
+      max-width: 460px;
+    }
+    .aika-primary-chip {
+      display: inline-block;
+      background: #4f7f67;
+      color: #fff;
+      border-radius: 8px;
+      padding: 6px 18px;
+      font-size: 13px;
+      margin-right: 8px;
+    }
+    .comparison-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .chip-pair {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .chip {
+      width: 80px; height: 36px;
+      border-radius: 8px;
+    }
+    .chip-label {
+      font-size: 11px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Meso 配色系统</h1>
+<p class="subtitle">灰绿暖底 + 绿色强调 · 全量 Design Token 示例页</p>
+
+<!-- ══════════════════════════════════════════════
+     Section 1: Color Swatches
+══════════════════════════════════════════════ -->
+<h2>一、背景色板</h2>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#ecefe9;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-bg</span>
+      <span class="swatch-hex">#ecefe9</span>
+      <span class="swatch-desc">页面背景、侧栏背景</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f4f6f2;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-bg-elevated</span>
+      <span class="swatch-hex">#f4f6f2</span>
+      <span class="swatch-desc">内容卡片背景</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#ffffff; border-bottom:1px solid #d9dfd7;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-bg-white</span>
+      <span class="swatch-hex">#ffffff</span>
+      <span class="swatch-desc">输入框、气泡白底</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#f7f7f3;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-bg-sidebar</span>
+      <span class="swatch-hex">#f7f7f3</span>
+      <span class="swatch-desc">会话历史栏背景</span>
+    </div>
+  </div>
+</div>
+
+<h2>二、强调色板</h2>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#527c5e;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-accent</span>
+      <span class="swatch-hex">#527c5e</span>
+      <span class="swatch-desc">强调色、链接、会话激活左边框</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2f7d4a;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-accent-dark</span>
+      <span class="swatch-hex">#2f7d4a</span>
+      <span class="swatch-desc">深强调、正向操作、success</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:rgba(82,124,94,0.12); border-bottom:1px solid #d9dfd7;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--session-active-bg</span>
+      <span class="swatch-hex">rgba(82,124,94,0.12)</span>
+      <span class="swatch-desc">激活会话项背景</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#9cb8a8;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">splitter hover</span>
+      <span class="swatch-hex">#9cb8a8</span>
+      <span class="swatch-desc">分隔条悬停色</span>
+    </div>
+  </div>
+</div>
+
+<h2>三、文字色板</h2>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2f3a32;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-text</span>
+      <span class="swatch-hex">#2f3a32</span>
+      <span class="swatch-desc">主文字（偏绿灰）</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:rgba(47,58,50,0.6); border-bottom:1px solid #d9dfd7;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-text-secondary</span>
+      <span class="swatch-hex">rgba(47,58,50,0.6)</span>
+      <span class="swatch-desc">次要文字</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:rgba(47,58,50,0.4); border-bottom:1px solid #d9dfd7;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-text-muted</span>
+      <span class="swatch-hex">rgba(47,58,50,0.4)</span>
+      <span class="swatch-desc">辅助文字、时间戳</span>
+    </div>
+  </div>
+</div>
+
+<h2>四、边框色板</h2>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#d9dfd7;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-border</span>
+      <span class="swatch-hex">#d9dfd7</span>
+      <span class="swatch-desc">边框</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:rgba(47,58,50,0.1); border-bottom:1px solid #d9dfd7;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-border-light</span>
+      <span class="swatch-hex">rgba(47,58,50,0.1)</span>
+      <span class="swatch-desc">轻边框、分隔线</span>
+    </div>
+  </div>
+</div>
+
+<h2>五、状态色板</h2>
+<div class="swatches">
+  <div class="swatch">
+    <div class="swatch-color" style="background:#c0392b;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-error</span>
+      <span class="swatch-hex">#c0392b</span>
+      <span class="swatch-desc">错误</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#b45309;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-warning</span>
+      <span class="swatch-hex">#b45309</span>
+      <span class="swatch-desc">警告</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#2f7d4a;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-success</span>
+      <span class="swatch-hex">#2f7d4a</span>
+      <span class="swatch-desc">成功（同 accent-dark）</span>
+    </div>
+  </div>
+  <div class="swatch">
+    <div class="swatch-color" style="background:#527c5e;"></div>
+    <div class="swatch-info">
+      <span class="swatch-token">--color-info</span>
+      <span class="swatch-hex">#527c5e</span>
+      <span class="swatch-desc">信息（同 accent）</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     Section 2: AI-KA reference
+══════════════════════════════════════════════ -->
+<h2>六、AI-KA 参考值（Ant Design colorPrimary）</h2>
+<div class="aika-box">
+  <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:12px;">
+    AI-KA 实现中 Ant Design <code style="font-size:12px;">colorPrimary</code> 为 <strong>#4f7f67</strong>，与 spec 同系、略深一点。
+  </p>
+  <div class="comparison-row">
+    <div class="chip-pair">
+      <div class="chip" style="background:#527c5e;"></div>
+      <div class="chip-label">Spec<br>#527c5e</div>
+    </div>
+    <div class="chip-pair">
+      <div class="chip" style="background:#4f7f67;"></div>
+      <div class="chip-label">AI-KA<br>#4f7f67</div>
+    </div>
+    <div class="chip-pair">
+      <div class="chip" style="background:#2f7d4a;"></div>
+      <div class="chip-label">accent-dark<br>#2f7d4a</div>
+    </div>
+  </div>
+  <p style="font-size:12px; color:var(--color-text-muted); margin-top:12px;">
+    colorBgContainer: #f3f5f0 ← 对比 Meso --color-bg #ecefe9，稍浅
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     Section 3: Live Components
+══════════════════════════════════════════════ -->
+<h2>七、按钮</h2>
+<div class="demo-row">
+  <button class="btn btn-primary">主操作</button>
+  <button class="btn btn-success">确认</button>
+  <button class="btn btn-error">删除</button>
+  <button class="btn btn-warning">警告</button>
+  <button class="btn btn-outline">次要</button>
+  <button class="btn btn-ghost">激活态</button>
+</div>
+
+<h2>八、标签 / Badge</h2>
+<div class="demo-row" style="padding:4px 0">
+  <span class="tag tag-info">信息</span>
+  <span class="tag tag-success">成功</span>
+  <span class="tag tag-warning">警告</span>
+  <span class="tag tag-error">错误</span>
+</div>
+
+<h2>九、输入框</h2>
+<div class="demo-row">
+  <input class="input-demo" type="text" placeholder="点击聚焦，边框变为 accent 色…" />
+</div>
+
+<h2>十、文字层级</h2>
+<div class="text-stack">
+  <span class="text-primary">主文字 #2f3a32 · 15px · 页面正文、会话标题</span>
+  <span class="text-secondary">次要文字 rgba(47,58,50,0.6) · 14px · 副标题、描述</span>
+  <span class="text-muted">辅助文字 rgba(47,58,50,0.4) · 12px · 时间戳、提示</span>
+  <span class="text-accent">强调文字 #527c5e · 14px · 激活状态</span>
+  <a class="text-link">链接颜色 #527c5e · 带下划线</a>
+</div>
+
+<h2>十一、背景卡片对比</h2>
+<div class="card-grid">
+  <div class="card card-bg">
+    <span class="card-label">--color-bg-elevated #f4f6f2</span>
+    <div class="card-body">内容卡片，用于 Artifact 面板和弹出层背景，比页面背景略亮一档。</div>
+  </div>
+  <div class="card card-white">
+    <span class="card-label">--color-bg-white #ffffff</span>
+    <div class="card-body">输入框、用户消息气泡，纯白最亮层，与绿灰底形成清晰对比。</div>
+  </div>
+  <div class="card card-sidebar">
+    <span class="card-label">--color-bg-sidebar #f7f7f3</span>
+    <div class="card-body">会话历史栏，介于背景与卡片之间，自然分隔三栏层次。</div>
+  </div>
+  <div class="card card-accent">
+    <span class="card-label">--color-accent #527c5e</span>
+    <div class="card-body">主强调色，用于主按钮、激活左边框、链接等关键交互元素。</div>
+  </div>
+  <div class="card card-accent-dk">
+    <span class="card-label">--color-accent-dark #2f7d4a</span>
+    <div class="card-body">深强调，正向操作确认、成功状态、hover 加深场景。</div>
+  </div>
+</div>
+
+<h2>十二、会话列表（Session List）</h2>
+<div class="session-list">
+  <div class="session-item active">
+    产品需求分析 <span class="session-time">刚刚</span>
+  </div>
+  <div class="session-item">
+    竞品调研报告 <span class="session-time">2h</span>
+  </div>
+  <div class="session-item">
+    数据库优化方案 <span class="session-time">昨天</span>
+  </div>
+  <div class="session-item">
+    接口文档草稿 <span class="session-time">周一</span>
+  </div>
+</div>
+<p style="font-size:12px; color:var(--color-text-muted); margin-top:8px;">
+  激活项：border-left: 2px solid #527c5e · background: rgba(82,124,94,0.12)
+</p>
+
+<h2>十三、聊天气泡</h2>
+<div class="chat-area">
+  <div class="bubble-user">
+    Meso 的配色方案是什么风格？
+  </div>
+  <div class="bubble-ai">
+    Meso 采用 <strong>灰绿暖底</strong> 风格：页面背景 <code>#ecefe9</code> 带有淡淡绿灰色调，
+    强调色 <code>#527c5e</code> 是中饱和度的森林绿。整体沉静、低噪，适合长时工作场景。
+  </div>
+  <div class="bubble-user">
+    深色强调色和普通强调色有什么区别？
+  </div>
+  <div class="bubble-ai">
+    <code>--color-accent</code>（<code>#527c5e</code>）用于链接、激活左边框等静态标记，
+    <code>--color-accent-dark</code>（<code>#2f7d4a</code>）则用于按钮按压、成功态等需要更强视觉重量的场景。两者色相一致，深度不同。
+  </div>
+</div>
+
+<h2>十四、阶段进度条（Stage Timeline）</h2>
+<ul class="stage-list">
+  <li class="stage-item">
+    <span class="dot dot-done"></span>
+    <span class="stage-done">召回记忆 ✓</span>
+  </li>
+  <li class="stage-item">
+    <span class="dot dot-done"></span>
+    <span class="stage-done">检索知识 ✓</span>
+  </li>
+  <li class="stage-item">
+    <span class="dot dot-active"></span>
+    <span class="stage-active">分析中…</span>
+  </li>
+  <li class="stage-item">
+    <span class="dot dot-pending"></span>
+    <span class="stage-pending">生成结果</span>
+  </li>
+</ul>
+
+<h2>十五、分隔条（Splitter）</h2>
+<div class="demo-row" style="align-items:center; gap:0;">
+  <div style="background:var(--color-bg-elevated); border-radius:10px 0 0 10px; border:1px solid var(--color-border); padding:20px 24px; width:180px; font-size:13px; color:var(--color-text-secondary);">
+    Chat 区域 (60%)
+  </div>
+  <div class="splitter" title="hover 变色"></div>
+  <div style="background:var(--color-bg-elevated); border-radius:0 10px 10px 0; border:1px solid var(--color-border); border-left:none; padding:20px 24px; width:120px; font-size:13px; color:var(--color-text-secondary);">
+    Artifact (40%)
+  </div>
+</div>
+<p style="font-size:12px; color:var(--color-text-muted); margin-top:8px;">
+  分隔条宽 4px，hover 颜色 #9cb8a8，cursor: col-resize
+</p>
+
+</body>
+</html>

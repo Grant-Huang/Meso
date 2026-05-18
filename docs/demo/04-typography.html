@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>字体规范 — Meso Design System</title>
+  <style>
+    :root {
+      --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
+      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
+      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
+      --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
+      --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
+      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      font-size:14px; line-height:1.6;
+      background:var(--color-bg); color:var(--color-text);
+      height:100vh; overflow-y:auto;
+    }
+
+    .page { padding:32px; max-width:900px; margin:0 auto; }
+
+    .page-title {
+      font-size:15px; font-weight:650; margin-bottom:4px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .page-subtitle { font-size:12px; color:var(--color-text-secondary); margin-bottom:32px; }
+
+    /* Section divider */
+    .section-header {
+      display:flex; align-items:center; gap:10px; margin:28px 0 16px;
+    }
+    .section-line { flex:1; height:1px; background:var(--color-border); }
+    .section-label {
+      font-size:11px; font-weight:600; text-transform:uppercase;
+      letter-spacing:.07em; color:var(--color-text-muted); white-space:nowrap;
+    }
+
+    /* Type specimen rows */
+    .type-row {
+      display:flex; align-items:baseline; gap:0;
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:16px 20px; margin-bottom:8px;
+      overflow:hidden;
+    }
+    .type-meta {
+      min-width:200px; flex-shrink:0;
+      display:flex; flex-direction:column; gap:2px; padding-right:20px;
+      border-right:1px solid var(--color-border-light); margin-right:20px;
+    }
+    .type-size { font-size:12px; font-weight:600; color:var(--color-accent); font-family:"SF Mono","Fira Code",monospace; }
+    .type-desc { font-size:11px; color:var(--color-text-muted); }
+    .type-usage { font-size:10px; color:var(--color-text-muted); background:rgba(82,124,94,.08);
+      border-radius:4px; padding:1px 6px; display:inline-block; margin-top:2px; width:fit-content; }
+    .type-sample { flex:1; }
+
+    /* Color hierarchy demo */
+    .color-row {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:16px 20px; margin-bottom:8px;
+    }
+    .color-levels { display:flex; flex-direction:column; gap:6px; }
+    .color-item { display:flex; align-items:center; gap:14px; }
+    .color-chip {
+      width:12px; height:12px; border-radius:50%; flex-shrink:0;
+      border:1px solid var(--color-border);
+    }
+    .color-token { font-size:11px; font-family:"SF Mono","Fira Code",monospace;
+      color:var(--color-text-secondary); min-width:180px; }
+    .color-sentence { font-size:14px; }
+
+    /* Code font demo */
+    .code-demo {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:16px 20px;
+    }
+    .code-font-label { font-size:11px; color:var(--color-text-muted); margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+    .code-sample {
+      font-family:"SF Mono","Fira Code",monospace; font-size:13px;
+      color:var(--color-text); line-height:1.7;
+      background:var(--color-bg); border-radius:6px; padding:12px 14px;
+    }
+    .kw { color:var(--color-accent-dark); font-weight:600; }
+    .st { color:var(--color-error); }
+    .cm { color:var(--color-text-muted); font-style:italic; }
+    .fn { color:var(--color-accent); }
+
+    /* Markdown demo */
+    .md-demo {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:20px 24px;
+    }
+    .md-h1 { font-size:22px; font-weight:700; color:var(--color-text); margin-bottom:6px; border-bottom:1px solid var(--color-border); padding-bottom:8px; }
+    .md-h2 { font-size:17px; font-weight:650; color:var(--color-text); margin:14px 0 6px; }
+    .md-p { font-size:15px; line-height:1.7; color:var(--color-text); margin-bottom:10px; }
+    .md-strong { font-weight:700; }
+    .md-code { font-family:"SF Mono","Fira Code",monospace; font-size:13px;
+      background:rgba(82,124,94,.1); color:var(--color-accent-dark);
+      padding:1px 5px; border-radius:4px; }
+    .md-ul { padding-left:20px; margin-bottom:10px; }
+    .md-li { font-size:15px; line-height:1.7; color:var(--color-text); margin-bottom:2px; }
+    .md-blockquote {
+      border-left:3px solid var(--color-accent); padding-left:12px;
+      color:var(--color-text-secondary); font-size:14px; margin:10px 0;
+    }
+
+    /* Comparison grid */
+    .compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+    .inline-code-badge {
+      display:inline-block; font-family:"SF Mono","Fira Code",monospace;
+      font-size:12px; background:rgba(82,124,94,.1); color:var(--color-accent-dark);
+      border-radius:4px; padding:2px 7px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M2 3h12M2 7h8M2 11h10" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    字体规范
+  </div>
+  <div class="page-subtitle">字号层级 · 字重 · 行高 · 颜色层级</div>
+
+  <!-- Type scale -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">字号层级</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">24px / weight 650</span>
+      <span class="type-desc">欢迎标题</span>
+      <span class="type-usage">Welcome 页 · 空状态</span>
+    </div>
+    <div class="type-sample">
+      <span style="font-size:24px;font-weight:650;color:var(--color-text);">欢迎使用 Meso</span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">15px / weight 650</span>
+      <span class="type-desc">页面标题</span>
+      <span class="type-usage">对话标题 · 面板标头</span>
+    </div>
+    <div class="type-sample">
+      <span style="font-size:15px;font-weight:650;color:var(--color-text);">PostgreSQL 性能优化方案</span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">15px / weight 400</span>
+      <span class="type-desc">页面主体文字</span>
+      <span class="type-usage">line-height: 1.6</span>
+    </div>
+    <div class="type-sample">
+      <span style="font-size:15px;font-weight:400;color:var(--color-text);line-height:1.6;display:block;">
+        分析查询执行计划时，建议首先检查是否缺少必要的索引，再观察 seq scan 的行数是否超出预期。
+      </span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">14px / weight 400</span>
+      <span class="type-desc">聊天气泡</span>
+      <span class="type-usage">line-height: 1.6</span>
+    </div>
+    <div class="type-sample">
+      <span style="font-size:14px;font-weight:400;color:var(--color-text);line-height:1.6;display:block;">
+        帮我分析一下这段 SQL 查询，看看为什么响应时间超过了 2 秒。
+      </span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">14–15px / weight 400</span>
+      <span class="type-desc">Markdown 正文</span>
+      <span class="type-usage">line-height: 1.65–1.7</span>
+    </div>
+    <div class="type-sample">
+      <span style="font-size:14.5px;font-weight:400;color:var(--color-text);line-height:1.67;display:block;">
+        执行计划显示该查询触发了全表扫描（Sequential Scan），影响行数约 <strong>84,000 行</strong>。建议在 <code style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:rgba(82,124,94,.1);padding:1px 5px;border-radius:4px;color:var(--color-accent-dark);">created_at</code> 列上添加 B-tree 索引。
+      </span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">13px / weight 400/600</span>
+      <span class="type-desc">侧栏会话标题</span>
+      <span class="type-usage">active: weight 600</span>
+    </div>
+    <div class="type-sample" style="display:flex;flex-direction:column;gap:6px;">
+      <span style="font-size:13px;font-weight:600;color:var(--color-text);">PostgreSQL 性能优化</span>
+      <span style="font-size:13px;font-weight:400;color:var(--color-text-secondary);">API 接口设计评审</span>
+      <span style="font-size:13px;font-weight:400;color:var(--color-text-secondary);">React 组件重构方案</span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">12px / weight 400</span>
+      <span class="type-desc">小标签</span>
+      <span class="type-usage">标签 · 辅助说明</span>
+    </div>
+    <div class="type-sample" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:12px;background:rgba(82,124,94,.12);color:var(--color-accent);padding:2px 8px;border-radius:4px;">Python</span>
+      <span style="font-size:12px;background:rgba(47,125,74,.12);color:var(--color-success);padding:2px 8px;border-radius:4px;">成功</span>
+      <span style="font-size:12px;background:rgba(192,57,43,.1);color:var(--color-error);padding:2px 8px;border-radius:4px;">错误</span>
+      <span style="font-size:12px;color:var(--color-text-secondary);">3 个结果</span>
+    </div>
+  </div>
+
+  <div class="type-row">
+    <div class="type-meta">
+      <span class="type-size">11px / weight 400</span>
+      <span class="type-desc">时间戳</span>
+      <span class="type-usage">消息时间 · 元信息</span>
+    </div>
+    <div class="type-sample" style="display:flex;gap:16px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:var(--color-text-muted);">今天 14:32</span>
+      <span style="font-size:11px;color:var(--color-text-muted);">昨天 09:15</span>
+      <span style="font-size:11px;color:var(--color-text-muted);">2025-01-06</span>
+    </div>
+  </div>
+
+  <!-- Color hierarchy -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">颜色层级</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="color-row">
+    <div class="color-levels">
+      <div class="color-item">
+        <div class="color-chip" style="background:var(--color-text);"></div>
+        <span class="color-token">--color-text</span>
+        <span class="color-sentence" style="color:var(--color-text);">分析查询执行计划时建议首先检查是否缺少必要的索引</span>
+      </div>
+      <div class="color-item">
+        <div class="color-chip" style="background:rgba(47,58,50,0.6);"></div>
+        <span class="color-token">--color-text-secondary</span>
+        <span class="color-sentence" style="color:var(--color-text-secondary);">分析查询执行计划时建议首先检查是否缺少必要的索引</span>
+      </div>
+      <div class="color-item">
+        <div class="color-chip" style="background:rgba(47,58,50,0.4);"></div>
+        <span class="color-token">--color-text-muted</span>
+        <span class="color-sentence" style="color:var(--color-text-muted);">分析查询执行计划时建议首先检查是否缺少必要的索引</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code font -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">代码字体</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="code-demo">
+    <div class="code-font-label">"SF Mono", "Fira Code", monospace · 13px · line-height 1.7</div>
+    <div class="code-sample">
+<span class="cm"># 召回相关记忆并注入上下文</span>
+<span class="kw">def</span> <span class="fn">recall_memories</span>(query: <span class="kw">str</span>, top_k: <span class="kw">int</span> = 5) -> <span class="kw">list</span>:
+    score = <span class="st">0.35</span> * keyword_score + <span class="st">0.65</span> * semantic_score
+    <span class="kw">return</span> sorted(memories, key=<span class="kw">lambda</span> m: m.score, reverse=<span class="kw">True</span>)[:top_k]
+    </div>
+  </div>
+
+  <!-- Markdown demo -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">Markdown 渲染示例</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="md-demo">
+    <div class="md-h1">PostgreSQL 索引优化指南</div>
+    <div class="md-h2">问题分析</div>
+    <p class="md-p">
+      执行计划显示该查询触发了<span class="md-strong">全表扫描</span>，影响行数约 84,000 行。
+      主要瓶颈在于 <code class="md-code">orders</code> 表缺少复合索引。
+    </p>
+    <div class="md-blockquote">建议在高频查询字段上创建 B-tree 索引，可降低 80% 以上的查询耗时。</div>
+    <div class="md-h2">解决方案</div>
+    <ul class="md-ul">
+      <li class="md-li">在 <code class="md-code">created_at</code> 列添加索引</li>
+      <li class="md-li">使用 <code class="md-code">EXPLAIN ANALYZE</code> 验证执行计划</li>
+      <li class="md-li">监控慢查询日志，设置阈值 <code class="md-code">log_min_duration_statement = 500</code></li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

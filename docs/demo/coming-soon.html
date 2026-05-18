@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root {
+      --color-bg: #ecefe9;
+      --color-accent: #527c5e;
+      --color-text: #2f3a32;
+      --color-text-muted: rgba(47,58,50,0.4);
+      --color-border: #d9dfd7;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .box {
+      text-align: center;
+      padding: 48px 32px;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+    }
+    .icon { font-size: 36px; margin-bottom: 12px; }
+    h2 { font-size: 16px; font-weight: 650; margin-bottom: 6px; }
+    p { font-size: 13px; color: var(--color-text-muted); }
+    .dot { color: var(--color-accent); }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">🚧</div>
+    <h2>演示页面建设中<span class="dot">…</span></h2>
+    <p>此 Demo 即将上线，请先体验"流式会话"演示</p>
+  </div>
+</body>
+</html>

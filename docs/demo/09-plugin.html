@@ -2,232 +2,335 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <title>应用插件</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>应用插件 — Meso Design System</title>
   <style>
     :root {
       --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
-      --color-text:#2f3a32; --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
+      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
+      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
       --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
       --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
-      --color-error:#c0392b; --color-warning:#b45309;
+      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.6;background:var(--color-bg);color:var(--color-text);min-height:100vh;padding:28px 32px 48px}
-    h2{font-size:15px;font-weight:650;margin-bottom:4px;color:var(--color-accent-dark)}
-    .desc{font-size:13px;color:var(--color-text-muted);margin-bottom:24px}
-    .section{margin-bottom:32px}
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      font-size:14px; line-height:1.6;
+      background:var(--color-bg); color:var(--color-text);
+      height:100vh; overflow-y:auto;
+    }
 
-    /* App cards */
-    .app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
-    .app-card{background:var(--color-bg-white);border:2px solid var(--color-border);border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s,background .15s}
-    .app-card:hover{background:rgba(82,124,94,0.04)}
-    .app-card.active{border-color:var(--color-accent);background:rgba(82,124,94,0.06)}
-    .app-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;color:#fff;font-size:18px}
-    .app-name{font-size:13px;font-weight:650;margin-bottom:3px}
-    .app-desc{font-size:12px;color:var(--color-text-muted)}
+    .page { padding:32px; max-width:960px; margin:0 auto; }
+    .page-title { font-size:15px; font-weight:650; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .page-subtitle { font-size:12px; color:var(--color-text-secondary); margin-bottom:28px; }
 
-    /* Manifest display */
-    .manifest-box{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:8px;padding:16px 18px;font-family:"SF Mono","Fira Code",monospace;font-size:12px;line-height:1.8;overflow-x:auto;white-space:pre}
-    .j-key{color:var(--color-accent-dark)}
-    .j-str{color:var(--color-error)}
-    .j-bool{color:var(--color-accent-dark);font-weight:600}
-    .j-arr{color:var(--color-warning)}
-    .j-cm{color:var(--color-text-muted);font-style:italic}
+    .section-header { display:flex; align-items:center; gap:10px; margin:28px 0 14px; }
+    .section-line { flex:1; height:1px; background:var(--color-border); }
+    .section-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--color-text-muted); white-space:nowrap; }
 
-    /* Composer variants */
-    .composer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .composer-mock{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:10px;overflow:hidden}
-    .composer-label{font-size:11px;color:var(--color-text-muted);margin-bottom:8px;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-    .mock-input{padding:10px 12px;font-size:13px;color:var(--color-text-muted);border-bottom:1px solid var(--color-border-light);min-height:40px}
-    .mock-toolbar{display:flex;align-items:center;gap:5px;padding:6px 8px;flex-wrap:wrap}
-    .mock-btn{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid var(--color-border);font-size:11px;color:var(--color-text-secondary);background:transparent;white-space:nowrap}
-    .mock-btn.accent{background:var(--color-accent);color:#fff;border-color:transparent}
-    .mock-sep{flex:1}
+    /* ── App cards ── */
+    .app-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .app-card {
+      background:var(--color-bg-white); border:2px solid var(--color-border);
+      border-radius:12px; padding:20px;
+      cursor:pointer; transition:border-color .2s, box-shadow .2s, background .15s;
+      user-select:none;
+    }
+    .app-card:hover { border-color:rgba(82,124,94,.4); }
+    .app-card.selected {
+      border-color:var(--color-accent);
+      background:rgba(82,124,94,.04);
+      box-shadow:0 0 0 3px rgba(82,124,94,.12);
+    }
+    .app-icon {
+      width:44px; height:44px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:12px;
+    }
+    .app-name { font-size:14px; font-weight:600; color:var(--color-text); margin-bottom:4px; }
+    .app-desc { font-size:12px; color:var(--color-text-secondary); line-height:1.5; }
+    .app-selected-badge {
+      display:none; float:right; margin-left:8px;
+      font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px;
+      background:rgba(82,124,94,.15); color:var(--color-accent);
+    }
+    .app-card.selected .app-selected-badge { display:inline; }
 
-    /* Tools badge */
-    .tools-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:rgba(82,124,94,0.1);border-radius:4px;font-size:10px;color:var(--color-accent-dark);font-weight:600}
+    /* ── JSON manifest ── */
+    .json-box {
+      background:#1e2620; border-radius:10px;
+      padding:20px 24px; font-family:"SF Mono","Fira Code",monospace;
+      font-size:12px; line-height:1.85; overflow-x:auto;
+    }
+    .j-brace   { color:#9cb8a8; }
+    .j-key     { color:#527c5e; font-weight:600; }
+    .j-str     { color:#cdd8ca; }
+    .j-bool    { color:#2f7d4a; font-weight:600; }
+    .j-num     { color:#b8c9b4; }
+    .j-arr     { color:#9cb8a8; }
+    .j-comment { color:#6a8872; font-style:italic; }
+    .j-hl      { background:rgba(82,124,94,.18); border-radius:3px; padding:1px 3px; }
+
+    /* ── Composer toolbar variants ── */
+    .toolbar-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .toolbar-variant {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; overflow:hidden;
+    }
+    .tv-header {
+      padding:8px 14px; border-bottom:1px solid var(--color-border);
+      font-size:11px; font-weight:600; color:var(--color-text-secondary);
+      background:var(--color-bg-elevated);
+    }
+    .tv-body { padding:10px 12px; }
+    .tv-input-area {
+      border:1.5px solid var(--color-border); border-radius:8px;
+      padding:8px 10px; background:var(--color-bg-elevated);
+      font-size:12px; color:var(--color-text-muted); margin-bottom:8px;
+      min-height:40px;
+    }
+    .tv-toolbar { display:flex; align-items:center; gap:6px; padding-top:6px; border-top:1px solid var(--color-border-light); }
+    .tv-spacer { flex:1; }
+    .tv-btn {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 10px; border-radius:6px; border:none; cursor:default;
+      font-size:11px; font-weight:500; font-family:inherit;
+      background:rgba(82,124,94,.1); color:var(--color-accent);
+    }
+    .tv-btn-ghost {
+      background:none; border:none; padding:5px; border-radius:6px;
+      cursor:default; color:var(--color-text-muted);
+      display:flex; align-items:center;
+    }
+    .tv-send {
+      background:var(--color-accent); color:#fff; border:none;
+      padding:5px 12px; border-radius:6px; font-size:11px; font-weight:500;
+      cursor:default; display:flex; align-items:center; gap:4px;
+    }
+    .app-selected-indicator {
+      font-size:10px; color:var(--color-accent); font-weight:600;
+      background:rgba(82,124,94,.1); border-radius:4px; padding:2px 8px;
+      margin-left:auto;
+    }
   </style>
 </head>
 <body>
+<div class="page">
 
-<h2>应用插件系统</h2>
-<p class="desc">每个 App = 一个 manifest.json，声明知识库 / Tools / Skill，平台负责注入流式对话</p>
+  <div class="page-title">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="1" width="6" height="6" rx="1.5" stroke="var(--color-accent)" stroke-width="1.5"/>
+      <rect x="9" y="1" width="6" height="6" rx="1.5" stroke="var(--color-accent)" stroke-width="1.5" opacity=".6"/>
+      <rect x="1" y="9" width="6" height="6" rx="1.5" stroke="var(--color-accent)" stroke-width="1.5" opacity=".6"/>
+      <rect x="9" y="9" width="6" height="6" rx="1.5" stroke="var(--color-accent)" stroke-width="1.5" opacity=".4"/>
+    </svg>
+    应用插件
+  </div>
+  <div class="page-subtitle">App Manifest · 应用卡片 · Composer 工具栏变体</div>
 
-<!-- App selector -->
-<div class="section">
-  <h2 style="margin-bottom:12px">选择应用查看 Manifest</h2>
-  <div class="app-grid">
-    <div class="app-card active" onclick="selectApp('chat',this)">
-      <div class="app-icon" style="background:var(--color-accent)">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H7l-4 3V5a1 1 0 011-1z"/></svg>
+  <!-- 1. App cards -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">1 · 应用选择</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="app-grid" id="app-grid">
+    <!-- 通用对话 -->
+    <div class="app-card selected" data-app="general" data-index="0">
+      <span class="app-selected-badge">当前</span>
+      <div class="app-icon" style="background:rgba(82,124,94,.12);">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H7l-4 3V6a1 1 0 0 1 1-1z" stroke="var(--color-accent)" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9h8M7 12h5" stroke="var(--color-accent)" stroke-width="1.4" stroke-linecap="round"/></svg>
       </div>
       <div class="app-name">通用对话</div>
-      <div class="app-desc">基础 AI 对话，无知识库</div>
+      <div class="app-desc">全能助手，支持聊天、分析、写作。无特定知识库，依赖长期记忆召回。</div>
     </div>
-    <div class="app-card" onclick="selectApp('doc',this)">
-      <div class="app-icon" style="background:#1a6b8a">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8l4 4v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><polyline points="12,2 12,6 16,6"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="12" x2="11" y2="12"/></svg>
+    <!-- 文档审查 -->
+    <div class="app-card" data-app="docreview" data-index="1">
+      <span class="app-selected-badge">当前</span>
+      <div class="app-icon" style="background:rgba(47,125,74,.1);">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="2" width="14" height="18" rx="2" stroke="var(--color-success)" stroke-width="1.6"/><path d="M8 7h6M8 10h6M8 13h4" stroke="var(--color-success)" stroke-width="1.4" stroke-linecap="round"/><circle cx="16" cy="16" r="4" fill="var(--color-bg-white)" stroke="var(--color-success)" stroke-width="1.4"/><path d="M14.5 16l1 1 2-2" stroke="var(--color-success)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="app-name">文档审查</div>
-      <div class="app-desc">挂载知识库 + 审查 Skill</div>
+      <div class="app-desc">专注文档结构、合规性检查，绑定内部规范知识库，支持焦点模式。</div>
     </div>
-    <div class="app-card" onclick="selectApp('code',this)">
-      <div class="app-icon" style="background:#5a3e8a">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,8 2,10 6,12"/><polyline points="14,8 18,10 14,12"/><line x1="11" y1="4" x2="9" y2="16"/></svg>
+    <!-- 代码助手 -->
+    <div class="app-card" data-app="codeassist" data-index="2">
+      <span class="app-selected-badge">当前</span>
+      <div class="app-icon" style="background:rgba(82,124,94,.08);">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M7 8l-4 3 4 3M15 8l4 3-4 3M13 6l-4 10" stroke="var(--color-accent-dark)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="app-name">代码助手</div>
-      <div class="app-desc">代码生成 + read_file Tool</div>
+      <div class="app-desc">代码审查、重构建议，绑定项目代码知识库及工具集，最小化工具栏。</div>
     </div>
   </div>
-</div>
 
-<!-- Manifest display -->
-<div class="section">
-  <h2 style="margin-bottom:10px">App Manifest</h2>
-  <div class="manifest-box" id="manifest-box"></div>
-</div>
+  <!-- 2. App Manifest -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">2 · App Manifest JSON</span>
+    <div class="section-line"></div>
+  </div>
 
-<!-- Composer variants -->
-<div class="section">
-  <h2 style="margin-bottom:12px">Composer 工具栏随 App 联动</h2>
-  <div class="composer-grid">
-    <div>
-      <div class="composer-label">通用对话</div>
-      <div class="composer-mock">
-        <div class="mock-input">向 Meso 发送消息…</div>
-        <div class="mock-toolbar">
-          <div class="mock-sep"></div>
-          <div class="mock-btn accent">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1L5.5 6.5M11 1L7.5 11 5.5 6.5 1 4.5 11 1z"/></svg>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div>
-      <div class="composer-label">文档审查</div>
-      <div class="composer-mock">
-        <div class="mock-input">描述要审查的问题…</div>
-        <div class="mock-toolbar">
-          <div class="mock-btn">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="1" y="1" width="9" height="9" rx="1.5"/><line x1="1" y1="4" x2="10" y2="4"/><line x1="4" y1="1" x2="4" y2="10"/></svg>
+  <div class="json-box" id="json-box">
+    <!-- content rendered by JS -->
+  </div>
+
+  <!-- 3. Composer toolbar variants -->
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">3 · Composer 工具栏变体</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="toolbar-grid">
+    <!-- General -->
+    <div class="toolbar-variant">
+      <div class="tv-header">通用对话</div>
+      <div class="tv-body">
+        <div class="tv-input-area">向 Meso 发送消息…</div>
+        <div class="tv-toolbar">
+          <button class="tv-btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 10V12.5C3 13.33 3.67 14 4.5 14H9.5C10.33 14 11 13.33 11 12.5V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7 2v8M4.5 4.5L7 2l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="tv-btn">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 5h5M3 7h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
             知识库
-          </div>
-          <div class="mock-btn">焦点 ▾</div>
-          <div class="mock-sep"></div>
-          <div class="mock-btn accent">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1L5.5 6.5M11 1L7.5 11 5.5 6.5 1 4.5 11 1z"/></svg>
-          </div>
+          </span>
+          <span class="tv-btn">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5a3.5 3.5 0 0 1-3.5 5L1 9.5 2.5 11l3-2.5A3.5 3.5 0 1 1 7 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            工具
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2 3l2 2 2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <div class="tv-spacer"></div>
+          <button class="tv-send">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M10 1L1 4.5l4 1.5 1.5 4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+            发送
+          </button>
         </div>
       </div>
     </div>
-    <div>
-      <div class="composer-label">代码助手</div>
-      <div class="composer-mock">
-        <div class="mock-input">描述你的代码需求…</div>
-        <div class="mock-toolbar">
-          <div class="mock-btn">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4 1,5.5 3,7"/><polyline points="8,4 10,5.5 8,7"/><line x1="6.5" y1="2" x2="4.5" y2="9"/></svg>
-            Tools
-          </div>
-          <div class="tools-badge">read_file write_file</div>
-          <div class="mock-sep"></div>
-          <div class="mock-btn accent">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1L5.5 6.5M11 1L7.5 11 5.5 6.5 1 4.5 11 1z"/></svg>
-          </div>
+
+    <!-- Doc review -->
+    <div class="toolbar-variant">
+      <div class="tv-header">文档审查</div>
+      <div class="tv-body">
+        <div class="tv-input-area">上传文档或输入审查要求…</div>
+        <div class="tv-toolbar">
+          <button class="tv-btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 10V12.5C3 13.33 3.67 14 4.5 14H9.5C10.33 14 11 13.33 11 12.5V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7 2v8M4.5 4.5L7 2l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="tv-btn">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 5h5M3 7h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+            知识库
+          </span>
+          <span class="tv-btn" style="background:rgba(47,125,74,.1);color:var(--color-success);">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="3.5" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 3.5v2l1.5 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+            焦点
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2 3l2 2 2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="tv-btn">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5a3.5 3.5 0 0 1-3.5 5L1 9.5 2.5 11l3-2.5A3.5 3.5 0 1 1 7 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            工具
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2 3l2 2 2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <div class="tv-spacer"></div>
+          <button class="tv-send">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M10 1L1 4.5l4 1.5 1.5 4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+            发送
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code assist (minimal) -->
+    <div class="toolbar-variant">
+      <div class="tv-header">代码助手 (简洁)</div>
+      <div class="tv-body">
+        <div class="tv-input-area">粘贴代码或描述问题…</div>
+        <div class="tv-toolbar">
+          <button class="tv-btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 10V12.5C3 13.33 3.67 14 4.5 14H9.5C10.33 14 11 13.33 11 12.5V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7 2v8M4.5 4.5L7 2l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="tv-spacer"></div>
+          <button class="tv-send" style="background:var(--color-accent-dark);">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M10 1L1 4.5l4 1.5 1.5 4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+            发送
+          </button>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <script>
-const MANIFESTS = {
-  chat: `{
-  <span class="j-key">"schema_version"</span>: <span class="j-str">"1.0"</span>,
-  <span class="j-key">"id"</span>:             <span class="j-str">"chat-assistant"</span>,
-  <span class="j-key">"name"</span>:           <span class="j-str">"通用对话"</span>,
-  <span class="j-key">"icon"</span>:           <span class="j-str">"MessageOutlined"</span>,
+  const MANIFESTS = {
+    general: {
+      id: "general",
+      name: "通用对话",
+      version: "1.0.0",
+      description: "全能助手，支持聊天、分析、写作",
+      skill: null,
+      knowledge: [],
+      tools: ["web_search", "calculator"],
+      memory: { recall: true, write: true }
+    },
+    docreview: {
+      id: "doc-review",
+      name: "文档审查",
+      version: "2.1.0",
+      description: "文档结构与合规性检查，绑定内部规范库",
+      skill: "document_review",
+      knowledge: ["compliance_kb", "style_guide_kb"],
+      tools: ["doc_parser", "diff_viewer", "export"],
+      memory: { recall: true, write: false }
+    },
+    codeassist: {
+      id: "code-assist",
+      name: "代码助手",
+      version: "1.3.0",
+      description: "代码审查、重构建议与文档生成",
+      skill: "code_review",
+      knowledge: ["project_codebase"],
+      tools: ["code_runner", "linter", "git_diff"],
+      memory: { recall: true, write: true }
+    }
+  };
 
-  <span class="j-key">"ui"</span>: {
-    <span class="j-key">"composer_placeholder"</span>: <span class="j-str">"向 Meso 发送消息…"</span>,
-    <span class="j-key">"session_col_visible"</span>:  <span class="j-bool">true</span>,
-    <span class="j-key">"split_mode_default"</span>:   <span class="j-bool">false</span>
-  },
-
-  <span class="j-key">"skill"</span>:     { <span class="j-key">"system_prompt_file"</span>: <span class="j-bool">null</span> },
-  <span class="j-key">"knowledge"</span>: { <span class="j-key">"enabled"</span>: <span class="j-bool">false</span> },
-  <span class="j-key">"tools"</span>:     [],
-
-  <span class="j-key">"memory"</span>: {
-    <span class="j-key">"recall_categories"</span>: [<span class="j-str">"preference"</span>, <span class="j-str">"fact"</span>]
+  function renderJSON(manifest) {
+    const box = document.getElementById('json-box');
+    const j = JSON.stringify(manifest, null, 2);
+    // Manual colorize
+    let html = j
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"(\w[\w-]*)"\s*:/g, (m, k) => {
+        const hl = ['id','name','skill','knowledge','tools','memory'].includes(k)
+          ? ' j-hl' : '';
+        return `<span class="j-key${hl}">"${k}"</span>:`;
+      })
+      .replace(/:\s*"([^"]*)"/g, (m, v) => `: <span class="j-str">"${v}"</span>`)
+      .replace(/:\s*(true|false)/g, (m, v) => `: <span class="j-bool">${v}</span>`)
+      .replace(/:\s*([\d.]+)/g, (m, v) => `: <span class="j-num">${v}</span>`)
+      .replace(/:\s*null/g, `: <span class="j-bool">null</span>`)
+      .replace(/[\[\]]/g, m => `<span class="j-arr">${m}</span>`)
+      .replace(/[{}]/g, m => `<span class="j-brace">${m}</span>`);
+    box.innerHTML = html;
   }
-}`,
-  doc: `{
-  <span class="j-key">"schema_version"</span>: <span class="j-str">"1.0"</span>,
-  <span class="j-key">"id"</span>:             <span class="j-str">"doc-reviewer"</span>,
-  <span class="j-key">"name"</span>:           <span class="j-str">"文档审查"</span>,
-  <span class="j-key">"icon"</span>:           <span class="j-str">"FileSearchOutlined"</span>,
 
-  <span class="j-key">"ui"</span>: {
-    <span class="j-key">"composer_placeholder"</span>: <span class="j-str">"描述要审查的问题，或上传文档…"</span>,
-    <span class="j-key">"split_mode_default"</span>:   <span class="j-bool">true</span>,    <span class="j-cm">// 默认开启分屏</span>
-    <span class="j-key">"artifact_types"</span>:       [<span class="j-str">"markdown"</span>, <span class="j-str">"table"</span>]
-  },
+  // App card selection
+  document.getElementById('app-grid').addEventListener('click', e => {
+    const card = e.target.closest('.app-card');
+    if (!card) return;
+    document.querySelectorAll('.app-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const app = card.dataset.app;
+    renderJSON(MANIFESTS[app]);
+  });
 
-  <span class="j-key">"skill"</span>: {
-    <span class="j-key">"system_prompt_file"</span>: <span class="j-str">"skills/review-domain.md"</span>,
-    <span class="j-key">"focus_points"</span>: [
-      { <span class="j-key">"id"</span>: <span class="j-str">"completeness"</span>, <span class="j-key">"name"</span>: <span class="j-str">"完整性检查"</span> },
-      { <span class="j-key">"id"</span>: <span class="j-str">"consistency"</span>,  <span class="j-key">"name"</span>: <span class="j-str">"一致性检查"</span>  }
-    ]
-  },
-
-  <span class="j-key">"knowledge"</span>: {
-    <span class="j-key">"enabled"</span>:    <span class="j-bool">true</span>,
-    <span class="j-key">"index_dirs"</span>: [<span class="j-str">"knowledge/"</span>],
-    <span class="j-key">"chunk_size"</span>: <span class="j-arr">800</span>
-  },
-
-  <span class="j-key">"tools"</span>: [<span class="j-str">"search_knowledge"</span>, <span class="j-str">"extract_findings"</span>],
-
-  <span class="j-key">"memory"</span>: {
-    <span class="j-key">"recall_categories"</span>: [<span class="j-str">"preference"</span>, <span class="j-str">"fact"</span>, <span class="j-str">"project"</span>],
-    <span class="j-key">"auto_save_category"</span>: <span class="j-str">"fact"</span>
-  }
-}`,
-  code: `{
-  <span class="j-key">"schema_version"</span>: <span class="j-str">"1.0"</span>,
-  <span class="j-key">"id"</span>:             <span class="j-str">"code-assistant"</span>,
-  <span class="j-key">"name"</span>:           <span class="j-str">"代码助手"</span>,
-  <span class="j-key">"icon"</span>:           <span class="j-str">"CodeOutlined"</span>,
-
-  <span class="j-key">"ui"</span>: {
-    <span class="j-key">"composer_placeholder"</span>: <span class="j-str">"描述你的代码需求…"</span>,
-    <span class="j-key">"split_mode_default"</span>:   <span class="j-bool">true</span>,
-    <span class="j-key">"artifact_types"</span>:       [<span class="j-str">"python"</span>, <span class="j-str">"javascript"</span>, <span class="j-str">"sql"</span>]
-  },
-
-  <span class="j-key">"skill"</span>: {
-    <span class="j-key">"system_prompt_file"</span>: <span class="j-str">"skills/code-expert.md"</span>
-  },
-
-  <span class="j-key">"knowledge"</span>: { <span class="j-key">"enabled"</span>: <span class="j-bool">false</span> },
-
-  <span class="j-key">"tools"</span>: [<span class="j-str">"read_file"</span>, <span class="j-str">"write_file"</span>, <span class="j-str">"save_memory"</span>],
-
-  <span class="j-key">"memory"</span>: {
-    <span class="j-key">"recall_categories"</span>: [<span class="j-str">"preference"</span>, <span class="j-str">"fact"</span>, <span class="j-str">"project"</span>],
-    <span class="j-key">"auto_save_category"</span>: <span class="j-str">"decision"</span>
-  }
-}`
-}
-
-function selectApp(id, el) {
-  document.querySelectorAll('.app-card').forEach(c => c.classList.remove('active'))
-  el.classList.add('active')
-  document.getElementById('manifest-box').innerHTML = MANIFESTS[id]
-}
-selectApp('chat', document.querySelector('.app-card'))
+  // Initial render
+  renderJSON(MANIFESTS['general']);
 </script>
 </body>
 </html>

@@ -2,198 +2,307 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <title>记忆系统</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>记忆系统 — Meso Design System</title>
   <style>
     :root {
       --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
-      --color-bg-sidebar:#f7f7f3;
-      --color-text:#2f3a32; --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
+      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
+      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
       --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
       --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
-      --color-success:#2f7d4a; --color-warning:#b45309;
+      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.6;background:var(--color-bg);color:var(--color-text);min-height:100vh;padding:28px 32px 48px}
-    h2{font-size:15px;font-weight:650;margin-bottom:4px;color:var(--color-accent-dark)}
-    .desc{font-size:13px;color:var(--color-text-muted);margin-bottom:24px}
-    .section{margin-bottom:32px}
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      font-size:14px; line-height:1.6;
+      background:var(--color-bg); color:var(--color-text);
+      height:100vh; overflow-y:auto;
+    }
 
-    /* Storage cards */
-    .storage-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
-    .store-card{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:10px;padding:16px 18px}
-    .store-card-title{font-size:13px;font-weight:650;margin-bottom:4px;display:flex;align-items:center;gap:6px}
-    .store-card-sub{font-size:12px;color:var(--color-text-muted);margin-bottom:10px}
-    .path{font-family:"SF Mono","Fira Code",monospace;font-size:11px;color:var(--color-accent);background:rgba(82,124,94,0.08);padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:8px}
-    .file-tree{font-family:"SF Mono","Fira Code",monospace;font-size:11px;line-height:1.8;color:var(--color-text-secondary)}
-    .file-dir{color:var(--color-text)}
-    .file-md{color:var(--color-accent)}
+    .page { padding:32px; max-width:900px; margin:0 auto; }
+    .page-title { font-size:15px; font-weight:650; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .page-subtitle { font-size:12px; color:var(--color-text-secondary); margin-bottom:28px; }
 
-    /* Category chips */
-    .cat-grid{display:flex;flex-wrap:wrap;gap:8px}
-    .cat-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--color-border);font-size:12px;cursor:default}
-    .cat-chip.pref{background:rgba(82,124,94,0.08);color:var(--color-accent-dark)}
-    .cat-chip.fact{background:rgba(47,125,74,0.08);color:var(--color-success)}
-    .cat-chip.deci{background:rgba(180,83,9,0.08);color:var(--color-warning)}
-    .cat-chip.feed{background:rgba(47,58,50,0.06);color:var(--color-text-secondary)}
+    .section-header { display:flex; align-items:center; gap:10px; margin:28px 0 14px; }
+    .section-line { flex:1; height:1px; background:var(--color-border); }
+    .section-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--color-text-muted); white-space:nowrap; }
 
-    /* Recall formula */
-    .formula{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:8px;padding:14px 18px;font-family:"SF Mono","Fira Code",monospace;font-size:13px;color:var(--color-text)}
-    .formula .kw{color:var(--color-accent-dark);font-weight:600}
-    .formula .cm{color:var(--color-text-muted)}
+    .memory-diagram { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .mem-card {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:20px;
+    }
+    .mem-card-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .mem-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(82,124,94,.1); }
+    .mem-card-title { font-size:14px; font-weight:600; color:var(--color-text); }
+    .mem-card-sub { font-size:12px; color:var(--color-text-secondary); }
+    .mem-file-list { display:flex; flex-direction:column; gap:5px; margin-top:10px; }
+    .mem-file { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; background:var(--color-bg-elevated); font-size:12px; color:var(--color-text-secondary); }
+    .mem-file-name { font-family:"SF Mono","Fira Code",monospace; font-size:11px; color:var(--color-accent); }
 
-    /* Recall simulator */
-    .recall-row{display:flex;gap:8px;margin-bottom:14px}
-    .search-input{flex:1;padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--color-text);outline:none;background:var(--color-bg-white);transition:border-color .15s}
-    .search-input:focus{border-color:var(--color-accent)}
-    .search-btn{display:flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 14px;border-radius:8px;border:none;background:var(--color-accent);color:#fff;font-size:13px;font-family:inherit;cursor:pointer;transition:filter .15s}
-    .search-btn:hover{filter:brightness(.92)}
-    .chips-result{display:flex;flex-wrap:wrap;gap:6px;min-height:32px}
-    .chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1px solid rgba(82,124,94,0.2);background:rgba(82,124,94,0.08);font-size:12px;color:var(--color-accent-dark);opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s}
-    .chip.visible{opacity:1;transform:none}
-    .chip-cat{font-weight:600;opacity:.7}
+    .formula-card {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:20px 24px;
+      display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+    }
+    .formula-block {
+      font-family:"SF Mono","Fira Code",monospace; font-size:15px;
+      color:var(--color-text); padding:10px 16px;
+      background:var(--color-bg-elevated); border-radius:8px;
+      border:1px solid var(--color-border); white-space:nowrap;
+    }
+    .formula-kw  { color:var(--color-accent-dark); font-weight:700; }
+    .formula-num { color:var(--color-accent); }
+    .formula-var { color:var(--color-text-secondary); }
+    .formula-weight { display:flex; flex-direction:column; gap:6px; flex:1; min-width:200px; }
+    .weight-row { display:flex; align-items:center; gap:10px; }
+    .weight-bar-bg { flex:1; height:6px; background:var(--color-border); border-radius:3px; overflow:hidden; }
+    .weight-bar { height:100%; border-radius:3px; }
+    .weight-label { font-size:11px; color:var(--color-text-secondary); min-width:80px; }
+    .weight-val { font-size:11px; font-family:"SF Mono","Fira Code",monospace; color:var(--color-accent); min-width:32px; text-align:right; }
 
-    /* Inject preview */
-    .inject-box{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:8px;padding:14px 18px;font-family:"SF Mono","Fira Code",monospace;font-size:12px;line-height:1.8;color:var(--color-text-secondary);white-space:pre}
-    .inject-sep{color:var(--color-border)}
-    .inject-key{color:var(--color-accent);font-weight:600}
-    .inject-val{color:var(--color-text)}
+    .recall-card { background:var(--color-bg-white); border:1px solid var(--color-border); border-radius:10px; padding:20px 24px; }
+    .search-row { display:flex; gap:10px; }
+    .search-input {
+      flex:1; padding:9px 14px; border-radius:8px;
+      border:1.5px solid var(--color-border); background:var(--color-bg-elevated);
+      font-size:14px; font-family:inherit; color:var(--color-text);
+      outline:none; transition:border-color .15s, box-shadow .15s;
+    }
+    .search-input:focus { border-color:var(--color-accent); box-shadow:0 0 0 3px rgba(82,124,94,.12); }
+    .search-btn {
+      padding:9px 18px; background:var(--color-accent); color:#fff;
+      border:none; border-radius:8px; cursor:pointer; font-family:inherit;
+      font-size:13px; font-weight:500; display:flex; align-items:center; gap:7px;
+      transition:filter .15s;
+    }
+    .search-btn:hover { filter:brightness(1.1); }
+    .recall-results { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+    .recall-chip {
+      display:flex; align-items:flex-start; gap:12px;
+      background:var(--color-bg-elevated); border:1px solid var(--color-border);
+      border-radius:8px; padding:12px 14px;
+      opacity:0; transform:translateY(8px);
+      transition:opacity .35s, transform .35s;
+    }
+    .recall-chip.show { opacity:1; transform:translateY(0); }
+    .recall-chip-cat {
+      font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+      padding:2px 8px; border-radius:4px; white-space:nowrap; flex-shrink:0; margin-top:1px;
+    }
+    .recall-chip-body { flex:1; }
+    .recall-chip-text { font-size:13px; color:var(--color-text); line-height:1.5; }
+    .recall-chip-meta { font-size:11px; color:var(--color-text-muted); margin-top:3px; display:flex; gap:12px; }
+    .recall-score { font-family:"SF Mono","Fira Code",monospace; }
+    .cat-legend { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px solid var(--color-border-light); }
+    .cat-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+
+    .prompt-box {
+      background:#1e2620; border-radius:10px;
+      padding:20px 22px; font-family:"SF Mono","Fira Code",monospace;
+      font-size:12px; line-height:1.8; overflow-x:auto;
+    }
+    .prompt-comment { color:#6a8872; }
+    .prompt-header  { color:#9cb8a8; font-weight:700; }
+    .prompt-cat     { color:#527c5e; font-weight:600; }
+    .prompt-text    { color:#cdd8ca; }
+    .prompt-score   { color:#6a8872; }
+    .prompt-rule    { color:#b8c9b4; }
   </style>
 </head>
 <body>
+<div class="page">
 
-<h2>记忆系统</h2>
-<p class="desc">短期记忆（本地 .md）+ 长期记忆（Obsidian Vault）混合召回，注入 system prompt</p>
+  <div class="page-title">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <ellipse cx="8" cy="5" rx="6" ry="3" stroke="var(--color-accent)" stroke-width="1.5"/>
+      <path d="M2 5v6c0 1.66 2.69 3 6 3s6-1.34 6-3V5" stroke="var(--color-accent)" stroke-width="1.5"/>
+      <path d="M2 8c0 1.66 2.69 3 6 3s6-1.34 6-3" stroke="var(--color-accent)" stroke-width="1.3" opacity=".5"/>
+    </svg>
+    记忆系统
+  </div>
+  <div class="page-subtitle">短期记忆 · 长期记忆 · 召回算法 · 系统提示注入</div>
 
-<!-- Storage structure -->
-<div class="section">
-  <div class="storage-grid">
-    <div class="store-card">
-      <div class="store-card-title">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2 3h10v8a1 1 0 01-1 1H3a1 1 0 01-1-1V3z"/><path d="M2 3a1 1 0 011-1h8a1 1 0 011 1"/><line x1="5" y1="6" x2="9" y2="6"/><line x1="5" y1="8.5" x2="7.5" y2="8.5"/></svg>
-        短期记忆
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">1 · 记忆存储结构</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="memory-diagram">
+    <div class="mem-card">
+      <div class="mem-card-header">
+        <div class="mem-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="16" rx="2" stroke="var(--color-accent)" stroke-width="1.5"/><path d="M6 7h8M6 10h6M6 13h4" stroke="var(--color-accent)" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="mem-card-title">短期记忆</div>
+          <div class="mem-card-sub">Markdown 文件 · 会话级</div>
+        </div>
       </div>
-      <div class="store-card-sub">会话摘要 · 用户偏好 · 快速事实</div>
-      <div class="path">~/.llm-platform/memory/</div>
-      <div class="file-tree">
-<span class="file-dir">short-term/</span>
-  <span class="file-dir">sessions/</span>
-    <span class="file-md">abc123.md</span>  ← 会话摘要
-  <span class="file-md">user-preferences.md</span>
-  <span class="file-md">quick-facts.md</span>
+      <div class="mem-file-list">
+        <div class="mem-file">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2" y="1" width="9" height="11" rx="1.5" stroke="var(--color-text-muted)" stroke-width="1.2"/><path d="M4 4.5h5M4 7h3" stroke="var(--color-text-muted)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          <span class="mem-file-name">session_context.md</span>
+        </div>
+        <div class="mem-file">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2" y="1" width="9" height="11" rx="1.5" stroke="var(--color-text-muted)" stroke-width="1.2"/><path d="M4 4.5h5M4 7h3" stroke="var(--color-text-muted)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          <span class="mem-file-name">tool_results.md</span>
+        </div>
+        <div class="mem-file">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2" y="1" width="9" height="11" rx="1.5" stroke="var(--color-text-muted)" stroke-width="1.2"/><path d="M4 4.5h5M4 7h3" stroke="var(--color-text-muted)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          <span class="mem-file-name">artifact_refs.md</span>
+        </div>
       </div>
+      <div style="font-size:11px;color:var(--color-text-muted);margin-top:10px;">会话结束自动清除 · 不跨会话保留</div>
     </div>
-    <div class="store-card">
-      <div class="store-card-title">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M4.5 7c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5"/><circle cx="7" cy="7" r=".8" fill="currentColor" stroke="none"/></svg>
-        长期记忆（Obsidian）
+
+    <div class="mem-card">
+      <div class="mem-card-header">
+        <div class="mem-icon" style="background:rgba(47,125,74,.1);">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h5v12H4zM11 4h5v12h-5z" stroke="var(--color-success)" stroke-width="1.5" stroke-linejoin="round"/><path d="M4 8h5M11 8h5M4 12h5M11 12h5" stroke="var(--color-success)" stroke-width="1.1" stroke-linecap="round" opacity=".6"/></svg>
+        </div>
+        <div>
+          <div class="mem-card-title">长期记忆</div>
+          <div class="mem-card-sub">Obsidian Vault · 持久化</div>
+        </div>
       </div>
-      <div class="store-card-sub">知识归档 · 技术决策 · 项目背景</div>
-      <div class="path">{vault}/llm-platform/</div>
-      <div class="file-tree">
-<span class="file-dir">user/</span>
-  <span class="file-md">preferences.md</span>
-  <span class="file-md">profile.md</span>
-<span class="file-dir">knowledge/</span>
-  <span class="file-md">数据库优化.md</span>
-<span class="file-dir">projects/my-app/</span>
-  <span class="file-md">decisions.md</span>
+      <div class="mem-file-list">
+        <div class="mem-file">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 9V5a1 1 0 0 1 1-1h5l3 3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" stroke="var(--color-text-muted)" stroke-width="1.2"/><path d="M8 4v3h3" stroke="var(--color-text-muted)" stroke-width="1.1"/></svg>
+          <span class="mem-file-name">用户偏好/preferences.md</span>
+        </div>
+        <div class="mem-file">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 9V5a1 1 0 0 1 1-1h5l3 3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" stroke="var(--color-text-muted)" stroke-width="1.2"/><path d="M8 4v3h3" stroke="var(--color-text-muted)" stroke-width="1.1"/></svg>
+          <span class="mem-file-name">项目/meso_context.md</span>
+        </div>
+        <div class="mem-file">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 9V5a1 1 0 0 1 1-1h5l3 3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" stroke="var(--color-text-muted)" stroke-width="1.2"/><path d="M8 4v3h3" stroke="var(--color-text-muted)" stroke-width="1.1"/></svg>
+          <span class="mem-file-name">决策日志/decisions.md</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-muted);margin-top:10px;">永久保存 · 跨会话 · 支持语义检索</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">2 · 召回评分公式</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="formula-card">
+    <div>
+      <div class="formula-block">
+        <span class="formula-kw">score</span> = <span class="formula-num">0.35</span> × <span class="formula-var">keyword</span> + <span class="formula-num">0.65</span> × <span class="formula-var">semantic</span>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-muted);margin-top:8px;">最终得分越高，记忆片段越优先注入上下文</div>
+    </div>
+    <div class="formula-weight">
+      <div class="weight-row">
+        <span class="weight-label">关键词 (BM25)</span>
+        <div class="weight-bar-bg"><div class="weight-bar" style="width:35%;background:var(--color-accent);opacity:.6;"></div></div>
+        <span class="weight-val">35%</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-label">语义相似度</span>
+        <div class="weight-bar-bg"><div class="weight-bar" style="width:65%;background:var(--color-accent);"></div></div>
+        <span class="weight-val">65%</span>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Category types -->
-<div class="section">
-  <h2 style="margin-bottom:12px">记忆分类</h2>
-  <div class="cat-grid">
-    <div class="cat-chip pref">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6.5" cy="4.5" r="2"/><path d="M2 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/></svg>
-      preference · 用户偏好
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">3 · 模拟召回</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="recall-card">
+    <div class="search-row">
+      <input class="search-input" type="text" id="search-input" placeholder="输入查询，例如：PostgreSQL 索引优化" value="PostgreSQL 索引优化" />
+      <button class="search-btn" id="search-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M9 9l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        搜索记忆
+      </button>
     </div>
-    <div class="cat-chip fact">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="1.5" y="1.5" width="10" height="10" rx="1.5"/><line x1="4" y1="5" x2="9" y2="5"/><line x1="4" y1="7.5" x2="7" y2="7.5"/></svg>
-      fact · 项目背景
-    </div>
-    <div class="cat-chip deci">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 1.5L8 5h4l-3 2.5 1.5 3.5-4-2.5-4 2.5 1.5-3.5L1 5h4z"/></svg>
-      decision · 技术决策
-    </div>
-    <div class="cat-chip feed">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2 2h9a.5.5 0 01.5.5v6a.5.5 0 01-.5.5H5L2 11.5V2.5A.5.5 0 012 2z"/></svg>
-      feedback · 用户反馈
+    <div class="recall-results" id="recall-results"></div>
+    <div class="cat-legend">
+      <span class="cat-chip" style="background:rgba(82,124,94,.12);color:var(--color-accent);">用户偏好</span>
+      <span class="cat-chip" style="background:rgba(47,125,74,.12);color:var(--color-success);">项目背景</span>
+      <span class="cat-chip" style="background:rgba(180,83,9,.1);color:var(--color-warning);">技术决策</span>
+      <span class="cat-chip" style="background:rgba(192,57,43,.08);color:var(--color-error);">反馈记录</span>
     </div>
   </div>
-</div>
 
-<!-- Recall formula -->
-<div class="section">
-  <h2 style="margin-bottom:10px">召回算法</h2>
-  <div class="formula"><span class="cm"># 混合评分（BM25 + 语义向量）</span>
-<span class="kw">score</span> = 0.35 × keyword_score + 0.65 × semantic_score
-
-<span class="cm"># 召回限制</span>
-short_term: 最多 <span class="kw">4</span> 条，semantic_threshold ≥ <span class="kw">0.50</span>
-long_term:  最多 <span class="kw">2</span> 条</div>
-</div>
-
-<!-- Recall simulator -->
-<div class="section">
-  <h2 style="margin-bottom:10px">模拟召回</h2>
-  <div class="recall-row">
-    <input class="search-input" id="query-input" placeholder="输入查询内容，如：数据库优化" value="数据库优化方案" />
-    <button class="search-btn" onclick="simulateRecall()">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="12.5" y2="12.5"/></svg>
-      召回
-    </button>
+  <div class="section-header">
+    <div class="section-line"></div>
+    <span class="section-label">4 · 注入系统提示</span>
+    <div class="section-line"></div>
   </div>
-  <div class="chips-result" id="chips-result">
-    <span style="font-size:12px;color:var(--color-text-muted)">点击召回按钮…</span>
-  </div>
-</div>
 
-<!-- Inject preview -->
-<div class="section">
-  <h2 style="margin-bottom:10px">注入 System Prompt 格式</h2>
-  <div class="inject-box"><span class="inject-sep">--- 相关记忆 ---</span>
-<span class="inject-key">[用户偏好]</span> <span class="inject-val">偏好简洁回答，代码示例要包含注释</span>
-<span class="inject-key">[项目背景]</span> <span class="inject-val">当前项目使用 PostgreSQL 15，部署在 Kubernetes</span>
-<span class="inject-key">[上次讨论]</span> <span class="inject-val">2026-05-15 讨论了索引优化，决定为 orders.user_id 添加复合索引</span>
-<span class="inject-sep">---</span></div>
+  <div class="prompt-box">
+<span class="prompt-comment"># ── 系统提示片段 ──────────────────────────────</span>
+
+<span class="prompt-rule">你是 Meso，一个具备长期记忆的 AI 助手。</span>
+<span class="prompt-rule">以下是与当前查询相关的记忆片段，请在回复时参考：</span>
+
+<span class="prompt-header">--- 相关记忆 ---</span>
+
+<span class="prompt-cat">[用户偏好]</span> <span class="prompt-score">score=0.92</span>
+<span class="prompt-text">用户偏好简洁回复，不需要冗余解释；偏好代码示例多于理论描述。</span>
+
+<span class="prompt-cat">[项目背景]</span> <span class="prompt-score">score=0.88</span>
+<span class="prompt-text">当前项目使用 PostgreSQL 15，生产环境，orders 表约 80 万行数据，</span>
+<span class="prompt-text">已启用分区表但未完全迁移。</span>
+
+<span class="prompt-cat">[技术决策]</span> <span class="prompt-score">score=0.74</span>
+<span class="prompt-text">2025-01-06: 已决定使用 B-tree 索引，放弃 GIN（避免写入性能下降）。</span>
+
+<span class="prompt-header">--- 记忆结束 ---</span>
+<span class="prompt-comment"># ─────────────────────────────────────────────</span>
+  </div>
+
 </div>
 
 <script>
-const RECALL_DB = {
-  '数据库': [
-    { cat:'上次讨论', text:'2026-05 讨论了 orders 表索引优化', score:.92 },
-    { cat:'项目背景', text:'PostgreSQL 15，数据量约 300 万行', score:.88 },
-    { cat:'技术决策', text:'暂缓分区表，待数据超 1000 万再评估', score:.71 },
-  ],
-  '用户': [
-    { cat:'用户偏好', text:'偏好简洁回答，不喜欢过长引言', score:.95 },
-    { cat:'用户偏好', text:'代码示例要包含行内注释', score:.82 },
-  ],
-  default: [
-    { cat:'用户偏好', text:'偏好简洁回答，代码示例要包含注释', score:.95 },
-    { cat:'项目背景', text:'当前项目使用 PostgreSQL 15', score:.79 },
-    { cat:'上次讨论', text:'2026-05-15 索引优化讨论', score:.68 },
-  ]
-}
-function simulateRecall() {
-  const q = document.getElementById('query-input').value
-  const res = document.getElementById('chips-result')
-  res.innerHTML = ''
-  let snippets = RECALL_DB.default
-  for (const [key, val] of Object.entries(RECALL_DB)) {
-    if (q.includes(key)) { snippets = val; break }
+  const RESULTS = [
+    { catStyle:'background:rgba(82,124,94,.12);color:var(--color-accent);', catLabel:'用户偏好',
+      text:'用户偏好简洁回复，不需要冗余解释；偏好代码示例多于理论描述。',
+      source:'preferences.md', score:'0.92', date:'2025-01-10' },
+    { catStyle:'background:rgba(47,125,74,.12);color:var(--color-success);', catLabel:'项目背景',
+      text:'当前项目使用 PostgreSQL 15，生产环境，orders 表约 80 万行数据，已启用分区表但未完全迁移。',
+      source:'meso_context.md', score:'0.88', date:'2025-01-08' },
+    { catStyle:'background:rgba(180,83,9,.1);color:var(--color-warning);', catLabel:'技术决策',
+      text:'2025-01-06: 已决定使用 B-tree 索引方案，放弃 GIN（避免写入性能下降）。',
+      source:'decisions.md', score:'0.74', date:'2025-01-06' }
+  ];
+
+  function runSearch() {
+    const container = document.getElementById('recall-results');
+    container.innerHTML = '';
+    RESULTS.forEach((r, i) => {
+      const div = document.createElement('div');
+      div.className = 'recall-chip';
+      div.innerHTML = `
+        <span class="recall-chip-cat" style="${r.catStyle}">${r.catLabel}</span>
+        <div class="recall-chip-body">
+          <div class="recall-chip-text">${r.text}</div>
+          <div class="recall-chip-meta">
+            <span>${r.source}</span>
+            <span class="recall-score">score: ${r.score}</span>
+            <span>${r.date}</span>
+          </div>
+        </div>`;
+      container.appendChild(div);
+      setTimeout(() => div.classList.add('show'), 80 + i * 180);
+    });
   }
-  snippets.forEach((s, i) => {
-    const chip = document.createElement('span')
-    chip.className = 'chip'
-    chip.innerHTML = `<span class="chip-cat">${s.cat}</span>${s.text}<span style="font-size:10px;opacity:.5;margin-left:4px">${s.score}</span>`
-    res.appendChild(chip)
-    setTimeout(() => chip.classList.add('visible'), i * 180)
-  })
-}
+
+  document.getElementById('search-btn').addEventListener('click', runSearch);
+  document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
 </script>
 </body>
 </html>

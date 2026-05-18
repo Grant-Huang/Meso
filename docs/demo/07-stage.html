@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>阶段进度 — Meso Design System</title>
+  <style>
+    :root {
+      --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
+      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
+      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
+      --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
+      --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
+      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      font-size:14px; line-height:1.6;
+      background:var(--color-bg); color:var(--color-text);
+      height:100vh; overflow-y:auto;
+    }
+
+    .page { padding:32px; max-width:760px; margin:0 auto; }
+    .page-title { font-size:15px; font-weight:650; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .page-subtitle { font-size:12px; color:var(--color-text-secondary); margin-bottom:28px; }
+
+    .section-header { display:flex; align-items:center; gap:10px; margin:24px 0 16px; }
+    .section-line { flex:1; height:1px; background:var(--color-border); }
+    .section-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--color-text-muted); white-space:nowrap; }
+
+    /* ── Demo card ── */
+    .demo-card {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:24px;
+    }
+
+    /* ── Control bar ── */
+    .control-bar { display:flex; gap:10px; margin-bottom:24px; align-items:center; }
+    .ctrl-btn {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:8px 18px; border-radius:8px; border:none; cursor:pointer;
+      font-size:13px; font-weight:500; font-family:inherit;
+      transition:filter .15s, background .15s;
+    }
+    .ctrl-btn-primary { background:var(--color-accent); color:#fff; }
+    .ctrl-btn-primary:hover { filter:brightness(1.1); }
+    .ctrl-btn-primary:disabled { background:var(--color-border); color:var(--color-text-muted); cursor:not-allowed; filter:none; }
+    .ctrl-btn-ghost { background:rgba(82,124,94,.1); color:var(--color-accent); }
+    .ctrl-btn-ghost:hover { background:rgba(82,124,94,.18); }
+    .ctrl-status { font-size:12px; color:var(--color-text-muted); margin-left:4px; }
+
+    /* ── Stage timeline ── */
+    .stage-section {
+      overflow:hidden;
+      max-height:400px;
+      transition:max-height .5s cubic-bezier(.4,0,.2,1), opacity .4s;
+    }
+    .stage-section.collapsed {
+      max-height:0;
+      opacity:0;
+    }
+    .stage-list { position:relative; padding-left:0; display:flex; flex-direction:column; gap:0; }
+
+    .stage-item {
+      display:flex; align-items:flex-start; gap:16px;
+      position:relative; padding-bottom:24px;
+    }
+    .stage-item:last-child { padding-bottom:0; }
+
+    /* Vertical line through left col */
+    .stage-left {
+      display:flex; flex-direction:column; align-items:center;
+      width:20px; flex-shrink:0;
+      position:relative;
+    }
+    .stage-dot {
+      width:16px; height:16px; border-radius:50%;
+      border:2px solid var(--color-border);
+      background:var(--color-bg-elevated);
+      position:relative; z-index:1; flex-shrink:0;
+      transition:background .3s, border-color .3s;
+    }
+    .stage-dot.active {
+      background:var(--color-accent);
+      border-color:var(--color-accent);
+      animation:pulse 1.4s ease-in-out infinite;
+    }
+    .stage-dot.done {
+      background:var(--color-success);
+      border-color:var(--color-success);
+      animation:none;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow:0 0 0 0 rgba(82,124,94,.5); }
+      50%      { box-shadow:0 0 0 6px rgba(82,124,94,0); }
+    }
+
+    /* Connecting line */
+    .stage-line {
+      width:1px; flex:1; background:var(--color-border);
+      margin-top:4px; min-height:20px;
+      transition:background .3s;
+    }
+    .stage-line.done { background:var(--color-success); }
+    .stage-item:last-child .stage-line { display:none; }
+
+    .stage-body { flex:1; padding-top:0; }
+    .stage-name {
+      font-size:13px; font-weight:500; color:var(--color-text-muted);
+      transition:color .3s, font-weight .3s;
+      display:flex; align-items:center; gap:6px;
+    }
+    .stage-name.active { color:var(--color-accent-dark); font-weight:600; }
+    .stage-name.done   { color:var(--color-text-muted); }
+    .stage-done-mark {
+      display:none; font-size:11px; color:var(--color-success);
+    }
+    .stage-name.done .stage-done-mark { display:inline; }
+    .stage-detail {
+      font-size:12px; color:var(--color-text-muted); margin-top:2px;
+      max-height:0; overflow:hidden; transition:max-height .3s;
+    }
+    .stage-detail.visible { max-height:80px; }
+
+    /* ── Memory chips ── */
+    .memory-chips-wrap {
+      display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;
+    }
+    .memory-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(82,124,94,.1); color:var(--color-accent);
+      border:1px solid rgba(82,124,94,.2);
+      border-radius:20px; padding:4px 12px;
+      font-size:12px;
+      opacity:0; transform:translateY(6px);
+      transition:opacity .3s, transform .3s;
+    }
+    .memory-chip.show { opacity:1; transform:translateY(0); }
+    .chip-label { font-weight:600; color:var(--color-text-muted); font-size:10px; margin-right:2px; }
+    .chip-content { color:var(--color-text-secondary); }
+
+    /* ── State legend ── */
+    .legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-light); }
+    .legend-item { display:flex; align-items:center; gap:8px; }
+    .legend-dot { width:12px; height:12px; border-radius:50%; border:1.5px solid var(--color-border); flex-shrink:0; }
+    .legend-dot.pending { background:var(--color-bg-elevated); }
+    .legend-dot.active  { background:var(--color-accent); border-color:var(--color-accent); }
+    .legend-dot.done    { background:var(--color-success); border-color:var(--color-success); }
+    .legend-text { font-size:12px; color:var(--color-text-secondary); }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="3" cy="4" r="2" fill="var(--color-accent)" opacity=".4"/>
+      <circle cx="3" cy="9" r="2" fill="var(--color-accent)" opacity=".7"/>
+      <circle cx="3" cy="14" r="2" fill="var(--color-accent)"/>
+      <line x1="3" y1="6" x2="3" y2="7" stroke="var(--color-accent)" stroke-width="1.5"/>
+      <line x1="3" y1="11" x2="3" y2="12" stroke="var(--color-accent)" stroke-width="1.5"/>
+      <line x1="6" y1="4" x2="14" y2="4" stroke="var(--color-text-muted)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="6" y1="9" x2="12" y2="9" stroke="var(--color-text-muted)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="6" y1="14" x2="13" y2="14" stroke="var(--color-text-muted)" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    阶段进度
+  </div>
+  <div class="page-subtitle">垂直时间轴 · 状态流转动画 · 记忆召回展示</div>
+
+  <div class="demo-card">
+    <!-- Controls -->
+    <div class="control-bar">
+      <button class="ctrl-btn ctrl-btn-primary" id="btn-advance">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg>
+        开始执行
+      </button>
+      <button class="ctrl-btn ctrl-btn-ghost" id="btn-reset">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7a5 5 0 1 1 1.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 11V7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        重置
+      </button>
+      <span class="ctrl-status" id="ctrl-status">点击"开始执行"逐步演示</span>
+    </div>
+
+    <!-- Stage timeline -->
+    <div class="stage-section" id="stage-section">
+      <div class="stage-list">
+
+        <!-- Stage 1: 召回记忆 -->
+        <div class="stage-item" id="stage-0">
+          <div class="stage-left">
+            <div class="stage-dot" id="dot-0"></div>
+            <div class="stage-line" id="line-0"></div>
+          </div>
+          <div class="stage-body">
+            <div class="stage-name" id="name-0">召回记忆</div>
+            <div class="stage-detail" id="detail-0">正在按关键词权重 + 语义相似度检索长期记忆…</div>
+          </div>
+        </div>
+
+        <!-- Stage 2: 检索知识 -->
+        <div class="stage-item" id="stage-1">
+          <div class="stage-left">
+            <div class="stage-dot" id="dot-1"></div>
+            <div class="stage-line" id="line-1"></div>
+          </div>
+          <div class="stage-body">
+            <div class="stage-name" id="name-1">检索知识</div>
+            <div class="stage-detail" id="detail-1">在知识库中执行 BM25 全文检索和向量相似度搜索…</div>
+          </div>
+        </div>
+
+        <!-- Stage 3: 生成回复 -->
+        <div class="stage-item" id="stage-2">
+          <div class="stage-left">
+            <div class="stage-dot" id="dot-2"></div>
+            <div class="stage-line" id="line-2"></div>
+          </div>
+          <div class="stage-body">
+            <div class="stage-name" id="name-2">生成回复</div>
+            <div class="stage-detail" id="detail-2">向 LLM 发送组装好的上下文，流式接收 token…</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Memory chips (appear after stage 0 done) -->
+      <div id="memory-chips-wrap" style="display:none; margin-top:16px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-muted);margin-bottom:8px;">已召回记忆</div>
+        <div class="memory-chips-wrap">
+          <div class="memory-chip" id="chip-0">
+            <span class="chip-label">用户偏好</span>
+            <span class="chip-content">偏好简洁回复，不需要冗余解释</span>
+          </div>
+          <div class="memory-chip" id="chip-1">
+            <span class="chip-label">项目背景</span>
+            <span class="chip-content">PostgreSQL 15 · 生产环境 · 约 80 万行数据</span>
+          </div>
+          <div class="memory-chip" id="chip-2">
+            <span class="chip-label">技术决策</span>
+            <span class="chip-content">已选择 B-tree 索引方案，避免 GIN</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot pending"></div>
+        <span class="legend-text">待执行 — 空心圆，文字置灰</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot active"></div>
+        <span class="legend-text">执行中 — 绿点脉冲动画</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot done"></div>
+        <span class="legend-text">已完成 — 深绿实心</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const STAGES = ['召回记忆', '检索知识', '生成回复'];
+  const DETAILS = [
+    '正在按关键词权重 + 语义相似度检索长期记忆…',
+    '在知识库中执行 BM25 全文检索和向量相似度搜索…',
+    '向 LLM 发送组装好的上下文，流式接收 token…'
+  ];
+
+  let current = -1; // -1 = initial
+  const btnAdvance = document.getElementById('btn-advance');
+  const btnReset   = document.getElementById('btn-reset');
+  const status     = document.getElementById('ctrl-status');
+
+  function setStageState(i, state) {
+    const dot    = document.getElementById('dot-' + i);
+    const name   = document.getElementById('name-' + i);
+    const detail = document.getElementById('detail-' + i);
+    const line   = document.getElementById('line-' + i);
+
+    dot.className   = 'stage-dot ' + state;
+    name.className  = 'stage-name ' + state;
+    detail.className = state === 'active' ? 'stage-detail visible' : 'stage-detail';
+
+    if (line && state === 'done') line.classList.add('done');
+
+    if (state === 'done') {
+      name.innerHTML = STAGES[i] + ' <span class="stage-done-mark">&#10003;</span>';
+    } else {
+      name.innerHTML = STAGES[i];
+      name.className = 'stage-name ' + state;
+    }
+  }
+
+  function advance() {
+    if (current === STAGES.length - 1) return;
+
+    // Mark previous as done
+    if (current >= 0) {
+      setStageState(current, 'done');
+
+      // Show memory chips after stage 0 done
+      if (current === 0) {
+        const wrap = document.getElementById('memory-chips-wrap');
+        wrap.style.display = 'block';
+        ['chip-0','chip-1','chip-2'].forEach((id, idx) => {
+          setTimeout(() => {
+            document.getElementById(id).classList.add('show');
+          }, idx * 200);
+        });
+      }
+    }
+
+    current++;
+    setStageState(current, 'active');
+
+    if (current < STAGES.length - 1) {
+      status.textContent = '执行中: ' + STAGES[current] + '…';
+      btnAdvance.textContent = '';
+      btnAdvance.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg> 下一步';
+    } else {
+      status.textContent = '最后阶段: ' + STAGES[current];
+      btnAdvance.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg> 完成';
+    }
+  }
+
+  function finishLast() {
+    setStageState(current, 'done');
+    status.textContent = '全部阶段完成';
+    btnAdvance.disabled = true;
+    btnAdvance.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 完成';
+
+    // Collapse after 1500ms
+    setTimeout(() => {
+      document.getElementById('stage-section').classList.add('collapsed');
+      status.textContent = '阶段区域已折叠 (max-height 动画)';
+    }, 1500);
+  }
+
+  btnAdvance.addEventListener('click', () => {
+    if (current === STAGES.length - 1) {
+      finishLast();
+    } else {
+      advance();
+    }
+  });
+
+  btnReset.addEventListener('click', () => {
+    current = -1;
+    STAGES.forEach((_, i) => setStageState(i, 'pending'));
+    document.getElementById('memory-chips-wrap').style.display = 'none';
+    ['chip-0','chip-1','chip-2'].forEach(id => document.getElementById(id).classList.remove('show'));
+    document.getElementById('line-0').classList.remove('done');
+    document.getElementById('line-1').classList.remove('done');
+    document.getElementById('stage-section').classList.remove('collapsed');
+    btnAdvance.disabled = false;
+    btnAdvance.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg> 开始执行';
+    status.textContent = '点击"开始执行"逐步演示';
+  });
+
+  // Init
+  STAGES.forEach((_, i) => setStageState(i, 'pending'));
+</script>
+</body>
+</html>

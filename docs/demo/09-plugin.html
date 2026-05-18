@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>应用插件</title>
+  <style>
+    :root {
+      --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
+      --color-text:#2f3a32; --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
+      --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
+      --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
+      --color-error:#c0392b; --color-warning:#b45309;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.6;background:var(--color-bg);color:var(--color-text);min-height:100vh;padding:28px 32px 48px}
+    h2{font-size:15px;font-weight:650;margin-bottom:4px;color:var(--color-accent-dark)}
+    .desc{font-size:13px;color:var(--color-text-muted);margin-bottom:24px}
+    .section{margin-bottom:32px}
+
+    /* App cards */
+    .app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
+    .app-card{background:var(--color-bg-white);border:2px solid var(--color-border);border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s,background .15s}
+    .app-card:hover{background:rgba(82,124,94,0.04)}
+    .app-card.active{border-color:var(--color-accent);background:rgba(82,124,94,0.06)}
+    .app-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;color:#fff;font-size:18px}
+    .app-name{font-size:13px;font-weight:650;margin-bottom:3px}
+    .app-desc{font-size:12px;color:var(--color-text-muted)}
+
+    /* Manifest display */
+    .manifest-box{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:8px;padding:16px 18px;font-family:"SF Mono","Fira Code",monospace;font-size:12px;line-height:1.8;overflow-x:auto;white-space:pre}
+    .j-key{color:var(--color-accent-dark)}
+    .j-str{color:var(--color-error)}
+    .j-bool{color:var(--color-accent-dark);font-weight:600}
+    .j-arr{color:var(--color-warning)}
+    .j-cm{color:var(--color-text-muted);font-style:italic}
+
+    /* Composer variants */
+    .composer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .composer-mock{background:var(--color-bg-white);border:1px solid var(--color-border);border-radius:10px;overflow:hidden}
+    .composer-label{font-size:11px;color:var(--color-text-muted);margin-bottom:8px;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .mock-input{padding:10px 12px;font-size:13px;color:var(--color-text-muted);border-bottom:1px solid var(--color-border-light);min-height:40px}
+    .mock-toolbar{display:flex;align-items:center;gap:5px;padding:6px 8px;flex-wrap:wrap}
+    .mock-btn{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid var(--color-border);font-size:11px;color:var(--color-text-secondary);background:transparent;white-space:nowrap}
+    .mock-btn.accent{background:var(--color-accent);color:#fff;border-color:transparent}
+    .mock-sep{flex:1}
+
+    /* Tools badge */
+    .tools-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:rgba(82,124,94,0.1);border-radius:4px;font-size:10px;color:var(--color-accent-dark);font-weight:600}
+  </style>
+</head>
+<body>
+
+<h2>应用插件系统</h2>
+<p class="desc">每个 App = 一个 manifest.json，声明知识库 / Tools / Skill，平台负责注入流式对话</p>
+
+<!-- App selector -->
+<div class="section">
+  <h2 style="margin-bottom:12px">选择应用查看 Manifest</h2>
+  <div class="app-grid">
+    <div class="app-card active" onclick="selectApp('chat',this)">
+      <div class="app-icon" style="background:var(--color-accent)">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H7l-4 3V5a1 1 0 011-1z"/></svg>
+      </div>
+      <div class="app-name">通用对话</div>
+      <div class="app-desc">基础 AI 对话，无知识库</div>
+    </div>
+    <div class="app-card" onclick="selectApp('doc',this)">
+      <div class="app-icon" style="background:#1a6b8a">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8l4 4v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><polyline points="12,2 12,6 16,6"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="12" x2="11" y2="12"/></svg>
+      </div>
+      <div class="app-name">文档审查</div>
+      <div class="app-desc">挂载知识库 + 审查 Skill</div>
+    </div>
+    <div class="app-card" onclick="selectApp('code',this)">
+      <div class="app-icon" style="background:#5a3e8a">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,8 2,10 6,12"/><polyline points="14,8 18,10 14,12"/><line x1="11" y1="4" x2="9" y2="16"/></svg>
+      </div>
+      <div class="app-name">代码助手</div>
+      <div class="app-desc">代码生成 + read_file Tool</div>
+    </div>
+  </div>
+</div>
+
+<!-- Manifest display -->
+<div class="section">
+  <h2 style="margin-bottom:10px">App Manifest</h2>
+  <div class="manifest-box" id="manifest-box"></div>
+</div>
+
+<!-- Composer variants -->
+<div class="section">
+  <h2 style="margin-bottom:12px">Composer 工具栏随 App 联动</h2>
+  <div class="composer-grid">
+    <div>
+      <div class="composer-label">通用对话</div>
+      <div class="composer-mock">
+        <div class="mock-input">向 Meso 发送消息…</div>
+        <div class="mock-toolbar">
+          <div class="mock-sep"></div>
+          <div class="mock-btn accent">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1L5.5 6.5M11 1L7.5 11 5.5 6.5 1 4.5 11 1z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="composer-label">文档审查</div>
+      <div class="composer-mock">
+        <div class="mock-input">描述要审查的问题…</div>
+        <div class="mock-toolbar">
+          <div class="mock-btn">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="1" y="1" width="9" height="9" rx="1.5"/><line x1="1" y1="4" x2="10" y2="4"/><line x1="4" y1="1" x2="4" y2="10"/></svg>
+            知识库
+          </div>
+          <div class="mock-btn">焦点 ▾</div>
+          <div class="mock-sep"></div>
+          <div class="mock-btn accent">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1L5.5 6.5M11 1L7.5 11 5.5 6.5 1 4.5 11 1z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="composer-label">代码助手</div>
+      <div class="composer-mock">
+        <div class="mock-input">描述你的代码需求…</div>
+        <div class="mock-toolbar">
+          <div class="mock-btn">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4 1,5.5 3,7"/><polyline points="8,4 10,5.5 8,7"/><line x1="6.5" y1="2" x2="4.5" y2="9"/></svg>
+            Tools
+          </div>
+          <div class="tools-badge">read_file write_file</div>
+          <div class="mock-sep"></div>
+          <div class="mock-btn accent">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1L5.5 6.5M11 1L7.5 11 5.5 6.5 1 4.5 11 1z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MANIFESTS = {
+  chat: `{
+  <span class="j-key">"schema_version"</span>: <span class="j-str">"1.0"</span>,
+  <span class="j-key">"id"</span>:             <span class="j-str">"chat-assistant"</span>,
+  <span class="j-key">"name"</span>:           <span class="j-str">"通用对话"</span>,
+  <span class="j-key">"icon"</span>:           <span class="j-str">"MessageOutlined"</span>,
+
+  <span class="j-key">"ui"</span>: {
+    <span class="j-key">"composer_placeholder"</span>: <span class="j-str">"向 Meso 发送消息…"</span>,
+    <span class="j-key">"session_col_visible"</span>:  <span class="j-bool">true</span>,
+    <span class="j-key">"split_mode_default"</span>:   <span class="j-bool">false</span>
+  },
+
+  <span class="j-key">"skill"</span>:     { <span class="j-key">"system_prompt_file"</span>: <span class="j-bool">null</span> },
+  <span class="j-key">"knowledge"</span>: { <span class="j-key">"enabled"</span>: <span class="j-bool">false</span> },
+  <span class="j-key">"tools"</span>:     [],
+
+  <span class="j-key">"memory"</span>: {
+    <span class="j-key">"recall_categories"</span>: [<span class="j-str">"preference"</span>, <span class="j-str">"fact"</span>]
+  }
+}`,
+  doc: `{
+  <span class="j-key">"schema_version"</span>: <span class="j-str">"1.0"</span>,
+  <span class="j-key">"id"</span>:             <span class="j-str">"doc-reviewer"</span>,
+  <span class="j-key">"name"</span>:           <span class="j-str">"文档审查"</span>,
+  <span class="j-key">"icon"</span>:           <span class="j-str">"FileSearchOutlined"</span>,
+
+  <span class="j-key">"ui"</span>: {
+    <span class="j-key">"composer_placeholder"</span>: <span class="j-str">"描述要审查的问题，或上传文档…"</span>,
+    <span class="j-key">"split_mode_default"</span>:   <span class="j-bool">true</span>,    <span class="j-cm">// 默认开启分屏</span>
+    <span class="j-key">"artifact_types"</span>:       [<span class="j-str">"markdown"</span>, <span class="j-str">"table"</span>]
+  },
+
+  <span class="j-key">"skill"</span>: {
+    <span class="j-key">"system_prompt_file"</span>: <span class="j-str">"skills/review-domain.md"</span>,
+    <span class="j-key">"focus_points"</span>: [
+      { <span class="j-key">"id"</span>: <span class="j-str">"completeness"</span>, <span class="j-key">"name"</span>: <span class="j-str">"完整性检查"</span> },
+      { <span class="j-key">"id"</span>: <span class="j-str">"consistency"</span>,  <span class="j-key">"name"</span>: <span class="j-str">"一致性检查"</span>  }
+    ]
+  },
+
+  <span class="j-key">"knowledge"</span>: {
+    <span class="j-key">"enabled"</span>:    <span class="j-bool">true</span>,
+    <span class="j-key">"index_dirs"</span>: [<span class="j-str">"knowledge/"</span>],
+    <span class="j-key">"chunk_size"</span>: <span class="j-arr">800</span>
+  },
+
+  <span class="j-key">"tools"</span>: [<span class="j-str">"search_knowledge"</span>, <span class="j-str">"extract_findings"</span>],
+
+  <span class="j-key">"memory"</span>: {
+    <span class="j-key">"recall_categories"</span>: [<span class="j-str">"preference"</span>, <span class="j-str">"fact"</span>, <span class="j-str">"project"</span>],
+    <span class="j-key">"auto_save_category"</span>: <span class="j-str">"fact"</span>
+  }
+}`,
+  code: `{
+  <span class="j-key">"schema_version"</span>: <span class="j-str">"1.0"</span>,
+  <span class="j-key">"id"</span>:             <span class="j-str">"code-assistant"</span>,
+  <span class="j-key">"name"</span>:           <span class="j-str">"代码助手"</span>,
+  <span class="j-key">"icon"</span>:           <span class="j-str">"CodeOutlined"</span>,
+
+  <span class="j-key">"ui"</span>: {
+    <span class="j-key">"composer_placeholder"</span>: <span class="j-str">"描述你的代码需求…"</span>,
+    <span class="j-key">"split_mode_default"</span>:   <span class="j-bool">true</span>,
+    <span class="j-key">"artifact_types"</span>:       [<span class="j-str">"python"</span>, <span class="j-str">"javascript"</span>, <span class="j-str">"sql"</span>]
+  },
+
+  <span class="j-key">"skill"</span>: {
+    <span class="j-key">"system_prompt_file"</span>: <span class="j-str">"skills/code-expert.md"</span>
+  },
+
+  <span class="j-key">"knowledge"</span>: { <span class="j-key">"enabled"</span>: <span class="j-bool">false</span> },
+
+  <span class="j-key">"tools"</span>: [<span class="j-str">"read_file"</span>, <span class="j-str">"write_file"</span>, <span class="j-str">"save_memory"</span>],
+
+  <span class="j-key">"memory"</span>: {
+    <span class="j-key">"recall_categories"</span>: [<span class="j-str">"preference"</span>, <span class="j-str">"fact"</span>, <span class="j-str">"project"</span>],
+    <span class="j-key">"auto_save_category"</span>: <span class="j-str">"decision"</span>
+  }
+}`
+}
+
+function selectApp(id, el) {
+  document.querySelectorAll('.app-card').forEach(c => c.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById('manifest-box').innerHTML = MANIFESTS[id]
+}
+selectApp('chat', document.querySelector('.app-card'))
+</script>
+</body>
+</html>

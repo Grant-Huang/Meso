@@ -4,14 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>记忆系统 — Meso Design System</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
   <style>
     :root {
-      --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
-      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
-      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
-      --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
-      --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
-      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
+      --color-bg:#dde2db; --color-bg-elevated:#e8ece6; --color-bg-white:#eef0ec;
+      --color-bg-sidebar:#d5dad2; --color-text:#1c2620;
+      --color-text-secondary:rgba(28,38,32,0.65); --color-text-muted:rgba(28,38,32,0.42);
+      --color-accent:#3d6b52; --color-accent-dark:#2a5240;
+      --color-border:#b0baa8; --color-border-light:rgba(28,38,32,0.10);
+      --color-code-bg:#1a201c; --color-code-text:#c8d5cb;
+      --color-error:#b83232; --color-warning:#b45309; --color-success:#2a7a4f;
+    }
+    [data-theme="dark"] {
+      --color-bg:#1a1e1b; --color-bg-elevated:#20271f; --color-bg-white:#252e26;
+      --color-bg-sidebar:#151918; --color-text:#c8d5cb;
+      --color-text-secondary:rgba(200,213,203,0.65); --color-text-muted:rgba(200,213,203,0.42);
+      --color-accent:#5a9e70; --color-accent-dark:#74ba8a;
+      --color-border:#2c3830; --color-border-light:rgba(200,213,203,0.10);
+      --color-code-bg:#0e1210; --color-code-text:#d5e0d8;
+      --color-error:#e06060; --color-success:#5fbe85;
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     body {
@@ -35,7 +48,7 @@
       border-radius:10px; padding:20px;
     }
     .mem-card-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-    .mem-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(82,124,94,.1); }
+    .mem-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(61,107,82,0.10); }
     .mem-card-title { font-size:14px; font-weight:600; color:var(--color-text); }
     .mem-card-sub { font-size:12px; color:var(--color-text-secondary); }
     .mem-file-list { display:flex; flex-direction:column; gap:5px; margin-top:10px; }
@@ -71,7 +84,7 @@
       font-size:14px; font-family:inherit; color:var(--color-text);
       outline:none; transition:border-color .15s, box-shadow .15s;
     }
-    .search-input:focus { border-color:var(--color-accent); box-shadow:0 0 0 3px rgba(82,124,94,.12); }
+    .search-input:focus { border-color:var(--color-accent); box-shadow:0 0 0 3px rgba(61,107,82,0.13); }
     .search-btn {
       padding:9px 18px; background:var(--color-accent); color:#fff;
       border:none; border-radius:8px; cursor:pointer; font-family:inherit;
@@ -100,7 +113,7 @@
     .cat-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
 
     .prompt-box {
-      background:#1e2620; border-radius:10px;
+      background:var(--color-code-bg); border-radius:10px;
       padding:20px 22px; font-family:"SF Mono","Fira Code",monospace;
       font-size:12px; line-height:1.8; overflow-x:auto;
     }
@@ -230,7 +243,7 @@
     </div>
     <div class="recall-results" id="recall-results"></div>
     <div class="cat-legend">
-      <span class="cat-chip" style="background:rgba(82,124,94,.12);color:var(--color-accent);">用户偏好</span>
+      <span class="cat-chip" style="background:rgba(61,107,82,0.13);color:var(--color-accent);">用户偏好</span>
       <span class="cat-chip" style="background:rgba(47,125,74,.12);color:var(--color-success);">项目背景</span>
       <span class="cat-chip" style="background:rgba(180,83,9,.1);color:var(--color-warning);">技术决策</span>
       <span class="cat-chip" style="background:rgba(192,57,43,.08);color:var(--color-error);">反馈记录</span>
@@ -269,7 +282,7 @@
 
 <script>
   const RESULTS = [
-    { catStyle:'background:rgba(82,124,94,.12);color:var(--color-accent);', catLabel:'用户偏好',
+    { catStyle:'background:rgba(61,107,82,0.13);color:var(--color-accent);', catLabel:'用户偏好',
       text:'用户偏好简洁回复，不需要冗余解释；偏好代码示例多于理论描述。',
       source:'preferences.md', score:'0.92', date:'2025-01-10' },
     { catStyle:'background:rgba(47,125,74,.12);color:var(--color-success);', catLabel:'项目背景',

@@ -106,7 +106,82 @@ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Ari
 
 ---
 
-## 五、关键组件规范
+## 五、流式渲染状态规范
+
+流式对话是平台的交互主干，UI 需要完整反映每一个流式阶段。
+
+### 5.1 整体时序
+
+```
+发送中        阶段进度推进         Think 流式          正文流式           完成
+──────   ──────────────────   ──────────────   ────────────────   ──────
+发送按钮      stage 事件驱动       think 事件           text 事件         done 事件
+变为停止       进度条动画           折叠块展开+逐字       逐字追加+光标      光标消失
+              ↓ ↓ ↓              累积内容              闪烁              操作栏出现
+```
+
+### 5.2 Streaming Cursor（打字光标）
+
+- 正文流式输出时，末尾显示闪烁光标：`▋`
+- 动画：`opacity 0.6s ease-in-out infinite alternate`
+- 颜色：`--color-accent`
+- `done` 事件后光标立即消失，操作栏（复制/点赞/踩）淡入
+
+### 5.3 Think Block 生命周期
+
+```
+think 事件到达（done: false）
+    → Think block 展开，标题"思考中…"，内容逐字流式追加
+    → 背景 rgba(82,124,94,0.06)，左边框 2px solid --color-border
+
+think 事件到达（done: true）
+    → 标题变为"已思考（展开查看）"
+    → 自动折叠（高度动画 300ms ease）
+    → 用户可手动点击展开/折叠
+```
+
+折叠后样式：
+```css
+background: rgba(82,124,94,0.04);
+border-left: 2px solid --color-border-light;
+color: --color-text-muted;
+font-size: 13px;
+```
+
+### 5.4 Artifact 增量渲染
+
+- `artifact` 事件（`done: false`）到达时：
+  - 若 ArtifactPane 不可见，自动触发分屏（动画 `200ms ease`）
+  - Artifact Tab 创建，标题显示语言类型（如 `JavaScript`）
+  - 代码区域逐行追加，代码高亮实时生效
+- `artifact` 事件（`done: true`）：
+  - 代码高亮重新渲染（完整版本）
+  - 若类型为 `html preview`，iframe 载入渲染结果
+  - 若类型为 `mermaid`，触发 mermaid.js 渲染
+
+### 5.5 Stage 进度时序
+
+```
+stage: {name: "召回记忆",  state: "active"}  → 旋转点 + 绿色文字
+stage: {name: "召回记忆",  state: "done"}    → 绿实心点 + 次要色文字
+stage: {name: "检索知识",  state: "active"}  → 同上
+stage: {name: "检索知识",  state: "done"}
+stage: {name: "生成回复",  state: "active"}  → 此后 text 事件开始到达
+```
+
+Stage 区域在 `done` 事件后 `1500ms` 自动折叠收起，不永久占据空间。
+
+### 5.6 流式错误处理
+
+`error` 事件到达时：
+- 停止光标动画
+- 已输出内容保留
+- 末尾追加错误提示块：背景 `rgba(192,57,43,0.08)`，文字 `--color-error`
+- 提供"重试"按钮
+
+---
+
+## 六、关键组件规范
 
 ### Composer（输入框）
 

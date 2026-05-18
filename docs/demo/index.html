@@ -347,14 +347,22 @@
         </svg>
         账号设置
       </div>
+      <div class="user-menu-item" onclick="openHelp()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+          <circle cx="7.5" cy="7.5" r="6.5"/>
+          <path d="M5.5 5.8a2 2 0 013.8.7c0 1.4-1.8 1.8-1.8 3"/>
+          <circle cx="7.5" cy="11.5" r="0.6" fill="currentColor" stroke="none"/>
+        </svg>
+        帮助文档
+      </div>
+      <div class="user-menu-sep"></div>
       <div class="user-menu-item" onclick="closeUserMenu()">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
           <circle cx="7.5" cy="7.5" r="5.5"/>
           <line x1="7.5" y1="5" x2="7.5" y2="7.5"/><circle cx="7.5" cy="10" r="0.6" fill="currentColor" stroke="none"/>
         </svg>
-        帮助与反馈
+        关于 Meso
       </div>
-      <div class="user-menu-sep"></div>
       <div class="user-menu-item" onclick="closeUserMenu()">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 2H3a1 1 0 00-1 1v9a1 1 0 001 1h3"/>
@@ -522,6 +530,10 @@ function toggleUserMenu(e) {
 }
 function closeUserMenu() {
   document.getElementById('user-menu').classList.remove('open')
+}
+function openHelp() {
+  closeUserMenu()
+  window.open('../help.html', '_blank', 'noopener')
 }
 document.addEventListener('click', closeUserMenu)
 

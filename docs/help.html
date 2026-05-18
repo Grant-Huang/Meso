@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meso · 帮助文档</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+  <link rel="stylesheet" href="platform/meso-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      background: var(--color-bg); color: var(--color-text);
+      height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+    }
+
+    /* ── Top bar ── */
+    .help-topbar {
+      height: 52px; flex-shrink: 0;
+      display: flex; align-items: center;
+      padding: 0 20px; gap: 12px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg-sidebar);
+      z-index: 20;
+    }
+    .help-topbar-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--color-text-secondary);
+      text-decoration: none; padding: 4px 10px;
+      border-radius: 6px; transition: background 0.12s, color 0.12s;
+    }
+    .help-topbar-back:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .help-topbar-sep {
+      width: 1px; height: 18px; background: var(--color-border);
+    }
+    .help-topbar-title {
+      font-size: 14px; font-weight: 650; color: var(--color-text);
+    }
+    .help-topbar-spacer { flex: 1; }
+    .theme-toggle {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer;
+      color: var(--color-text-muted);
+      border: none; background: transparent;
+      transition: background 0.12s, color 0.12s;
+    }
+    .theme-toggle:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .icon-sun { display: none; }
+    [data-theme="dark"] .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun  { display: block; }
+
+    /* ── Body shell ── */
+    .help-shell {
+      flex: 1; display: flex; overflow: hidden;
+    }
+
+    /* ── Left nav ── */
+    .help-nav {
+      width: 240px; min-width: 240px;
+      background: var(--color-bg-sidebar);
+      border-right: 1px solid var(--color-border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .help-search-wrap {
+      padding: 10px 10px 6px;
+      flex-shrink: 0;
+    }
+    .help-search {
+      width: 100%; padding: 6px 10px;
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: 8px; font-size: 13px; font-family: inherit;
+      color: var(--color-text); outline: none;
+      transition: border-color 0.15s;
+    }
+    .help-search:focus { border-color: var(--color-accent); }
+    .help-search::placeholder { color: var(--color-text-muted); }
+    .help-nav-list {
+      flex: 1; overflow-y: auto; padding: 4px 0 12px;
+    }
+    .help-nav-section {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--color-text-muted);
+      padding: 10px 14px 4px;
+    }
+    .help-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; cursor: pointer;
+      border-radius: 6px; margin: 1px 6px;
+      transition: background 0.12s, color 0.12s;
+      color: var(--color-text-secondary);
+      border: none; background: transparent;
+      width: calc(100% - 12px); text-align: left;
+      font-family: inherit; font-size: 13px;
+    }
+    .help-nav-item:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .help-nav-item.active {
+      background: var(--nav-active-bg); color: var(--color-accent-dark);
+    }
+    .help-nav-icon {
+      flex-shrink: 0; width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .help-nav-label { flex: 1; }
+    .help-nav-item[hidden] { display: none; }
+
+    /* ── Main content area ── */
+    .help-main {
+      flex: 1; overflow-y: auto;
+      background: var(--color-bg);
+    }
+    .help-content {
+      max-width: 820px; padding: 40px 48px;
+      margin: 0 auto;
+    }
+
+    /* ── Typography ── */
+    .help-content h1 {
+      font-size: 24px; font-weight: 700;
+      margin-bottom: 12px; color: var(--color-text);
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 12px;
+    }
+    .help-content h2 {
+      font-size: 18px; font-weight: 650;
+      margin: 28px 0 10px; color: var(--color-text);
+    }
+    .help-content h3 {
+      font-size: 15px; font-weight: 600;
+      margin: 20px 0 8px; color: var(--color-text);
+    }
+    .help-content h4 {
+      font-size: 14px; font-weight: 600;
+      margin: 16px 0 6px; color: var(--color-text-secondary);
+    }
+    .help-content p {
+      margin-bottom: 12px; line-height: 1.75; color: var(--color-text);
+    }
+    .help-content ul, .help-content ol {
+      margin-bottom: 12px; padding-left: 24px;
+    }
+    .help-content li { margin-bottom: 4px; line-height: 1.75; }
+    .help-content hr {
+      border: none; border-top: 1px solid var(--color-border); margin: 24px 0;
+    }
+
+    /* Code blocks */
+    .help-content pre {
+      background: var(--color-code-bg); color: var(--color-code-text);
+      border-radius: 8px; padding: 16px 20px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px; overflow-x: auto; margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .help-content pre code { background: none; color: inherit; padding: 0; border-radius: 0; font-size: inherit; }
+
+    /* Inline code */
+    .hinline {
+      background: var(--color-code-bg); color: var(--color-accent);
+      border-radius: 4px; padding: 1px 5px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 12px;
+    }
+
+    /* Blockquotes */
+    .help-content blockquote {
+      border-left: 3px solid var(--color-accent);
+      padding: 4px 0 4px 16px; margin-bottom: 12px;
+      color: var(--color-text-secondary); font-style: italic;
+    }
+    .help-content blockquote p { color: var(--color-text-secondary); margin-bottom: 0; }
+
+    /* Tables */
+    .help-content table {
+      width: 100%; border-collapse: collapse;
+      margin-bottom: 16px; font-size: 13px;
+    }
+    .help-content th {
+      text-align: left; padding: 8px 12px;
+      border-bottom: 2px solid var(--color-border);
+      color: var(--color-text); font-weight: 600; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .help-content td {
+      padding: 7px 12px; border-bottom: 1px solid var(--color-border-light);
+      vertical-align: top;
+    }
+    .help-content tr:nth-child(even) td {
+      background: rgba(61,107,82,0.04);
+    }
+    [data-theme="dark"] .help-content tr:nth-child(even) td {
+      background: rgba(90,158,112,0.06);
+    }
+
+    /* Demo link button */
+    .hdemo-btn {
+      background: var(--nav-hover-bg);
+      border: 1px solid var(--color-border);
+      color: var(--color-accent);
+      border-radius: 6px; padding: 4px 12px;
+      font-size: 12px; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px;
+      transition: background 0.12s;
+      font-family: inherit;
+    }
+    .hdemo-btn:hover { background: var(--nav-active-bg); }
+    .hlink {
+      color: var(--color-accent); text-decoration: underline;
+      text-decoration-color: rgba(61,107,82,0.4);
+    }
+    .hlink:hover { text-decoration-color: var(--color-accent); }
+
+    /* Section badge */
+    .help-section-badge {
+      font-size: 11px; color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+      border-radius: 20px; padding: 1px 8px; margin-left: 8px;
+      vertical-align: middle; font-weight: 400;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .help-nav { width: 200px; min-width: 200px; }
+      .help-content { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Top bar ── -->
+<div class="help-topbar">
+  <a class="help-topbar-back" href="demo/index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9,2 4,7 9,12"/>
+    </svg>
+    返回 Demo
+  </a>
+  <div class="help-topbar-sep"></div>
+  <span class="help-topbar-title">帮助文档</span>
+  <div class="help-topbar-spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="切换明暗主题">
+    <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M13.5 10A5.5 5.5 0 017.5 3.5c0-.28.02-.56.07-.84A6.5 6.5 0 1013.84 10c-.11-.01-.22-.01-.34 0z"/>
+    </svg>
+    <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="8" cy="8" r="3"/>
+      <line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/>
+      <line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/>
+      <line x1="3.05" y1="3.05" x2="4.46" y2="4.46"/><line x1="11.54" y1="11.54" x2="12.95" y2="12.95"/>
+      <line x1="3.05" y1="12.95" x2="4.46" y2="11.54"/><line x1="11.54" y1="4.46" x2="12.95" y2="3.05"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ── Shell: nav + content ── -->
+<div class="help-shell">
+
+  <!-- Left nav -->
+  <nav class="help-nav">
+    <div class="help-search-wrap">
+      <input class="help-search" type="text" placeholder="搜索文档…" id="help-search-input" oninput="filterSections(this.value)" />
+    </div>
+    <div class="help-nav-list" id="help-nav-list">
+      <!-- Built by JS -->
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="help-main" id="help-main">
+    <div class="help-content" id="help-content">
+      <!-- Rendered by JS -->
+    </div>
+  </main>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Markdown Renderer
+// ─────────────────────────────────────────────
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function applyInline(text) {
+  // Already-escaped HTML text; apply inline markdown transforms
+  // Bold
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic (not preceded/followed by *)
+  text = text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+  // Strikethrough
+  text = text.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  // Inline code (escape content separately)
+  text = text.replace(/`([^`]+)`/g, function(_, code) {
+    return '<code class="hinline">' + escapeHtml(code) + '</code>';
+  });
+  // Demo links [label](demo:file.html)
+  text = text.replace(/\[([^\]]+)\]\(demo:([^)]+)\)/g, function(_, label, file) {
+    return '<a class="hdemo-btn" href="demo/' + file + '" target="_blank" rel="noopener">&#9654; ' + label + '</a>';
+  });
+  // Regular links [label](url)
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_, label, url) {
+    return '<a class="hlink" href="' + url + '" target="_blank" rel="noopener">' + label + '</a>';
+  });
+  return text;
+}
+
+function slugify(text) {
+  // strip HTML tags first
+  return text.replace(/<[^>]+>/g, '').toLowerCase()
+    .replace(/[^\w一-鿿]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function renderMd(src) {
+  const lines = src.split('\n');
+  const codeBlocks = [];
+  const placeholdered = [];
+
+  // Pass 1: Extract fenced code blocks
+  let inFence = false;
+  let fenceLang = '';
+  let fenceLines = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!inFence) {
+      const m = line.match(/^```(\w*)\s*$/);
+      if (m) {
+        inFence = true;
+        fenceLang = m[1];
+        fenceLines = [];
+      } else {
+        placeholdered.push(line);
+      }
+    } else {
+      if (line.match(/^```\s*$/)) {
+        const code = fenceLines.join('\n');
+        const idx = codeBlocks.length;
+        codeBlocks.push({ lang: fenceLang, code });
+        placeholdered.push('\x00CODE' + idx + '\x00');
+        inFence = false;
+      } else {
+        fenceLines.push(line);
+      }
+    }
+  }
+
+  // Pass 2: Process block-level elements
+  const out = [];
+  let i = 0;
+  while (i < placeholdered.length) {
+    const line = placeholdered[i];
+
+    // Code block placeholder
+    const codeMatch = line.match(/^\x00CODE(\d+)\x00$/);
+    if (codeMatch) {
+      const { lang, code } = codeBlocks[parseInt(codeMatch[1])];
+      const escaped = escapeHtml(code);
+      out.push('<pre><code' + (lang ? ' class="lang-' + lang + '"' : '') + '>' + escaped + '</code></pre>');
+      i++; continue;
+    }
+
+    // Headings
+    const h4 = line.match(/^####\s+(.+)/);
+    if (h4) { const t = applyInline(escapeHtml(h4[1])); out.push('<h4 id="' + slugify(h4[1]) + '">' + t + '</h4>'); i++; continue; }
+    const h3 = line.match(/^###\s+(.+)/);
+    if (h3) { const t = applyInline(escapeHtml(h3[1])); out.push('<h3 id="' + slugify(h3[1]) + '">' + t + '</h3>'); i++; continue; }
+    const h2 = line.match(/^##\s+(.+)/);
+    if (h2) { const t = applyInline(escapeHtml(h2[1])); out.push('<h2 id="' + slugify(h2[1]) + '">' + t + '</h2>'); i++; continue; }
+    const h1 = line.match(/^#\s+(.+)/);
+    if (h1) { const t = applyInline(escapeHtml(h1[1])); out.push('<h1 id="' + slugify(h1[1]) + '">' + t + '</h1>'); i++; continue; }
+
+    // HR
+    if (line.match(/^---+\s*$/)) { out.push('<hr>'); i++; continue; }
+
+    // Blockquote — collect consecutive > lines
+    if (line.match(/^>\s*/)) {
+      const bqLines = [];
+      while (i < placeholdered.length && placeholdered[i].match(/^>\s*/)) {
+        bqLines.push(applyInline(escapeHtml(placeholdered[i].replace(/^>\s?/, ''))));
+        i++;
+      }
+      out.push('<blockquote><p>' + bqLines.join('<br>') + '</p></blockquote>');
+      continue;
+    }
+
+    // Unordered list — collect consecutive - or * items
+    if (line.match(/^[-*]\s+/)) {
+      const items = [];
+      while (i < placeholdered.length && placeholdered[i].match(/^[-*]\s+/)) {
+        items.push('<li>' + applyInline(escapeHtml(placeholdered[i].replace(/^[-*]\s+/, ''))) + '</li>');
+        i++;
+      }
+      out.push('<ul>' + items.join('') + '</ul>');
+      continue;
+    }
+
+    // Ordered list — collect consecutive N. items
+    if (line.match(/^\d+\.\s+/)) {
+      const items = [];
+      while (i < placeholdered.length && placeholdered[i].match(/^\d+\.\s+/)) {
+        items.push('<li>' + applyInline(escapeHtml(placeholdered[i].replace(/^\d+\.\s+/, ''))) + '</li>');
+        i++;
+      }
+      out.push('<ol>' + items.join('') + '</ol>');
+      continue;
+    }
+
+    // Table — detect | at start
+    if (line.match(/^\|/)) {
+      const tableLines = [];
+      while (i < placeholdered.length && placeholdered[i].match(/^\|/)) {
+        tableLines.push(placeholdered[i]);
+        i++;
+      }
+      // Parse header, separator, rows
+      if (tableLines.length >= 2) {
+        const parseRow = (r) => r.split('|').slice(1, -1).map(c => c.trim());
+        const headers = parseRow(tableLines[0]);
+        // tableLines[1] is separator
+        const rows = tableLines.slice(2).map(parseRow);
+        let thtml = '<table><thead><tr>';
+        headers.forEach(h => { thtml += '<th>' + applyInline(escapeHtml(h)) + '</th>'; });
+        thtml += '</tr></thead><tbody>';
+        rows.forEach(row => {
+          thtml += '<tr>';
+          row.forEach(cell => { thtml += '<td>' + applyInline(escapeHtml(cell)) + '</td>'; });
+          thtml += '</tr>';
+        });
+        thtml += '</tbody></table>';
+        out.push(thtml);
+      }
+      continue;
+    }
+
+    // Empty line — paragraph break
+    if (line.trim() === '') { i++; continue; }
+
+    // Paragraph — collect consecutive non-special lines
+    const paraLines = [];
+    while (i < placeholdered.length) {
+      const pl = placeholdered[i];
+      if (pl.trim() === '') break;
+      if (pl.match(/^\x00CODE\d+\x00$/) || pl.match(/^#{1,4}\s/) || pl.match(/^---+\s*$/) ||
+          pl.match(/^>\s*/) || pl.match(/^[-*]\s+/) || pl.match(/^\d+\.\s+/) || pl.match(/^\|/)) break;
+      paraLines.push(applyInline(escapeHtml(pl)));
+      i++;
+    }
+    if (paraLines.length > 0) {
+      out.push('<p>' + paraLines.join(' ') + '</p>');
+    }
+  }
+
+  return out.join('\n');
+}
+
+// ─────────────────────────────────────────────
+// Section definitions
+// ─────────────────────────────────────────────
+const SECTIONS = [
+  {
+    id: 'intro',
+    label: '快速上手',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/>
+      <rect x="5.5" y="9" width="5" height="6" rx="0.5"/>
+    </svg>`,
+    content: `# Meso · 帮助文档
+
+Meso 是一个以**流式会话为核心**的 AI 应用基础平台，提供统一 UI 规范、流式渲染引擎、分层记忆系统和可插拔应用插件机制。
+
+## 平台定位
+
+\`\`\`
+业务应用层   AI-KA / 新项目 / 其他应用
+              ↑  只需提供 App Manifest
+平台服务层   Meso（本仓库）
+              ↑  npm install @meso/ui
+UI 组件层    ThreeColumnLayout / ChatBubble / ArtifactPanel / ...
+设计系统     meso-tokens.css（CSS 自定义属性）
+\`\`\`
+
+**平台层不包含业务逻辑。** 每个应用声明所需能力，平台负责将记忆、知识库、工具注入流式会话。
+
+## 核心理念
+
+> 流式对话是 Meso 的灵魂，不是一个功能。
+
+每次用户发送消息，触发一次完整的流式推进过程：
+
+\`\`\`
+用户发送
+  ├─ stage:    召回记忆 → 检索知识 → 分析中
+  ├─ memory:   相关记忆片段推送到 UI 芯片
+  ├─ think:    推理过程逐字流出（可折叠查看）
+  ├─ text:     正文逐字输出 ···▋
+  ├─ artifact: 代码/图表/HTML 边流边渲染右侧面板
+  └─ done
+\`\`\`
+
+所有上层能力（记忆、知识库、插件工具）都是这条流的**输入准备**或**输出解析**，不是独立的平行 API 调用。
+
+[查看流式会话完整演示](demo:01-streaming.html)
+
+## 快速开始
+
+### 安装 @meso/ui
+
+\`\`\`bash
+npm install @meso/ui
+\`\`\`
+
+### 防止主题闪烁（FOUC）
+
+在 \`index.html\` 的 \`<head>\` **最顶部**（任何 CSS 之前）添加：
+
+\`\`\`html
+<script>
+  (function(){
+    var t = localStorage.getItem('meso-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<link rel="stylesheet" href="node_modules/@meso/ui/dist/tokens.css">
+<link rel="stylesheet" href="node_modules/@meso/ui/dist/style.css">
+\`\`\`
+
+### 基础用法
+
+\`\`\`tsx
+import { ThreeColumnLayout, useTheme } from '@meso/ui'
+
+export function App() {
+  const { theme, toggle } = useTheme()
+  return (
+    <ThreeColumnLayout
+      appName="MyApp"
+      navItems={[...]}
+      sessionColumn={<SessionList />}
+      mainHeader={<button onClick={toggle}>{theme === 'dark' ? '☀️' : '🌙'}</button>}
+    >
+      <ChatArea />
+    </ThreeColumnLayout>
+  )
+}
+\`\`\`
+
+## 技术栈
+
+| 层级 | 技术 | 备注 |
+|------|------|------|
+| UI 组件库 | React 18 + TypeScript | @meso/ui npm 包 |
+| 构建工具 | Vite 5 Library Mode | 输出 ESM + CJS + .d.ts |
+| 设计 Token | CSS 自定义属性 | 单一 meso-tokens.css 来源 |
+| 流式传输 | Server-Sent Events | 标准 EventSource API |
+| 后端框架 | Python 3.12 + FastAPI | 流式响应端点 |
+| 记忆存储 | 本地文件 + Obsidian Vault | ~/.llm-platform/ |`
+  },
+  {
+    id: 'streaming',
+    label: '流式会话',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 3.5h12a1 1 0 011 1v6.5a1 1 0 01-1 1H6L3.5 14V12H2a1 1 0 01-1-1V4.5a1 1 0 011-1z"/>
+      <line x1="4.5" y1="7.5" x2="11.5" y2="7.5"/>
+      <line x1="4.5" y1="9.5" x2="8" y2="9.5"/>
+    </svg>`,
+    content: `# 流式会话
+
+Meso 的所有 AI 响应均通过 **Server-Sent Events (SSE)** 协议传输，前端实时解析并逐步渲染各类内容。
+
+## SSE 事件协议
+
+每条 SSE 消息格式为 \`data: <JSON>\\n\\n\`，JSON 包含 \`type\` 字段标识事件类型：
+
+| 事件类型 | 字段 | 说明 |
+|---|---|---|
+| stage | label, status | 阶段标签和状态 (active/done) |
+| memory | items: string[] | 召回的记忆片段数组 |
+| think | delta, done? | 推理文本增量；done=true 触发折叠 |
+| text | delta | 正文增量，逐字追加 |
+| artifact | artifactType, language?, delta, done? | 代码/HTML/Mermaid 增量 |
+| done | — | 流结束信号 |
+| error | message | 错误信息 |
+
+## 完整事件序列示例
+
+下面是一次完整对话轮次的典型 SSE 事件流：
+
+\`\`\`
+data: {"type":"stage","label":"召回记忆","status":"active"}
+data: {"type":"memory","items":["用户偏好TypeScript","项目使用React 18"]}
+data: {"type":"stage","label":"召回记忆","status":"done"}
+data: {"type":"stage","label":"分析中","status":"active"}
+data: {"type":"think","delta":"用户需要一个文件上传组件，"}
+data: {"type":"think","delta":"应使用 TypeScript，考虑拖拽支持…","done":true}
+data: {"type":"stage","label":"分析中","status":"done"}
+data: {"type":"text","delta":"以下是一个支持拖拽的文件上传组件："}
+data: {"type":"artifact","artifactType":"code","language":"tsx","delta":"import React"}
+data: {"type":"artifact","artifactType":"code","language":"tsx","delta":", { useCallback }"}
+data: {"type":"artifact","artifactType":"code","language":"tsx","done":true}
+data: {"type":"done"}
+\`\`\`
+
+## ThinkBlock 生命周期
+
+ThinkBlock 用于展示 AI 的推理过程，有明确的状态转换规则：
+
+\`\`\`
+streaming=true  →  实时逐字追加，展开状态，显示光标
+done=true 到来  →  streaming=false，等待 1500ms
+1500ms 后       →  自动折叠（collapse 动画 200ms ease）
+用户点击        →  随时手动展开/折叠，优先级高于自动折叠
+\`\`\`
+
+Think Block 的头部始终显示"推理过程"标签，折叠后显示首行预览文本。
+
+## Artifact 面板动画
+
+当第一个 \`artifact\` 事件到来时，右侧面板从右侧滑入：
+
+\`\`\`
+first artifact event
+  → panel translateX(100%) → translateX(0)，transition 200ms ease
+  → main chat area 宽度动画收缩（splitter 移动）
+  → 增量内容边接收边渲染
+  → done=true 时触发代码高亮 / HTML sandbox / Mermaid 解析
+\`\`\`
+
+Artifact 类型支持：\`code\`（代码高亮）、\`html\`（sandbox iframe 预览）、\`mermaid\`（SVG 流程图）。
+
+## 阶段计时规范
+
+| 阶段 | 典型耗时 | 超时处理 |
+|---|---|---|
+| 召回记忆 | 200–500ms | 3s 后跳过，继续 |
+| 检索知识 | 300–800ms | 5s 后跳过 |
+| 分析中 | 随推理而定 | 无超时 |
+| 生成回复 | 随内容而定 | 无超时 |
+
+## 前端状态机
+
+\`\`\`
+IDLE  ─(send)→  STREAMING  ─(done event)→  DONE
+                    │
+                    └─(error event)→  ERROR
+\`\`\`
+
+\`STREAMING\` 状态下禁用发送按钮，显示"停止"按钮。\`ERROR\` 状态显示错误信息，允许重试。\`DONE\` 状态在 200ms 后重置为 \`IDLE\`（允许继续对话）。
+
+## useSSEStream 使用示例
+
+\`\`\`tsx
+const { state, start, reset } = useSSEStream('/api/chat')
+
+function handleSend(message: string) {
+  start({ messages: [...history, { role: 'user', content: message }] })
+}
+
+// state.status: 'idle' | 'streaming' | 'done' | 'error'
+// state.text:   当前正文累积文本
+// state.think:  当前推理累积文本
+// state.stages: StageItem[]
+// state.memories: string[]
+// state.artifact: { type, language, content } | null
+\`\`\`
+
+[基础流式输出](demo:01-streaming.html) [Think Block 演示](demo:01-streaming.html#think) [Artifact 渲染](demo:01-streaming.html#artifact) [完整对话流程](demo:01-streaming.html#full)`
+  },
+  {
+    id: 'layout',
+    label: '布局规范',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <rect x="1" y="1" width="14" height="14" rx="1.5"/>
+      <line x1="5" y1="1" x2="5" y2="15"/>
+      <line x1="10" y1="1" x2="10" y2="15"/>
+      <line x1="10" y1="7" x2="15" y2="7"/>
+    </svg>`,
+    content: `# 布局规范
+
+Meso 采用固定的三栏结构，所有尺寸均通过 CSS 自定义属性控制，确保跨页面一致性。
+
+## 三栏尺寸
+
+| 区域 | 默认宽度 | CSS 变量 | 折叠宽度 |
+|---|---|---|---|
+| 左侧导航栏 | 145px | --sidebar-w | 52px (--sidebar-w-collapsed) |
+| 会话列表栏 | 260px | --session-col-w | 不可折叠 |
+| 主内容区 | flex: 1 | — | — |
+| 顶部栏高度 | 52px | — | — |
+
+## 侧栏折叠
+
+侧栏支持展开（145px）与收起（52px）两种状态，通过 CSS 动画切换：
+
+\`\`\`css
+#app-sidebar {
+  width: var(--sidebar-w);
+  transition: width 0.2s ease, min-width 0.2s ease;
+  overflow: hidden;
+}
+#app-sidebar.collapsed {
+  width: var(--sidebar-w-collapsed);
+  min-width: var(--sidebar-w-collapsed);
+}
+\`\`\`
+
+折叠状态下：导航标签文字淡出（\`opacity: 0\`），图标居中对齐，tooltip 提供悬停提示。
+
+## 各栏内部结构
+
+### 左侧导航栏（145px）
+
+\`\`\`
+┌─────────────────┐  ← 52px header（logo + 标题 + 折叠按钮）
+│  M  Meso Demo ≡ │
+├─────────────────┤
+│  ○  流式会话    │  ← nav items，8px 12px padding，6px border-radius
+│  ○  布局规范    │
+│  ○  ...         │
+├─────────────────┤
+│  G  Grant       │  ← user footer，upward popup menu
+└─────────────────┘
+\`\`\`
+
+### 会话列表栏（260px）
+
+\`\`\`
+┌──────────────────────────┐  ← 52px header（标题 + 新建按钮）
+│  流式会话              + │
+├──────────────────────────┤
+│  [ 搜索演示…           ] │  ← search input，8px margin
+├──────────────────────────┤
+│  今天                    │  ← group label（11px uppercase）
+│  基础流式输出            │  ← session item，border-left 2px active
+│  Think Block             │
+├──────────────────────────┤
+│  ≡ 所有会话              │  ← all-sessions-row
+└──────────────────────────┘
+\`\`\`
+
+### 主内容区（flex:1）
+
+\`\`\`
+┌─────────────────────────────────────────┐  ← 52px header
+│  基础流式输出  [流式会话]          ☀︎/🌙 │
+├─────────────────────────────────────────┤
+│                                         │
+│   chat / content area（flex:1）         │
+│                                         │
+│  ┌─────────────────┐  ┊  ┌──────────┐  │
+│  │  chat messages  │  ┊  │ artifact │  │
+│  └─────────────────┘  ┊  └──────────┘  │
+│              ↑ splitter（4px, col-resize）
+└─────────────────────────────────────────┘
+\`\`\`
+
+## 分隔条（Splitter）
+
+- 宽度：4px，\`cursor: col-resize\`
+- 默认分割比：60% 聊天区 / 40% Artifact 区
+- 悬停色：\`var(--splitter-hover)\`
+- 拖拽时：\`user-select: none\` 防止选中文字
+
+\`\`\`css
+.splitter {
+  width: 4px; cursor: col-resize; flex-shrink: 0;
+  background: transparent; transition: background 0.15s;
+}
+.splitter:hover, .splitter.dragging {
+  background: var(--splitter-hover);
+}
+\`\`\`
+
+## 圆角规范
+
+| 元素类型 | 圆角 |
+|---|---|
+| 导航项、会话项 | 6px |
+| 输入框、搜索框 | 8px |
+| 气泡、卡片 | 10px |
+| 模态框、Artifact 面板 | 12px |
+| Tooltip | 6px |
+| 头像 | 50%（圆形）|
+
+## CSS 变量控制尺寸
+
+所有布局维度均在 \`meso-tokens.css\` 中定义，修改一处即可全局生效：
+
+\`\`\`css
+:root {
+  --sidebar-w: 145px;
+  --sidebar-w-collapsed: 52px;
+  --session-col-w: 260px;
+}
+\`\`\`
+
+[布局规范演示](demo:02-layout.html)`
+  },
+  {
+    id: 'tokens',
+    label: '设计系统',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="8" cy="8" r="6"/>
+      <circle cx="5.5" cy="6.5" r="1.6" fill="currentColor" stroke="none"/>
+      <circle cx="10.5" cy="6.5" r="1.6" fill="currentColor" stroke="none"/>
+      <circle cx="8" cy="10.5" r="1.6" fill="currentColor" stroke="none"/>
+    </svg>`,
+    content: `# 设计系统
+
+Meso 的所有颜色、间距、交互状态均通过 **CSS 自定义属性（Custom Properties）** 统一管理，单一来源文件 \`meso-tokens.css\`。
+
+## Token 哲学
+
+> 定义一次，到处引用。所有组件、所有页面只使用 \`var(--token-name)\`，不硬编码任何色值。
+
+这使得主题切换（明/暗）只需在 \`<html>\` 上切换 \`data-theme\` 属性即可全局生效，无需修改任何组件代码。
+
+## 使用方式
+
+### 1. 引入 Token 文件
+
+\`\`\`html
+<!-- 在 <head> 最顶部，FOUC 脚本之后 -->
+<link rel="stylesheet" href="platform/meso-tokens.css">
+\`\`\`
+
+### 2. FOUC 防闪烁脚本
+
+必须在 \`<link>\` 之前放置，读取用户上次保存的主题偏好：
+
+\`\`\`html
+<script>
+  (function(){
+    var t = localStorage.getItem('meso-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+\`\`\`
+
+### 3. 在样式中使用
+
+\`\`\`css
+.my-component {
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+.my-component:hover {
+  background: var(--nav-hover-bg);
+}
+\`\`\`
+
+### 4. 主题切换
+
+\`\`\`js
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark'
+    ? 'light' : 'dark';
+  localStorage.setItem('meso-theme', next);
+  document.documentElement.setAttribute('data-theme', next);
+}
+\`\`\`
+
+## 完整 Token 列表
+
+| Token | Light (Plan A) | Dark (Plan C) | 用途 |
+|---|---|---|---|
+| --color-bg | #dde2db | #1a1e1b | 页面背景 |
+| --color-bg-elevated | #e8ece6 | #20271f | 卡片/悬浮层 |
+| --color-bg-white | #eef0ec | #252e26 | 输入框/气泡 |
+| --color-bg-sidebar | #d5dad2 | #151918 | 侧栏背景 |
+| --color-text | #1c2620 | #c8d5cb | 主要文本 |
+| --color-text-secondary | rgba(28,38,32,.65) | rgba(200,213,203,.65) | 次要文本 |
+| --color-text-muted | rgba(28,38,32,.42) | rgba(200,213,203,.42) | 弱化文本 |
+| --color-accent | #3d6b52 | #5a9e70 | 强调色/交互 |
+| --color-accent-dark | #2a5240 | #74ba8a | 激活态强调 |
+| --color-border | #b0baa8 | #2c3830 | 分隔线/边框 |
+| --color-code-bg | #1a201c | #0e1210 | 代码块背景 |
+| --color-code-text | #c8d5cb | #d5e0d8 | 代码文本 |
+| --color-error | #b83232 | #e06060 | 错误状态 |
+| --color-success | #2a7a4f | #5fbe85 | 成功状态 |
+| --color-warning | #b45309 | #e0a030 | 警告状态 |
+
+## 交互状态 Token
+
+这些 Token 派生自 accent 色，自动适配明/暗主题：
+
+| Token | 用途 |
+|---|---|
+| --nav-hover-bg | 导航项悬停背景 |
+| --nav-active-bg | 导航项激活背景 |
+| --session-hover-bg | 会话项悬停背景 |
+| --session-active-bg | 会话项激活背景 |
+| --badge-bg | 标签徽章背景 |
+
+## 自定义覆盖
+
+如需在项目中微调某些 token，在自己的 CSS 文件中覆盖（必须在 \`meso-tokens.css\` 之后加载）：
+
+\`\`\`css
+/* my-app-overrides.css */
+:root {
+  --color-accent: #4a7a5e;      /* 略深的强调色 */
+  --sidebar-w: 160px;           /* 稍宽的侧栏 */
+}
+\`\`\`
+
+[配色系统演示](demo:../color-palette.html)`
+  },
+  {
+    id: 'components',
+    label: '组件 API',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.2"/>
+      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.2"/>
+      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.2"/>
+      <rect x="9" y="9" width="5.5" height="5.5" rx="1.2"/>
+    </svg>`,
+    content: `# 组件 API
+
+\`@meso/ui\` 导出以下组件和 Hooks。所有组件均支持明/暗主题，无需额外配置。
+
+## ThreeColumnLayout
+
+应用外壳组件，提供完整的三栏布局结构。
+
+\`\`\`tsx
+import { ThreeColumnLayout } from '@meso/ui'
+\`\`\`
+
+| Prop | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| navItems | NavItem[] | [] | 左侧导航项 |
+| sidebarFooter | ReactNode | — | 侧栏底部区域（用户信息等）|
+| sessionColumn | ReactNode | — | 中间会话列表区域 |
+| children | ReactNode | 必填 | 主内容区 |
+| defaultCollapsed | boolean | false | 侧栏初始状态 |
+| appName | string | 'Meso' | 品牌名称（显示在侧栏头部）|
+| mainHeader | ReactNode | — | 主区顶部栏内容 |
+
+### NavItem 接口
+
+\`\`\`ts
+interface NavItem {
+  id: string;
+  label: string;
+  icon: ReactNode;       // 建议 18×18 SVG stroke 图标
+  onClick?: () => void;
+  active?: boolean;
+  tooltip?: string;      // 折叠状态下显示
+}
+\`\`\`
+
+---
+
+## ChatBubble
+
+单条消息气泡，支持流式输出和光标动画。
+
+| Prop | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| role | 'user' \| 'assistant' | 必填 | 消息角色 |
+| content | string | 必填 | 消息文本（支持 Markdown）|
+| streaming | boolean | false | 是否正在流式输出 |
+| timestamp | Date | — | 消息时间戳 |
+
+---
+
+## ThinkBlock
+
+推理过程折叠块，流式结束后自动折叠。
+
+| Prop | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| content | string | 必填 | 推理文本 |
+| streaming | boolean | false | 是否正在流式输出 |
+| autoCollapseDelay | number | 1500 | 流式结束后多久折叠（ms）|
+
+---
+
+## StreamingCursor
+
+打字光标动画组件。
+
+| Prop | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| active | boolean | 必填 | 是否显示并闪烁 |
+
+---
+
+## ArtifactPanel
+
+右侧内容面板，支持代码高亮、HTML 预览、Mermaid 图表。
+
+| Prop | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| type | 'code' \| 'html' \| 'mermaid' | 必填 | 内容类型 |
+| content | string | 必填 | 内容文本 |
+| language | string | — | 代码语言（type=code 时）|
+| streaming | boolean | false | 是否正在流式接收 |
+| onCopy | () => void | — | 复制按钮回调 |
+
+---
+
+## StageTimeline
+
+阶段进度时间轴，显示当前处理阶段。
+
+| Prop | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| stages | StageItem[] | 必填 | 阶段列表 |
+| compact | boolean | false | 紧凑模式（单行显示）|
+
+\`\`\`ts
+interface StageItem {
+  label: string;
+  status: 'pending' | 'active' | 'done';
+}
+\`\`\`
+
+---
+
+## useSSEStream
+
+核心流式请求 Hook，处理 SSE 连接的完整生命周期。
+
+\`\`\`ts
+const { state, start, reset } = useSSEStream(url: string)
+\`\`\`
+
+**返回值：**
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| state.status | 'idle' \| 'streaming' \| 'done' \| 'error' | 当前状态 |
+| state.text | string | 已接收正文文本 |
+| state.think | string | 已接收推理文本 |
+| state.stages | StageItem[] | 阶段列表 |
+| state.memories | string[] | 召回记忆列表 |
+| state.artifact | ArtifactState \| null | Artifact 状态 |
+| state.error | string \| null | 错误信息 |
+| start(body?) | function | 发起请求，body 为 POST body |
+| reset() | function | 重置所有状态到 idle |
+
+---
+
+## useTheme
+
+主题管理 Hook。
+
+\`\`\`ts
+const { theme, toggle } = useTheme()
+// theme: 'light' | 'dark'
+// toggle(): 切换主题并持久化到 localStorage
+\`\`\`
+
+[流式组件演示](demo:01-streaming.html) [Artifact 面板](demo:06-artifact.html) [阶段进度](demo:07-stage.html)`
+  },
+  {
+    id: 'memory',
+    label: '记忆系统',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <ellipse cx="8" cy="4.5" rx="5.5" ry="2.2"/>
+      <path d="M2.5 4.5v2.8c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2V4.5"/>
+      <path d="M2.5 7.3v2.8c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2V7.3"/>
+      <path d="M2.5 10.1v2c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2v-2"/>
+    </svg>`,
+    content: `# 记忆系统
+
+Meso 的记忆系统分为**短期记忆**和**长期记忆**两层，在每次对话前自动召回相关内容并注入系统提示。
+
+## 短期记忆
+
+- **存储位置**：\`~/.llm-platform/sessions/<session-id>.json\`
+- **内容**：当前会话的完整消息历史
+- **自动摘要**：超过 20 轮对话时，旧消息自动压缩为摘要，保留 token 空间
+- **作用范围**：仅当前会话有效，关闭后保留 30 天
+
+\`\`\`json
+{
+  "id": "sess_abc123",
+  "appId": "doc-review",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "summary": "用户正在审查一份劳动合同，关注第5条保密条款…",
+  "messages": [...]
+}
+\`\`\`
+
+## 长期记忆
+
+- **存储位置**：\`~/.llm-platform/memory/\`（可配置为 Obsidian Vault 路径）
+- **格式**：标准 Markdown 文件，YAML frontmatter 元数据
+- **写入方式**：用户手动保存，或 AI 自动提取（需在 App Manifest 中开启 \`autoExtract: true\`）
+
+### 长期记忆文件格式
+
+\`\`\`markdown
+# 用户偏好 · 代码风格
+
+日期: 2024-01-15
+类型: 偏好
+
+用户偏好 TypeScript，使用 arrow functions，不喜欢 class 语法。
+缩进 2 个空格，文件使用 kebab-case 命名。
+\`\`\`
+
+## 召回算法
+
+每次发送消息时，系统并行执行两种检索：
+
+| 方式 | 实现 | 权重 |
+|---|---|---|
+| 关键词匹配 | BM25 全文检索 | 40% |
+| 语义相似度 | 向量嵌入余弦相似度 | 60% |
+
+两路结果合并去重，取 Top-K（默认 K=5，可在 App Manifest 中配置），按综合分数排序。
+
+## 注入格式
+
+召回结果以固定格式追加到 System Prompt 的末尾：
+
+\`\`\`
+--- 相关记忆 ---
+[用户偏好 · 代码风格] TypeScript，arrow functions，2空格缩进
+[项目背景 · AI-KA] 审查分析工具，处理法律合同文档
+--- 用户消息 ---
+帮我写一个文件上传组件
+\`\`\`
+
+## Memory Chips UI
+
+当 \`memory\` 事件到来时，召回片段以"芯片"形式显示在对话输入框上方：
+
+\`\`\`
+┌────────────────────────────────────────────┐
+│  💾 用户偏好·代码风格  💾 项目背景·AI-KA   │  ← memory chips
+├────────────────────────────────────────────┤
+│  [ 输入消息…                          发送 ]│
+└────────────────────────────────────────────┘
+\`\`\`
+
+芯片颜色使用 \`var(--badge-bg)\`，点击可展开查看完整记忆内容。
+
+## 自动提取配置
+
+在 App Manifest 中开启自动提取后，每次对话结束时 AI 会判断是否产生了值得记忆的新信息：
+
+\`\`\`json
+"memory": {
+  "recallTopK": 5,
+  "autoExtract": true,
+  "extractPrompt": "从上述对话中提取值得长期记住的用户偏好或项目背景，简洁描述。"
+}
+\`\`\`
+
+[记忆系统演示](demo:08-memory.html) [记忆召回模拟](demo:08-memory.html#recall)`
+  },
+  {
+    id: 'plugin',
+    label: '应用插件',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.5 2a2 2 0 00-4 0H4a1 1 0 00-1 1v2h2a2 2 0 010 4H3v2a1 1 0 001 1h2a2 2 0 010 4v-2h4v2a2 2 0 010-4h2a1 1 0 001-1V3a1 1 0 00-1-1h-2.5z"/>
+    </svg>`,
+    content: `# 应用插件
+
+Meso 通过 **App Manifest** 机制支持多应用模式。不同应用可以拥有独立的系统提示、工具集、知识库和 Composer 配置，而无需修改平台代码。
+
+## 应用概念
+
+一个"应用"（App）代表一种特定的对话模式：
+
+| 应用 | 系统提示方向 | 工具 | 知识库 |
+|---|---|---|---|
+| 通用对话 | 通用 AI 助手 | — | — |
+| 文档审查 | 专业文档分析 | search_knowledge, extract_entities | legal-templates |
+| 代码助手 | 资深工程师 | run_code, search_docs | engineering-guidelines |
+| 数据分析 | 数据科学家 | query_database, plot_chart | — |
+
+## App Manifest 结构
+
+每个应用由 \`manifest.json\` 声明，平台在启动时加载所有已注册的应用：
+
+\`\`\`json
+{
+  "id": "doc-review",
+  "name": "文档审查",
+  "icon": "file-search",
+  "systemPrompt": "你是一个专业的文档审查助手...",
+  "tools": ["search_knowledge", "extract_entities"],
+  "knowledgeBases": ["legal-templates", "company-policies"],
+  "composer": {
+    "placeholder": "上传文档或输入审查要求…",
+    "actions": ["upload", "template"]
+  },
+  "memory": {
+    "recallTopK": 5,
+    "autoExtract": true
+  }
+}
+\`\`\`
+
+### Manifest 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 唯一标识符，URL-safe |
+| name | string | 是 | 显示名称 |
+| icon | string | 是 | 图标名称（内置图标集）|
+| systemPrompt | string | 是 | 系统提示词 |
+| tools | string[] | 否 | 注册的工具名称列表 |
+| knowledgeBases | string[] | 否 | 关联的知识库 ID |
+| composer | ComposerConfig | 否 | Composer 组件配置 |
+| memory | MemoryConfig | 否 | 记忆系统配置 |
+
+## 应用切换
+
+用户点击左侧导航栏中的应用图标即可切换。切换时平台会：
+
+1. 重置当前会话上下文（可配置是否保留）
+2. 切换 System Prompt
+3. 更新 Composer 工具栏
+4. 重新加载对应知识库索引
+
+\`\`\`
+左侧导航点击 app-icon
+  → 平台加载 manifest.json
+  → 初始化新会话（或恢复上次会话）
+  → 注入 systemPrompt + tools
+  → Composer 工具栏动画切换
+  → UI 头部标题更新
+\`\`\`
+
+## Composer 联动
+
+不同应用可以配置不同的 Composer 工具栏。\`actions\` 字段支持以下预置动作：
+
+| 动作 | 说明 |
+|---|---|
+| upload | 文件上传按钮（支持拖拽）|
+| template | 快速模板选择器 |
+| search | 知识库搜索触发 |
+| code | 代码输入模式切换 |
+| voice | 语音输入（实验性）|
+
+## 工具注册
+
+工具在后端定义，Manifest 中通过 ID 引用。平台在流式响应中支持 \`tool_call\` 和 \`tool_result\` 事件类型（扩展协议，核心协议不含此字段）。
+
+[应用插件演示](demo:09-plugin.html) [App Manifest 结构](demo:09-plugin.html#manifest)`
+  },
+  {
+    id: 'integration',
+    label: '接入指南',
+    icon: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1" y="3" width="14" height="10" rx="1.5"/>
+      <polyline points="4,7 6.5,9 4,11"/>
+      <line x1="8" y1="11" x2="12" y2="11"/>
+    </svg>`,
+    content: `# 接入指南
+
+本节提供新项目从零开始接入 Meso 平台的完整步骤，以及从 AI-KA 迁移的指南。
+
+## 新项目接入
+
+### Step 1：安装依赖
+
+\`\`\`bash
+npm install @meso/ui
+# 或
+pnpm add @meso/ui
+\`\`\`
+
+### Step 2：配置 index.html
+
+在 \`<head>\` 最顶部添加 FOUC 防闪脚本和 CSS 引用：
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function(){
+      var t = localStorage.getItem('meso-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="stylesheet" href="/node_modules/@meso/ui/dist/tokens.css">
+  <link rel="stylesheet" href="/node_modules/@meso/ui/dist/style.css">
+</head>
+\`\`\`
+
+> 使用 Vite 时，将 CSS 改为在 \`main.tsx\` 中 import 即可，FOUC 脚本仍需留在 HTML。
+
+### Step 3：设置应用外壳
+
+\`\`\`tsx
+// App.tsx
+import { ThreeColumnLayout, useTheme } from '@meso/ui'
+import { SessionList } from './components/SessionList'
+import { ChatArea } from './components/ChatArea'
+import { NAV_ITEMS } from './config/nav'
+
+export function App() {
+  const { theme, toggle } = useTheme()
+
+  return (
+    <ThreeColumnLayout
+      appName="MyApp"
+      navItems={NAV_ITEMS}
+      sessionColumn={<SessionList />}
+      mainHeader={
+        <button onClick={toggle} title="切换主题">
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+      }
+    >
+      <ChatArea />
+    </ThreeColumnLayout>
+  )
+}
+\`\`\`
+
+### Step 4：接入 SSE 流式请求
+
+\`\`\`tsx
+// components/ChatArea.tsx
+import {
+  useSSEStream, ChatBubble, ThinkBlock,
+  StageTimeline, ArtifactPanel, StreamingCursor
+} from '@meso/ui'
+
+export function ChatArea() {
+  const { state, start, reset } = useSSEStream('/api/chat')
+  const [input, setInput] = useState('')
+
+  function handleSend() {
+    if (!input.trim() || state.status === 'streaming') return
+    start({ message: input })
+    setInput('')
+  }
+
+  return (
+    <div className="chat-area">
+      <StageTimeline stages={state.stages} compact />
+
+      {/* 历史消息 */}
+      {messages.map(m => (
+        <ChatBubble key={m.id} role={m.role} content={m.content} />
+      ))}
+
+      {/* 流式响应 */}
+      {state.status !== 'idle' && (
+        <>
+          {state.think && (
+            <ThinkBlock content={state.think} streaming={state.status === 'streaming'} />
+          )}
+          <ChatBubble
+            role="assistant"
+            content={state.text}
+            streaming={state.status === 'streaming'}
+          />
+        </>
+      )}
+
+      {/* Artifact 面板（条件渲染）*/}
+      {state.artifact && (
+        <ArtifactPanel
+          type={state.artifact.type}
+          content={state.artifact.content}
+          language={state.artifact.language}
+          streaming={state.status === 'streaming'}
+        />
+      )}
+
+      {/* 输入区 */}
+      <div className="composer">
+        <textarea value={input} onChange={e => setInput(e.target.value)} />
+        <button onClick={handleSend} disabled={state.status === 'streaming'}>
+          {state.status === 'streaming' ? '生成中…' : '发送'}
+        </button>
+      </div>
+    </div>
+  )
+}
+\`\`\`
+
+### Step 5：定义 App Manifest
+
+\`\`\`json
+{
+  "id": "my-app",
+  "name": "我的应用",
+  "icon": "chat",
+  "systemPrompt": "你是 MyApp 的 AI 助手，专注于…",
+  "memory": { "recallTopK": 3, "autoExtract": false }
+}
+\`\`\`
+
+### Step 6：后端 SSE 端点（Python / FastAPI）
+
+\`\`\`python
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+import json, asyncio
+
+app = FastAPI()
+
+@app.post("/api/chat")
+async def chat(body: ChatRequest):
+    async def generate():
+        yield f"data: {json.dumps({'type':'stage','label':'分析中','status':'active'})}\\n\\n"
+        # ... 调用 LLM，逐字 yield text delta
+        async for chunk in llm_stream(body.message):
+            yield f"data: {json.dumps({'type':'text','delta':chunk})}\\n\\n"
+        yield f"data: {json.dumps({'type':'done'})}\\n\\n"
+    return StreamingResponse(generate(), media_type="text/event-stream")
+\`\`\`
+
+---
+
+## 从 AI-KA 迁移
+
+| 变更项 | AI-KA 旧方式 | Meso 新方式 |
+|---|---|---|
+| 布局 | 自定义 flex 布局 | \`<ThreeColumnLayout>\` |
+| 主题 | CSS 变量不统一 | 统一 meso-tokens.css |
+| 流式 | 自定义 fetch + ReadableStream | \`useSSEStream\` hook |
+| 记忆 | 无 | \`memory\` manifest 配置 |
+| 组件 | 内联实现 | \`@meso/ui\` 导入 |
+
+---
+
+## 平台升级
+
+Meso 遵循语义化版本（SemVer）：
+
+- **patch**（1.0.x）：Bug 修复，直接升级
+- **minor**（1.x.0）：新增功能，向后兼容，直接升级
+- **major**（x.0.0）：有 breaking change，参阅 CHANGELOG
+
+\`\`\`bash
+# 升级到最新兼容版本
+npm update @meso/ui
+
+# 查看 breaking changes
+npx @meso/ui changelog
+\`\`\`
+
+Token 变更遵循 3 个版本的弃用期：旧 token 在弃用期内仍可用，控制台会输出警告。`
+  }
+];
+
+// ─────────────────────────────────────────────
+// Navigation: build items
+// ─────────────────────────────────────────────
+function buildNav() {
+  const list = document.getElementById('help-nav-list');
+  list.innerHTML = SECTIONS.map(s => `
+    <button class="help-nav-item" data-id="${s.id}" onclick="showSection('${s.id}')">
+      <span class="help-nav-icon">${s.icon}</span>
+      <span class="help-nav-label">${s.label}</span>
+    </button>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+// Show section
+// ─────────────────────────────────────────────
+function showSection(id) {
+  const section = SECTIONS.find(s => s.id === id);
+  if (!section) return;
+
+  // Update nav active state
+  document.querySelectorAll('.help-nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+
+  // Render content
+  const content = document.getElementById('help-content');
+  content.innerHTML = renderMd(section.content);
+
+  // Update hash without triggering scroll
+  history.replaceState(null, '', '#' + id);
+
+  // Scroll main to top
+  document.getElementById('help-main').scrollTop = 0;
+}
+
+// ─────────────────────────────────────────────
+// Filter sections by search
+// ─────────────────────────────────────────────
+function filterSections(query) {
+  const q = query.trim().toLowerCase();
+  document.querySelectorAll('.help-nav-item').forEach(el => {
+    const label = el.querySelector('.help-nav-label').textContent.toLowerCase();
+    const section = SECTIONS.find(s => s.id === el.dataset.id);
+    const inContent = section ? section.content.toLowerCase().includes(q) : false;
+    el.hidden = q !== '' && !label.includes(q) && !inContent;
+  });
+}
+
+// ─────────────────────────────────────────────
+// Theme toggle
+// ─────────────────────────────────────────────
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('meso-theme', next);
+  document.documentElement.setAttribute('data-theme', next);
+}
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  buildNav();
+  const hash = location.hash.replace('#', '') || 'intro';
+  const valid = SECTIONS.find(s => s.id === hash) ? hash : 'intro';
+  showSection(valid);
+});
+
+// Handle browser back/forward
+window.addEventListener('hashchange', function() {
+  const hash = location.hash.replace('#', '') || 'intro';
+  const valid = SECTIONS.find(s => s.id === hash) ? hash : 'intro';
+  showSection(valid);
+});
+</script>
+</body>
+</html>

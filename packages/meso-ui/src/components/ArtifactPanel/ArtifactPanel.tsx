@@ -11,9 +11,11 @@ export interface ArtifactPanelProps {
   streaming?: boolean
   /** Called when user clicks the copy button */
   onCopy?: (content: string) => void
+  /** Called when user clicks download. If not provided, default browser download is triggered. */
+  onDownload?: (content: string) => void
 }
 
-export function ArtifactPanel({ type, content, language = 'plaintext', streaming = false, onCopy }: ArtifactPanelProps) {
+export function ArtifactPanel({ type, content, language = 'plaintext', streaming = false, onCopy, onDownload }: ArtifactPanelProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
@@ -21,6 +23,20 @@ export function ArtifactPanel({ type, content, language = 'plaintext', streaming
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
     onCopy?.(content)
+  }
+
+  const handleDownload = () => {
+    if (onDownload) {
+      onDownload(content)
+      return
+    }
+    const ext = type === 'html' ? 'html' : type === 'mermaid' ? 'md' : (language || 'txt')
+    const blob = new Blob([content], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `artifact.${ext}`
+    a.click()
+    URL.revokeObjectURL(a.href)
   }
 
   const tabs: ArtifactType[] = type === 'html' ? ['html', 'code'] : [type]
@@ -36,6 +52,16 @@ export function ArtifactPanel({ type, content, language = 'plaintext', streaming
           ))}
         </div>
         {streaming && <span className="meso-artifact__streaming-badge">生成中…</span>}
+        <button
+          className="meso-artifact__download-btn"
+          onClick={handleDownload}
+          title="下载"
+          aria-label="下载文件"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7.5 2v8M4.5 7.5L7.5 10.5 10.5 7.5M2 13h11"/>
+          </svg>
+        </button>
         <button
           className="meso-artifact__copy-btn"
           onClick={handleCopy}

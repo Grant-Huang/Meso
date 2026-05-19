@@ -67,6 +67,26 @@
   color: var(--color-code-text, #c8d5cb);
 }
 
+.meso-artifact__download-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(200,213,203,0.5);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.meso-artifact__download-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--color-code-text, #c8d5cb);
+}
+
 .meso-artifact__body {
   flex: 1;
   overflow: hidden;

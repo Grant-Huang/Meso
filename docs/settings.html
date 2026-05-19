@@ -381,77 +381,84 @@ const PROVIDERS = {
   zhipu: {
     name: '智谱 AI (GLM)',
     desc: '国产大模型，支持 GLM-4、GLM-4-Flash 等系列。',
-    apiKeyLabel: 'API Key',
     apiKeyHint: '在智谱 AI 开放平台创建 API Key。',
-    models: ['glm-4-flash', 'glm-4', 'glm-4-plus', 'glm-4-long', 'glm-4-air'],
+    defaultModel: 'glm-4-flash',
+    modelHint: '常用：glm-4-flash · glm-4 · glm-4-plus · glm-4-long · glm-4-air',
+    defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
     hasGroupId: false,
   },
   qwen: {
     name: '通义千问 (Qwen)',
-    desc: '阿里云百炼平台，支持 Qwen-Max、Qwen-Plus、Qwen-Turbo 等系列。',
-    apiKeyLabel: 'API Key',
+    desc: '阿里云百炼平台，支持 Qwen-Max、Qwen-Plus 等系列。',
     apiKeyHint: '在阿里云百炼控制台获取 API Key。',
-    models: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-long', 'qwen2.5-72b-instruct'],
+    defaultModel: 'qwen-plus',
+    modelHint: '常用：qwen-max · qwen-plus · qwen-turbo · qwen-long · qwen2.5-72b-instruct',
+    defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     hasGroupId: false,
   },
   kimi: {
     name: 'Kimi (Moonshot AI)',
     desc: '月之暗面推出的长上下文大模型。',
-    apiKeyLabel: 'API Key',
     apiKeyHint: '在 Moonshot AI 开放平台创建 API Key。',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+    defaultModel: 'moonshot-v1-8k',
+    modelHint: '常用：moonshot-v1-8k · moonshot-v1-32k · moonshot-v1-128k',
+    defaultBaseUrl: 'https://api.moonshot.cn/v1',
     hasGroupId: false,
   },
   deepseek: {
     name: 'DeepSeek',
     desc: '幻方量化推出的高性价比大模型，支持推理模式。',
-    apiKeyLabel: 'API Key',
     apiKeyHint: '在 DeepSeek 开放平台创建 API Key。',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
+    defaultModel: 'deepseek-chat',
+    modelHint: '常用：deepseek-chat · deepseek-reasoner',
+    defaultBaseUrl: 'https://api.deepseek.com/v1',
     hasGroupId: false,
   },
   'minimax-cn': {
     name: 'MiniMax（国内版）',
     desc: '国内版需要 API Key，Group ID 为可选参数。',
-    apiKeyLabel: 'API Key',
     apiKeyHint: '在 MiniMax 开放平台创建 API Key。',
-    models: ['abab6.5s-chat', 'abab6.5-chat', 'abab5.5s-chat'],
+    defaultModel: 'abab6.5s-chat',
+    modelHint: '常用：abab6.5s-chat · abab6.5-chat · abab5.5s-chat',
+    defaultBaseUrl: 'https://api.minimax.chat/v1',
     hasGroupId: true,
     groupIdHint: 'Group ID 可在 MiniMax 控制台"团队信息"中找到，不填则使用默认配置。',
   },
   anthropic: {
     name: 'Anthropic (Claude)',
-    desc: 'Anthropic 旗下 Claude 系列模型，需要通过官方 API 或代理访问。',
-    apiKeyLabel: 'API Key',
+    desc: 'Anthropic 旗下 Claude 系列模型，支持官方 API 或兼容代理。',
     apiKeyHint: '在 Anthropic Console 创建 API Key。',
-    models: ['claude-opus-4-7', 'claude-sonnet-4-6', 'claude-haiku-4-5'],
+    defaultModel: 'claude-sonnet-4-6',
+    modelHint: '常用：claude-opus-4-7 · claude-sonnet-4-6 · claude-haiku-4-5',
+    defaultBaseUrl: 'https://api.anthropic.com/v1',
     hasGroupId: false,
   },
   openai: {
     name: 'OpenAI',
-    desc: 'GPT-4、o 系列模型，需要通过 OpenAI 官方 API 或代理访问。',
-    apiKeyLabel: 'API Key',
+    desc: 'GPT-4、o 系列模型，支持官方 API 或兼容代理（如 Azure、第三方中转）。',
     apiKeyHint: '在 OpenAI Platform 创建 API Key。',
-    models: ['gpt-4o', 'gpt-4o-mini', 'o3', 'o4-mini', 'gpt-4-turbo'],
+    defaultModel: 'gpt-4o',
+    modelHint: '常用：gpt-4o · gpt-4o-mini · o3 · o4-mini · gpt-4-turbo',
+    defaultBaseUrl: 'https://api.openai.com/v1',
     hasGroupId: false,
   },
   'minimax-intl': {
     name: 'MiniMax 国际版',
     desc: '国际版 MiniMax，仅需 API Key，无需 Group ID。',
-    apiKeyLabel: 'API Key',
     apiKeyHint: '在 MiniMax 国际版控制台创建 API Key。',
-    models: ['MiniMax-Text-01', 'abab6.5s-chat'],
+    defaultModel: 'MiniMax-Text-01',
+    modelHint: '常用：MiniMax-Text-01 · abab6.5s-chat',
+    defaultBaseUrl: 'https://api.minimaxi.chat/v1',
     hasGroupId: false,
   },
   private: {
     name: '私有部署',
     desc: '兼容 OpenAI API 格式的自托管模型（如 Ollama、vLLM、LocalAI 等）。',
-    apiKeyLabel: 'API Key',
     apiKeyHint: '若服务端不需要鉴权，可留空或填入任意字符。',
-    models: [],
+    defaultModel: '',
+    modelHint: '填写实际部署的模型名称，如 llama3 · qwen2.5 · mistral',
+    defaultBaseUrl: 'http://localhost:11434/v1',
     hasGroupId: false,
-    hasBaseUrl: true,
-    hasCustomModel: true,
   },
 }
 
@@ -487,16 +494,15 @@ function renderForm(id) {
   const form = document.getElementById('provider-form')
   form.style.display = ''
 
-  const modelOptions = p.models.map(m =>
-    `<option value="${m}"${saved.model === m ? ' selected' : ''}>${m}</option>`
-  ).join('')
+  const currentModel = saved.model !== undefined ? saved.model : p.defaultModel
+  const currentBaseUrl = saved.baseUrl !== undefined ? saved.baseUrl : p.defaultBaseUrl
 
   form.innerHTML = `
     <h2 class="config-pane-title">${p.name}</h2>
     <p class="config-pane-desc">${p.desc}</p>
 
     <div class="form-group">
-      <label class="form-label">${p.apiKeyLabel}</label>
+      <label class="form-label">API Key</label>
       <div class="form-input-wrap">
         <input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off" value="${saved.apiKey || ''}">
         <button class="btn-show-key" onclick="toggleKey('f-apikey', this)" tabindex="-1">
@@ -516,27 +522,17 @@ function renderForm(id) {
       <div class="form-hint">${p.groupIdHint}</div>
     </div>` : ''}
 
-    ${p.hasBaseUrl ? `
-    <div class="form-group">
-      <label class="form-label">Base URL</label>
-      <input class="form-input" type="text" id="f-baseurl" placeholder="http://localhost:11434/v1" value="${saved.baseUrl || ''}">
-      <div class="form-hint">兼容 OpenAI API 格式的服务地址，以 /v1 结尾。</div>
-    </div>` : ''}
-
-    ${p.models.length > 0 ? `
-    <div class="form-group">
-      <label class="form-label">默认模型</label>
-      <select class="form-select" id="f-model">
-        ${modelOptions}
-      </select>
-    </div>` : ''}
-
-    ${p.hasCustomModel ? `
     <div class="form-group">
       <label class="form-label">模型名称</label>
-      <input class="form-input" type="text" id="f-model-custom" placeholder="如 llama3, mistral, qwen2.5 等" value="${saved.model || ''}">
-      <div class="form-hint">填写服务端实际部署的模型名称。</div>
-    </div>` : ''}
+      <input class="form-input" type="text" id="f-model" placeholder="${p.defaultModel || '输入模型名称'}" value="${currentModel}">
+      <div class="form-hint">${p.modelHint}</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Base URL</label>
+      <input class="form-input" type="text" id="f-baseurl" placeholder="${p.defaultBaseUrl}" value="${currentBaseUrl}">
+      <div class="form-hint">修改此地址可接入兼容代理或自定义端点。留空则使用默认地址。</div>
+    </div>
 
     <div class="form-actions">
       <button class="btn btn-secondary" id="btn-test" onclick="testConnection()">
@@ -575,14 +571,10 @@ function saveProvider() {
   const cfg = getConfig()
   const entry = {
     apiKey: document.getElementById('f-apikey')?.value.trim() || '',
+    model: document.getElementById('f-model')?.value.trim() || p.defaultModel,
+    baseUrl: document.getElementById('f-baseurl')?.value.trim() || p.defaultBaseUrl,
   }
   if (p.hasGroupId) entry.groupId = document.getElementById('f-groupid')?.value.trim() || ''
-  if (p.hasBaseUrl) entry.baseUrl = document.getElementById('f-baseurl')?.value.trim() || ''
-  if (p.hasCustomModel) {
-    entry.model = document.getElementById('f-model-custom')?.value.trim() || ''
-  } else if (p.models.length > 0) {
-    entry.model = document.getElementById('f-model')?.value || p.models[0]
-  }
   cfg[currentProvider] = entry
   saveConfig(cfg)
   renderDots()

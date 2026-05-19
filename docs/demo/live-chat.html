@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>真实流式对话</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+  <link rel="stylesheet" href="../platform/meso-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      background: var(--color-bg); color: var(--color-text);
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* ── Notice bar ── */
+    .notice-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 16px; font-size: 12px;
+      background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+      color: var(--color-text-muted); flex-shrink: 0;
+    }
+    .notice-bar svg { flex-shrink: 0; color: var(--color-accent); }
+    .notice-bar a { color: var(--color-accent); text-decoration: none; cursor: pointer; }
+    .notice-bar a:hover { text-decoration: underline; }
+
+    /* ── Config strip ── */
+    .cfg-strip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 16px; border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface, var(--color-bg)); flex-shrink: 0; flex-wrap: wrap;
+    }
+    .cfg-label { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; }
+    .cfg-select, .cfg-input {
+      padding: 4px 8px; border-radius: 6px; font-size: 12px; font-family: inherit;
+      border: 1px solid var(--color-border); background: var(--color-bg);
+      color: var(--color-text); outline: none;
+    }
+    .cfg-select:focus, .cfg-input:focus { border-color: var(--color-accent); }
+    .cfg-sep { flex: 1; }
+    .cfg-status { font-size: 12px; padding: 3px 8px; border-radius: 4px; }
+    .cfg-status.ok   { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+    .cfg-status.err  { color: #e05252; background: color-mix(in srgb, #e05252 10%, transparent); }
+    .cfg-status.busy { color: var(--color-text-muted); }
+    .btn-clear {
+      padding: 4px 10px; border-radius: 6px; font-size: 12px; font-family: inherit;
+      border: 1px solid var(--color-border); background: transparent;
+      color: var(--color-text-muted); cursor: pointer; transition: background 0.12s;
+    }
+    .btn-clear:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+
+    /* ── Chat thread ── */
+    .chat-thread {
+      flex: 1; overflow-y: auto; padding: 20px 0;
+    }
+    .message-row { max-width: 780px; margin: 0 auto; padding: 0 20px 16px; }
+
+    .bubble-user { display: flex; justify-content: flex-end; }
+    .bubble-user-content {
+      max-width: 72%; background: var(--color-surface, #fff);
+      border: 1px solid var(--color-border);
+      border-radius: 14px 14px 4px 14px;
+      padding: 10px 14px; font-size: 14px; line-height: 1.6;
+    }
+
+    .bubble-ai { display: flex; flex-direction: column; gap: 8px; }
+    .ai-content { font-size: 14px; line-height: 1.7; word-break: break-word; }
+    .ai-content p { margin-bottom: 8px; }
+    .ai-content p:last-child { margin-bottom: 0; }
+    .ai-content code {
+      background: var(--nav-hover-bg); border: 1px solid var(--color-border);
+      border-radius: 4px; padding: 1px 5px; font-size: 13px;
+      font-family: "SF Mono","Fira Code",monospace; color: var(--color-accent);
+    }
+    .ai-content pre {
+      background: var(--nav-hover-bg); border: 1px solid var(--color-border);
+      border-radius: 8px; padding: 12px 14px; overflow-x: auto; margin: 8px 0;
+    }
+    .ai-content pre code {
+      background: none; border: none; padding: 0; font-size: 13px;
+    }
+    .ai-content strong { font-weight: 600; }
+    .ai-content em { font-style: italic; }
+    .ai-content ul, .ai-content ol { padding-left: 20px; margin-bottom: 8px; }
+    .ai-content li { margin-bottom: 2px; }
+    .ai-content h1,.ai-content h2,.ai-content h3 { font-weight: 600; margin: 12px 0 6px; }
+    .ai-content blockquote {
+      border-left: 3px solid var(--color-border); padding-left: 12px;
+      color: var(--color-text-muted); margin: 8px 0;
+    }
+
+    .cursor {
+      display: inline-block; width: 2px; height: 1em;
+      background: var(--color-accent); margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 0.55s ease-in-out infinite alternate;
+    }
+    @keyframes blink { from{opacity:1} to{opacity:.1} }
+
+    /* Think block */
+    .think-block {
+      background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+      border-left: 2px solid var(--color-border);
+      border-radius: 0 6px 6px 0; overflow: hidden;
+    }
+    .think-block.done { border-left-color: color-mix(in srgb, var(--color-border) 60%, transparent); }
+    .think-header {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 10px; cursor: pointer; font-size: 12px;
+      color: var(--color-text-muted); user-select: none;
+    }
+    .think-header:hover { color: var(--color-text); }
+    .think-chevron { font-size: 10px; transition: transform 0.2s; }
+    .think-block.open .think-chevron { transform: rotate(90deg); }
+    .think-body {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+      padding: 0 10px; font-size: 12px; line-height: 1.6;
+      color: var(--color-text-muted); white-space: pre-wrap; word-break: break-word;
+    }
+    .think-block.open .think-body { max-height: 400px; padding-bottom: 8px; }
+
+    /* Error bubble */
+    .bubble-error {
+      padding: 10px 14px; border-radius: 8px; font-size: 13px;
+      background: color-mix(in srgb, #e05252 8%, transparent);
+      border: 1px solid color-mix(in srgb, #e05252 25%, transparent);
+      color: #c0392b;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; height: 100%; color: var(--color-text-muted); font-size: 13px;
+      padding-bottom: 40px;
+    }
+    .empty-state svg { opacity: 0.3; }
+    .suggestion-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
+    .suggestion {
+      padding: 6px 14px; border: 1px solid var(--color-border); border-radius: 20px;
+      font-size: 12px; cursor: pointer; background: var(--color-bg);
+      color: var(--color-text-muted); transition: all 0.12s;
+    }
+    .suggestion:hover { border-color: var(--color-accent); color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+
+    /* ── Composer ── */
+    .composer-wrap { padding: 8px 20px 16px; flex-shrink: 0; }
+    .composer {
+      max-width: 780px; margin: 0 auto;
+      border: 1px solid var(--color-border); border-radius: 10px;
+      background: var(--color-surface, var(--color-bg)); overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .composer:focus-within {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 12%, transparent);
+    }
+    .composer textarea {
+      width: 100%; border: none; padding: 10px 14px 6px;
+      font-size: 14px; font-family: inherit; color: var(--color-text);
+      resize: none; outline: none; background: transparent;
+      min-height: 44px; max-height: 160px; overflow-y: auto;
+    }
+    .composer-toolbar {
+      display: flex; align-items: center; padding: 5px 8px;
+      border-top: 1px solid var(--color-border); gap: 6px;
+    }
+    .char-count { font-size: 11px; color: var(--color-text-muted); }
+    .toolbar-sep { flex: 1; }
+    .send-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px;
+      border: none; background: var(--color-accent); color: #fff;
+      cursor: pointer; transition: filter 0.15s; flex-shrink: 0;
+    }
+    .send-btn:hover:not(:disabled) { filter: brightness(1.1); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .stop-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid var(--color-border); background: transparent;
+      color: var(--color-text-muted); cursor: pointer; transition: all 0.12s;
+    }
+    .stop-btn:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+  </style>
+</head>
+<body>
+
+<!-- Notice -->
+<div class="notice-bar">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  本页面直接从浏览器调用 LLM API，需先在
+  <a onclick="openSettings()">设置页</a>
+  配置真实 API Key。API Key 仅存储在本地 localStorage，不经过任何服务器。
+</div>
+
+<!-- Config strip -->
+<div class="cfg-strip">
+  <span class="cfg-label">服务商</span>
+  <select class="cfg-select" id="sel-provider" onchange="onProviderChange()">
+    <option value="">— 未配置 —</option>
+  </select>
+  <span class="cfg-label">模型</span>
+  <select class="cfg-select" id="sel-model"></select>
+  <div class="cfg-sep"></div>
+  <button class="btn-clear" onclick="clearHistory()">清空对话</button>
+  <span class="cfg-status" id="cfg-status"></span>
+</div>
+
+<!-- Chat -->
+<div class="chat-thread" id="chat-thread">
+  <div class="empty-state" id="empty-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <span>选择服务商后发送消息开始对话</span>
+    <div class="suggestion-row" id="suggestions">
+      <span class="suggestion" onclick="useSuggestion(this)">用 Python 写一个快速排序</span>
+      <span class="suggestion" onclick="useSuggestion(this)">解释一下流式输出的原理</span>
+      <span class="suggestion" onclick="useSuggestion(this)">写一首关于代码的短诗</span>
+      <span class="suggestion" onclick="useSuggestion(this)">列出世界上最高的五座山</span>
+    </div>
+  </div>
+</div>
+
+<!-- Composer -->
+<div class="composer-wrap">
+  <div class="composer">
+    <textarea id="composer-input" rows="2"
+      placeholder="发送消息…（Ctrl+Enter 发送）"
+      oninput="onInput()" onkeydown="onKey(event)"></textarea>
+    <div class="composer-toolbar">
+      <span class="char-count" id="char-count"></span>
+      <div class="toolbar-sep"></div>
+      <button class="stop-btn" id="stop-btn" style="display:none" onclick="stopStream()" title="停止">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/></svg>
+      </button>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()" title="发送（Ctrl+Enter）" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2L7 9M14 2L9.5 14 7 9 2 6.5 14 2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Provider definitions ── */
+const PROVIDER_DEFS = {
+  zhipu:        { name:'智谱 AI',       models:['glm-4-flash','glm-4','glm-4-plus'],                  baseUrl:'https://open.bigmodel.cn/api/paas/v4',  authHeader: k=>`Bearer ${k}` },
+  qwen:         { name:'通义千问',       models:['qwen-plus','qwen-max','qwen-turbo','qwen-long'],      baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1', authHeader: k=>`Bearer ${k}` },
+  kimi:         { name:'Kimi',          models:['moonshot-v1-8k','moonshot-v1-32k','moonshot-v1-128k'],baseUrl:'https://api.moonshot.cn/v1',             authHeader: k=>`Bearer ${k}` },
+  deepseek:     { name:'DeepSeek',      models:['deepseek-chat','deepseek-reasoner'],                  baseUrl:'https://api.deepseek.com/v1',            authHeader: k=>`Bearer ${k}` },
+  'minimax-cn': { name:'MiniMax国内',   models:['abab6.5s-chat','abab6.5-chat'],                       baseUrl:'https://api.minimax.chat/v1',            authHeader: k=>`Bearer ${k}` },
+  anthropic:    { name:'Anthropic',     models:['claude-opus-4-7','claude-sonnet-4-6','claude-haiku-4-5'], baseUrl:'https://api.anthropic.com/v1',      authHeader: k=>`Bearer ${k}`, isAnthropic: true },
+  openai:       { name:'OpenAI',        models:['gpt-4o','gpt-4o-mini','o4-mini','gpt-4-turbo'],       baseUrl:'https://api.openai.com/v1',              authHeader: k=>`Bearer ${k}` },
+  'minimax-intl':{ name:'MiniMax国际',  models:['MiniMax-Text-01'],                                    baseUrl:'https://api.minimaxi.chat/v1',           authHeader: k=>`Bearer ${k}` },
+  private:      { name:'私有部署',      models:[],                                                     baseUrl:'',                                       authHeader: k=>`Bearer ${k}` },
+}
+
+/* ── State ── */
+let messages = []
+let abortCtrl = null
+let streaming = false
+
+/* ── Load config from localStorage ── */
+function getLLMConfig() {
+  try { return JSON.parse(localStorage.getItem('meso-llm-config') || '{}') } catch { return {} }
+}
+
+function openSettings() {
+  window.open('../settings.html', '_blank', 'noopener')
+}
+
+/* ── Populate provider selector ── */
+function populateProviders() {
+  const cfg = getLLMConfig()
+  const sel = document.getElementById('sel-provider')
+  const configured = Object.entries(PROVIDER_DEFS).filter(([id]) => cfg[id]?.apiKey)
+  sel.innerHTML = '<option value="">— 选择服务商 —</option>'
+  if (configured.length === 0) {
+    sel.innerHTML = '<option value="">— 未配置 API Key —</option>'
+    setStatus('请先在设置页配置 API Key', 'err')
+    return
+  }
+  configured.forEach(([id, def]) => {
+    const opt = document.createElement('option')
+    opt.value = id; opt.textContent = def.name
+    sel.appendChild(opt)
+  })
+  sel.value = configured[0][0]
+  onProviderChange()
+}
+
+function onProviderChange() {
+  const pid = document.getElementById('sel-provider').value
+  if (!pid) return
+  const cfg = getLLMConfig()
+  const def = PROVIDER_DEFS[pid]
+  const saved = cfg[pid] || {}
+  const modelSel = document.getElementById('sel-model')
+  const models = pid === 'private' ? (saved.model ? [saved.model] : ['custom-model']) : def.models
+  modelSel.innerHTML = models.map(m => `<option value="${m}"${saved.model===m?' selected':''}>${m}</option>`).join('')
+  setStatus('就绪', 'ok')
+}
+
+function setStatus(text, cls) {
+  const el = document.getElementById('cfg-status')
+  el.textContent = text
+  el.className = 'cfg-status ' + (cls || '')
+}
+
+/* ── Input helpers ── */
+function onInput() {
+  const ta = document.getElementById('composer-input')
+  const len = ta.value.length
+  document.getElementById('char-count').textContent = len > 0 ? `${len}` : ''
+  document.getElementById('send-btn').disabled = len === 0 || streaming
+  ta.style.height = 'auto'
+  ta.style.height = Math.min(ta.scrollHeight, 160) + 'px'
+}
+function onKey(e) {
+  if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendMessage() }
+}
+function useSuggestion(el) {
+  document.getElementById('composer-input').value = el.textContent
+  onInput()
+  document.getElementById('composer-input').focus()
+}
+function clearHistory() {
+  messages = []
+  document.getElementById('chat-thread').innerHTML = ''
+  document.getElementById('empty-state') || (() => {
+    const es = document.createElement('div'); es.id = 'empty-state'; es.className = 'empty-state'
+    es.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>选择服务商后发送消息开始对话</span>'
+    document.getElementById('chat-thread').appendChild(es)
+  })()
+  const thread = document.getElementById('chat-thread')
+  thread.innerHTML = `<div class="empty-state" id="empty-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <span>对话已清空</span>
+  </div>`
+}
+
+/* ── Send ── */
+async function sendMessage() {
+  const ta = document.getElementById('composer-input')
+  const text = ta.value.trim()
+  if (!text || streaming) return
+
+  const pid = document.getElementById('sel-provider').value
+  if (!pid) { setStatus('请选择服务商', 'err'); return }
+  const cfg = getLLMConfig()
+  const apiKey = cfg[pid]?.apiKey
+  if (!apiKey) { setStatus('API Key 未配置，请打开设置页', 'err'); return }
+
+  const model = document.getElementById('sel-model').value
+  const def = PROVIDER_DEFS[pid]
+  const baseUrl = pid === 'private' ? (cfg[pid]?.baseUrl || def.baseUrl) : def.baseUrl
+
+  ta.value = ''; onInput()
+  const emptyState = document.getElementById('empty-state')
+  if (emptyState) emptyState.remove()
+
+  messages.push({ role: 'user', content: text })
+  appendUserBubble(text)
+
+  streaming = true
+  document.getElementById('send-btn').disabled = true
+  document.getElementById('stop-btn').style.display = ''
+  setStatus('流式输出中…', 'busy')
+
+  const { aiRow, contentEl, thinkBlock, thinkBody, cursorEl } = appendAIBubble()
+
+  try {
+    if (def.isAnthropic) {
+      await streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, thinkBody, cursorEl })
+    } else {
+      await streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, contentEl, thinkBlock, thinkBody, cursorEl })
+    }
+    messages.push({ role: 'assistant', content: contentEl.dataset.raw || contentEl.textContent })
+    setStatus('✓ 完成', 'ok')
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      setStatus('已停止', 'ok')
+    } else {
+      showError(aiRow, err.message)
+      setStatus('请求失败', 'err')
+    }
+  } finally {
+    streaming = false
+    abortCtrl = null
+    if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl)
+    document.getElementById('send-btn').disabled = false
+    document.getElementById('stop-btn').style.display = 'none'
+  }
+}
+
+/* ── OpenAI-compatible streaming ── */
+async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, contentEl, thinkBlock, thinkBody, cursorEl }) {
+  abortCtrl = new AbortController()
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': def.authHeader(apiKey),
+  }
+  if (pid === 'minimax-cn' && cfg[pid]?.groupId) {
+    headers['GroupId'] = cfg[pid].groupId
+  }
+
+  const resp = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ model, messages, stream: true }),
+    signal: abortCtrl.signal,
+  })
+
+  if (!resp.ok) {
+    const errBody = await resp.text()
+    let msg = `HTTP ${resp.status}`
+    try { msg = JSON.parse(errBody).error?.message || msg } catch {}
+    throw new Error(msg)
+  }
+
+  let raw = ''
+  let thinkRaw = ''
+  const reader = resp.body.getReader()
+  const dec = new TextDecoder()
+  let buf = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += dec.decode(value, { stream: true })
+    const lines = buf.split('\n')
+    buf = lines.pop()
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const data = line.slice(6).trim()
+      if (data === '[DONE]') break
+      let chunk
+      try { chunk = JSON.parse(data) } catch { continue }
+      const delta = chunk.choices?.[0]?.delta
+      if (!delta) continue
+
+      // Reasoning content (DeepSeek-R1 / reasoning_content field)
+      if (delta.reasoning_content) {
+        thinkRaw += delta.reasoning_content
+        appendThink(thinkBlock, thinkBody, thinkRaw, false)
+      }
+      if (delta.content) {
+        // Close think block when text starts
+        if (thinkRaw && thinkBlock.style.display !== 'none') {
+          finalizeThink(thinkBlock)
+        }
+        raw += delta.content
+        contentEl.dataset.raw = raw
+        renderMarkdown(contentEl, raw, cursorEl)
+        scrollThread()
+      }
+    }
+  }
+}
+
+/* ── Anthropic streaming ── */
+async function streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, thinkBody, cursorEl }) {
+  abortCtrl = new AbortController()
+  const anthropicMessages = messages.map(m => ({ role: m.role, content: m.content }))
+
+  const resp = await fetch(`${baseUrl}/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model, messages: anthropicMessages, max_tokens: 4096, stream: true,
+    }),
+    signal: abortCtrl.signal,
+  })
+
+  if (!resp.ok) {
+    const errBody = await resp.text()
+    let msg = `HTTP ${resp.status}`
+    try { msg = JSON.parse(errBody).error?.message || msg } catch {}
+    throw new Error(msg)
+  }
+
+  let raw = ''
+  let thinkRaw = ''
+  let inThinking = false
+  const reader = resp.body.getReader()
+  const dec = new TextDecoder()
+  let buf = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += dec.decode(value, { stream: true })
+    const lines = buf.split('\n')
+    buf = lines.pop()
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      let ev
+      try { ev = JSON.parse(line.slice(6)) } catch { continue }
+
+      if (ev.type === 'content_block_start') {
+        if (ev.content_block?.type === 'thinking') inThinking = true
+        else if (ev.content_block?.type === 'text') inThinking = false
+      }
+      if (ev.type === 'content_block_delta') {
+        if (ev.delta?.type === 'thinking_delta') {
+          thinkRaw += ev.delta.thinking
+          appendThink(thinkBlock, thinkBody, thinkRaw, false)
+        } else if (ev.delta?.type === 'text_delta') {
+          if (thinkRaw) finalizeThink(thinkBlock)
+          raw += ev.delta.text
+          contentEl.dataset.raw = raw
+          renderMarkdown(contentEl, raw, cursorEl)
+          scrollThread()
+        }
+      }
+    }
+  }
+}
+
+/* ── Stop ── */
+function stopStream() {
+  abortCtrl?.abort()
+}
+
+/* ── DOM helpers ── */
+function appendUserBubble(text) {
+  const row = document.createElement('div'); row.className = 'message-row'
+  row.innerHTML = `<div class="bubble-user"><div class="bubble-user-content">${esc(text)}</div></div>`
+  document.getElementById('chat-thread').appendChild(row)
+  scrollThread()
+}
+
+function appendAIBubble() {
+  const row = document.createElement('div'); row.className = 'message-row'
+  const thinkBlock = mkEl('div', 'think-block'); thinkBlock.style.display = 'none'
+  thinkBlock.innerHTML = `<div class="think-header" onclick="this.parentElement.classList.toggle('open')"><span class="think-chevron">▶</span> <span class="think-label">思考中…</span></div><div class="think-body"></div>`
+  const thinkBody = thinkBlock.querySelector('.think-body')
+  const contentEl = mkEl('div', 'ai-content'); contentEl.dataset.raw = ''
+  const cursorEl = mkEl('span', 'cursor')
+  contentEl.appendChild(cursorEl)
+  const bubble = mkEl('div', 'bubble-ai')
+  bubble.append(thinkBlock, contentEl)
+  row.appendChild(bubble)
+  document.getElementById('chat-thread').appendChild(row)
+  scrollThread()
+  return { aiRow: row, contentEl, thinkBlock, thinkBody, cursorEl }
+}
+
+function appendThink(block, body, text, done) {
+  if (block.style.display === 'none') { block.style.display = ''; block.classList.add('open') }
+  body.textContent = text
+  scrollThread()
+}
+
+function finalizeThink(block) {
+  block.querySelector('.think-label').textContent = '已思考（点击展开）'
+  block.classList.remove('open'); block.classList.add('done')
+}
+
+function showError(row, msg) {
+  const err = mkEl('div', 'bubble-error')
+  err.textContent = '请求失败：' + msg
+  row.querySelector('.bubble-ai').appendChild(err)
+}
+
+/* ── Markdown renderer ── */
+function renderMarkdown(el, raw, cursor) {
+  const html = mdToHtml(raw)
+  el.innerHTML = html
+  if (cursor) el.appendChild(cursor)
+  scrollThread()
+}
+
+function mdToHtml(s) {
+  // code blocks
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code>${esc(code.trim())}</code></pre>`)
+  // inline code
+  s = s.replace(/`([^`\n]+)`/g, (_, c) => `<code>${esc(c)}</code>`)
+  // bold
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  // italic
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  // headings
+  s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+  s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>')
+  s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>')
+  // blockquote
+  s = s.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+  // unordered list
+  s = s.replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
+  s = s.replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
+  // ordered list
+  s = s.replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+  // paragraphs: split on double newline
+  s = s.split(/\n\n+/).map(p => {
+    p = p.trim()
+    if (!p) return ''
+    if (/^<(h[1-3]|pre|ul|ol|blockquote)/.test(p)) return p
+    return '<p>' + p.replace(/\n/g, '<br>') + '</p>'
+  }).join('\n')
+  return s
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+function mkEl(tag, cls) { const e = document.createElement(tag); e.className = cls; return e }
+function scrollThread() { const t = document.getElementById('chat-thread'); t.scrollTop = t.scrollHeight }
+
+/* ── Init ── */
+populateProviders()
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+.meso-bubble {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+/* User message — right aligned */
+.meso-bubble--user {
+  flex-direction: row-reverse;
+}
+
+/* Assistant avatar */
+.meso-bubble__avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.meso-bubble__body {
+  max-width: 78%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.meso-bubble__content {
+  padding: 10px 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+.meso-bubble--assistant .meso-bubble__content {
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-top-left-radius: 4px;
+  color: var(--color-text);
+}
+
+.meso-bubble--user .meso-bubble__content {
+  background: var(--color-accent);
+  color: #fff;
+  border-top-right-radius: 4px;
+}
+
+.meso-bubble__cursor {
+  display: inline-block;
+  color: var(--color-accent);
+  animation: meso-bubble-blink 0.8s step-end infinite;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+}
+
+.meso-bubble--user .meso-bubble__cursor {
+  color: rgba(255,255,255,0.8);
+}
+
+@keyframes meso-bubble-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.meso-bubble__timestamp {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 0 4px;
+}
+
+.meso-bubble--user .meso-bubble__timestamp {
+  text-align: right;
+}

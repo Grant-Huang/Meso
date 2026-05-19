@@ -1,0 +1,105 @@
+.meso-artifact {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-code-bg, #1a201c);
+  color: var(--color-code-text, #c8d5cb);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.meso-artifact__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 44px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.meso-artifact__tabs {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.meso-artifact__tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: rgba(200,213,203,0.5);
+  transition: background 0.12s, color 0.12s;
+}
+
+.meso-artifact__tab--active {
+  color: var(--color-code-text, #c8d5cb);
+  background: rgba(255,255,255,0.08);
+}
+
+.meso-artifact__streaming-badge {
+  font-size: 11px;
+  color: var(--color-accent, #5a9e70);
+  padding: 2px 8px;
+  background: rgba(90,158,112,0.15);
+  border-radius: 20px;
+}
+
+.meso-artifact__copy-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(200,213,203,0.5);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.meso-artifact__copy-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--color-code-text, #c8d5cb);
+}
+
+.meso-artifact__body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.meso-artifact__code {
+  margin: 0;
+  padding: 20px;
+  font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow: auto;
+  height: 100%;
+  white-space: pre;
+  color: var(--color-code-text, #c8d5cb);
+}
+
+.meso-artifact__preview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+.meso-artifact__cursor {
+  display: inline-block;
+  color: var(--color-accent, #5a9e70);
+  animation: meso-artifact-blink 0.8s step-end infinite;
+  margin-left: 1px;
+}
+
+@keyframes meso-artifact-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

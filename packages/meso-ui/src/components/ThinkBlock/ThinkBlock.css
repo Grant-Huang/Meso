@@ -1,0 +1,93 @@
+.meso-think {
+  margin: 8px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+}
+
+.meso-think__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.meso-think__header:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+}
+
+.meso-think__chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.meso-think--open .meso-think__chevron {
+  transform: rotate(180deg);
+}
+
+.meso-think__label {
+  flex: 1;
+  font-weight: 500;
+}
+
+/* Pulsing dot while streaming */
+.meso-think__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: meso-think-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes meso-think-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50%       { opacity: 1;   transform: scale(1.1); }
+}
+
+/* Collapsible body */
+.meso-think__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.meso-think--open .meso-think__body {
+  grid-template-rows: 1fr;
+}
+
+.meso-think__content {
+  overflow: hidden;
+  padding: 0 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  transition: padding 0.25s ease;
+}
+
+.meso-think--open .meso-think__content {
+  padding: 8px 12px 12px;
+}
+
+.meso-think__cursor {
+  display: inline-block;
+  color: var(--color-accent);
+  animation: meso-blink-think 0.8s step-end infinite;
+  margin-left: 1px;
+}
+
+@keyframes meso-blink-think {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

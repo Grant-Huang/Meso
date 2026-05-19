@@ -4,15 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>字体规范 — Meso Design System</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+  <link rel="stylesheet" href="../platform/meso-tokens.css">
   <style>
-    :root {
-      --color-bg:#ecefe9; --color-bg-elevated:#f4f6f2; --color-bg-white:#ffffff;
-      --color-bg-sidebar:#f7f7f3; --color-text:#2f3a32;
-      --color-text-secondary:rgba(47,58,50,0.6); --color-text-muted:rgba(47,58,50,0.4);
-      --color-accent:#527c5e; --color-accent-dark:#2f7d4a;
-      --color-border:#d9dfd7; --color-border-light:rgba(47,58,50,0.1);
-      --color-error:#c0392b; --color-warning:#b45309; --color-success:#2f7d4a;
-    }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     body {
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -53,7 +49,7 @@
     }
     .type-size { font-size:12px; font-weight:600; color:var(--color-accent); font-family:"SF Mono","Fira Code",monospace; }
     .type-desc { font-size:11px; color:var(--color-text-muted); }
-    .type-usage { font-size:10px; color:var(--color-text-muted); background:rgba(82,124,94,.08);
+    .type-usage { font-size:10px; color:var(--color-text-muted); background:rgba(61,107,82,0.09);
       border-radius:4px; padding:1px 6px; display:inline-block; margin-top:2px; width:fit-content; }
     .type-sample { flex:1; }
 
@@ -98,7 +94,7 @@
     .md-p { font-size:15px; line-height:1.7; color:var(--color-text); margin-bottom:10px; }
     .md-strong { font-weight:700; }
     .md-code { font-family:"SF Mono","Fira Code",monospace; font-size:13px;
-      background:rgba(82,124,94,.1); color:var(--color-accent-dark);
+      background:rgba(61,107,82,0.10); color:var(--color-accent-dark);
       padding:1px 5px; border-radius:4px; }
     .md-ul { padding-left:20px; margin-bottom:10px; }
     .md-li { font-size:15px; line-height:1.7; color:var(--color-text); margin-bottom:2px; }
@@ -112,7 +108,7 @@
 
     .inline-code-badge {
       display:inline-block; font-family:"SF Mono","Fira Code",monospace;
-      font-size:12px; background:rgba(82,124,94,.1); color:var(--color-accent-dark);
+      font-size:12px; background:rgba(61,107,82,0.10); color:var(--color-accent-dark);
       border-radius:4px; padding:2px 7px;
     }
   </style>
@@ -191,7 +187,7 @@
     </div>
     <div class="type-sample">
       <span style="font-size:14.5px;font-weight:400;color:var(--color-text);line-height:1.67;display:block;">
-        执行计划显示该查询触发了全表扫描（Sequential Scan），影响行数约 <strong>84,000 行</strong>。建议在 <code style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:rgba(82,124,94,.1);padding:1px 5px;border-radius:4px;color:var(--color-accent-dark);">created_at</code> 列上添加 B-tree 索引。
+        执行计划显示该查询触发了全表扫描（Sequential Scan），影响行数约 <strong>84,000 行</strong>。建议在 <code style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:rgba(61,107,82,0.10);padding:1px 5px;border-radius:4px;color:var(--color-accent-dark);">created_at</code> 列上添加 B-tree 索引。
       </span>
     </div>
   </div>
@@ -216,7 +212,7 @@
       <span class="type-usage">标签 · 辅助说明</span>
     </div>
     <div class="type-sample" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <span style="font-size:12px;background:rgba(82,124,94,.12);color:var(--color-accent);padding:2px 8px;border-radius:4px;">Python</span>
+      <span style="font-size:12px;background:rgba(61,107,82,0.13);color:var(--color-accent);padding:2px 8px;border-radius:4px;">Python</span>
       <span style="font-size:12px;background:rgba(47,125,74,.12);color:var(--color-success);padding:2px 8px;border-radius:4px;">成功</span>
       <span style="font-size:12px;background:rgba(192,57,43,.1);color:var(--color-error);padding:2px 8px;border-radius:4px;">错误</span>
       <span style="font-size:12px;color:var(--color-text-secondary);">3 个结果</span>

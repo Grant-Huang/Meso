@@ -1,0 +1,7 @@
+{
+  "name": "meso",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

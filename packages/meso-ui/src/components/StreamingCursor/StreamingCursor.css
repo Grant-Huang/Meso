@@ -1,0 +1,13 @@
+.meso-streaming-cursor {
+  display: inline-block;
+  color: var(--color-accent);
+  animation: meso-blink 0.8s step-end infinite;
+  line-height: 1;
+  vertical-align: text-bottom;
+  margin-left: 1px;
+}
+
+@keyframes meso-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

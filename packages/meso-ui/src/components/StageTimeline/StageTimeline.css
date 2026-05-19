@@ -1,0 +1,139 @@
+/* Default: vertical list */
+.meso-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 0;
+}
+
+/* Compact: horizontal chips row */
+.meso-stages--compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.meso-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+}
+
+.meso-stages--compact .meso-stage {
+  align-items: center;
+}
+
+/* Dot */
+.meso-stage__dot {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  transition: background 0.2s, border-color 0.2s;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.meso-stages--compact .meso-stage__dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 0;
+}
+
+.meso-stage--active .meso-stage__dot {
+  border-color: var(--color-accent);
+  background: var(--color-bg);
+}
+
+.meso-stage--done .meso-stage__dot {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* Pulsing ring for active stage */
+.meso-stage__dot-inner {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0;
+}
+
+.meso-stage--active .meso-stage__dot-inner {
+  opacity: 1;
+  animation: meso-stage-pulse 1.2s ease-in-out infinite;
+}
+
+.meso-stage--pending .meso-stage__dot-inner {
+  background: var(--color-border);
+  opacity: 1;
+}
+
+@keyframes meso-stage-pulse {
+  0%, 100% { transform: scale(0.85); opacity: 0.6; }
+  50%       { transform: scale(1.1);  opacity: 1; }
+}
+
+/* Connector line between stages */
+.meso-stage__line {
+  position: absolute;
+  left: 8px;
+  top: 20px;
+  width: 2px;
+  height: 20px;
+  background: var(--color-border);
+  transition: background 0.3s;
+}
+
+.meso-stages--compact .meso-stage__line {
+  display: none;
+}
+
+.meso-stage__line--done {
+  background: var(--color-accent);
+}
+
+/* Label */
+.meso-stage__label {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--color-text-secondary);
+  padding-bottom: 20px;
+}
+
+.meso-stage--active .meso-stage__label {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.meso-stage--done .meso-stage__label {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-border);
+}
+
+/* Compact label */
+.meso-stage__label--compact {
+  padding-bottom: 0;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Compact: chip-style for done stages */
+.meso-stages--compact .meso-stage--done .meso-stage__label--compact {
+  text-decoration: none;
+  color: var(--color-text-muted);
+}
+
+.meso-stages--compact .meso-stage--active .meso-stage__label--compact {
+  color: var(--color-accent);
+}

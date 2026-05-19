@@ -4,23 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Meso · 平台特性演示</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+  <link rel="stylesheet" href="../platform/meso-tokens.css">
   <style>
-    :root {
-      --color-bg:             #ecefe9;
-      --color-bg-elevated:    #f4f6f2;
-      --color-bg-white:       #ffffff;
-      --color-bg-sidebar:     #f7f7f3;
-      --color-text:           #2f3a32;
-      --color-text-secondary: rgba(47,58,50,0.6);
-      --color-text-muted:     rgba(47,58,50,0.4);
-      --color-accent:         #527c5e;
-      --color-accent-dark:    #2f7d4a;
-      --color-border:         #d9dfd7;
-      --color-border-light:   rgba(47,58,50,0.1);
-      --sidebar-w:            145px;
-      --sidebar-w-collapsed:  52px;
-      --session-col-w:        260px;
-    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -55,6 +43,7 @@
       background: var(--color-accent); border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       color: #fff; font-size: 13px; font-weight: 700;
+      transition: opacity 0.15s ease, width 0.2s ease, margin 0.2s ease;
     }
     .sidebar-title {
       flex: 1; font-size: 14px; font-weight: 650;
@@ -63,19 +52,21 @@
       opacity: 1; transition: opacity 0.15s ease;
     }
     #app-sidebar.collapsed .sidebar-title { opacity: 0; }
+    #app-sidebar.collapsed .sidebar-logo  { opacity: 0; width: 0; margin: 0; }
+    #app-sidebar.collapsed .sidebar-header { justify-content: center; padding: 0; }
 
     /* Collapse toggle button — lives in header, right-aligned */
     .collapse-toggle {
-      flex-shrink: 0; width: 26px; height: 26px;
+      flex-shrink: 0; width: 32px; height: 32px;
       display: flex; align-items: center; justify-content: center;
       border-radius: 6px; cursor: pointer;
       color: var(--color-text-muted);
       transition: background 0.12s, color 0.12s;
       border: none; background: transparent;
     }
-    .collapse-toggle:hover { background: rgba(82,124,94,0.1); color: var(--color-text); }
-    .collapse-toggle svg { transition: transform 0.2s ease; }
-    #app-sidebar.collapsed .collapse-toggle svg { transform: rotate(180deg); }
+    .collapse-toggle:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    /* Collapsed: make the toggle button a larger tap target */
+    #app-sidebar.collapsed .collapse-toggle { width: 40px; height: 40px; }
 
     /* Nav */
     .sidebar-nav { flex: 1; overflow-y: auto; padding: 6px 0; }
@@ -87,8 +78,8 @@
       white-space: nowrap; overflow: hidden;
       color: var(--color-text-secondary);
     }
-    .nav-item:hover { background: rgba(82,124,94,0.08); color: var(--color-text); }
-    .nav-item.active { background: rgba(82,124,94,0.14); color: var(--color-accent-dark); }
+    .nav-item:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .nav-item.active { background: var(--nav-active-bg); color: var(--color-accent-dark); }
     .nav-icon { flex-shrink: 0; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
     .nav-label { font-size: 13px; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.15s ease; }
     #app-sidebar.collapsed .nav-label { opacity: 0; }
@@ -101,11 +92,6 @@
       border-right: 1px solid var(--color-border);
       display: flex; flex-direction: column; overflow: hidden;
     }
-    .session-col-header {
-      height: 52px; display: flex; align-items: center;
-      padding: 0 14px; border-bottom: 1px solid var(--color-border-light);
-      font-size: 14px; font-weight: 600; flex-shrink: 0;
-    }
     .session-search {
       margin: 8px 10px; padding: 6px 10px;
       background: var(--color-bg-white); border: 1px solid var(--color-border);
@@ -114,7 +100,28 @@
       transition: border-color 0.15s;
     }
     .session-search:focus { border-color: var(--color-accent); }
-    .session-list { flex: 1; overflow-y: auto; padding: 4px 6px 12px; }
+    /* Session column header with + button */
+    .session-col-header {
+      height: 52px; display: flex; align-items: center;
+      padding: 0 8px 0 14px; border-bottom: 1px solid var(--color-border-light);
+      font-size: 14px; font-weight: 600; flex-shrink: 0; gap: 6px;
+    }
+    .session-col-header span { flex: 1; }
+    .new-session-btn {
+      flex-shrink: 0; width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer;
+      color: var(--color-text-muted);
+      border: none; background: transparent;
+      transition: background 0.12s, color 0.12s;
+    }
+    .new-session-btn:hover { background: var(--nav-hover-bg); color: var(--color-accent); }
+
+    .session-list { flex: 1; overflow-y: auto; padding: 4px 6px 0; }
+    .session-empty {
+      padding: 24px 12px; text-align: center;
+      font-size: 12px; color: var(--color-text-muted);
+    }
     .session-group-label {
       font-size: 11px; color: var(--color-text-muted);
       padding: 10px 8px 4px; font-weight: 500;
@@ -125,14 +132,65 @@
       border-left: 2px solid transparent; font-size: 13px;
       transition: background 0.1s;
     }
-    .session-item:hover { background: rgba(82,124,94,0.06); }
+    .session-item:hover { background: var(--session-hover-bg); }
     .session-item.active {
       border-left-color: var(--color-accent);
-      background: rgba(82,124,94,0.12);
+      background: var(--session-active-bg);
       color: var(--color-accent-dark); font-weight: 600;
     }
     .session-item-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .session-item-sub { font-size: 11px; color: var(--color-text-muted); margin-top: 1px; display: block; }
+    /* "所有会话" row — immediately follows list */
+    .all-sessions-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 10px; margin: 2px 6px 8px;
+      border-radius: 6px; cursor: pointer; font-size: 12px;
+      color: var(--color-text-muted);
+      transition: background 0.12s, color 0.12s;
+    }
+    .all-sessions-row:hover { background: var(--session-hover-bg); color: var(--color-text); }
+
+    /* ── Sidebar user footer ── */
+    .sidebar-footer {
+      flex-shrink: 0; border-top: 1px solid var(--color-border-light);
+      padding: 6px 6px; position: relative;
+    }
+    .user-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; border-radius: 8px; cursor: pointer;
+      width: 100%; border: none; background: transparent;
+      color: var(--color-text-secondary);
+      transition: background 0.12s, color 0.12s;
+      white-space: nowrap; overflow: hidden;
+    }
+    .user-btn:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .user-avatar {
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      background: var(--color-accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+    }
+    .user-name { font-size: 13px; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+    #app-sidebar.collapsed .user-name { opacity: 0; }
+    #app-sidebar.collapsed .user-btn { justify-content: center; padding: 6px 0; }
+
+    /* Upward popup menu */
+    .user-menu {
+      position: absolute; bottom: calc(100% + 4px); left: 6px; right: 6px;
+      background: var(--color-bg-white); border: 1px solid var(--color-border);
+      border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      overflow: hidden; display: none; z-index: 100;
+    }
+    .user-menu.open { display: block; }
+    .user-menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; cursor: pointer; font-size: 13px;
+      color: var(--color-text-secondary);
+      transition: background 0.1s;
+    }
+    .user-menu-item:hover { background: var(--session-hover-bg); color: var(--color-text); }
+    .user-menu-item svg { flex-shrink: 0; color: var(--color-text-muted); }
+    .user-menu-sep { height: 1px; background: var(--color-border-light); margin: 3px 0; }
 
     /* ── Right main area ── */
     #app-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -144,9 +202,23 @@
     .main-header-title { font-size: 15px; font-weight: 650; }
     .main-header-badge {
       font-size: 11px; padding: 2px 8px;
-      background: rgba(82,124,94,0.12); color: var(--color-accent);
+      background: var(--badge-bg); color: var(--color-accent);
       border-radius: 20px; font-weight: 500;
     }
+    /* ── Theme toggle ── */
+    .theme-toggle {
+      margin-left: auto; flex-shrink: 0;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer;
+      color: var(--color-text-muted);
+      border: none; background: transparent;
+      transition: background 0.12s, color 0.12s;
+    }
+    .theme-toggle:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .icon-sun { display: none; }
+    [data-theme="dark"] .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun  { display: block; }
     .main-content { flex: 1; overflow: hidden; }
     #demo-frame { width: 100%; height: 100%; border: none; background: var(--color-bg); }
 
@@ -199,9 +271,11 @@
   <div class="sidebar-header">
     <div class="sidebar-logo">M</div>
     <span class="sidebar-title">Meso Demo</span>
-    <button class="collapse-toggle" onclick="toggleSidebar()" title="收起侧栏">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M10 4L6 8l4 4"/>
+    <button class="collapse-toggle" onclick="toggleSidebar()" title="展开/收起侧栏">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="2" y1="4"  x2="14" y2="4"/>
+        <line x1="2" y1="8"  x2="14" y2="8"/>
+        <line x1="2" y1="12" x2="14" y2="12"/>
       </svg>
     </button>
   </div>
@@ -348,9 +422,22 @@
 
 <!-- ── Middle column ── -->
 <div id="session-col">
-  <div class="session-col-header" id="session-col-title">流式会话</div>
+  <div class="session-col-header">
+    <span id="session-col-title">流式会话</span>
+    <button class="new-session-btn" onclick="newSession()" title="新建会话">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+      </svg>
+    </button>
+  </div>
   <input class="session-search" type="text" placeholder="搜索演示…" oninput="filterSessions(this.value)" />
   <div class="session-list" id="session-list"></div>
+  <div class="all-sessions-row" onclick="showAllSessions()">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <line x1="1" y1="3" x2="13" y2="3"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="11" x2="13" y2="11"/>
+    </svg>
+    所有会话
+  </div>
 </div>
 
 <!-- ── Right main area ── -->
@@ -358,6 +445,18 @@
   <div class="main-header">
     <span class="main-header-title" id="main-title">基础流式输出</span>
     <span class="main-header-badge" id="main-badge">流式会话</span>
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换明暗主题">
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M13.5 10A5.5 5.5 0 017.5 3.5c0-.28.02-.56.07-.84A6.5 6.5 0 1013.84 10c-.11-.01-.22-.01-.34 0z"/>
+      </svg>
+      <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="8" cy="8" r="3"/>
+        <line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/>
+        <line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/>
+        <line x1="3.05" y1="3.05" x2="4.46" y2="4.46"/><line x1="11.54" y1="11.54" x2="12.95" y2="12.95"/>
+        <line x1="3.05" y1="12.95" x2="4.46" y2="11.54"/><line x1="11.54" y1="4.46" x2="12.95" y2="3.05"/>
+      </svg>
+    </button>
   </div>
   <div class="main-content">
     <iframe id="demo-frame" src="01-streaming.html" title="Demo"></iframe>
@@ -452,6 +551,10 @@ function renderSessions(appId, filter = '') {
   const items = app.sessions.filter(s =>
     !filter || s.title.includes(filter) || s.sub.includes(filter)
   )
+  if (items.length === 0) {
+    list.innerHTML = '<div class="session-empty">暂无历史会话</div>'
+    return
+  }
   list.innerHTML = items.map(s => `
     <div class="session-item ${s.id === currentSession ? 'active' : ''}"
          data-id="${s.id}" data-file="${s.file}" data-title="${s.title}"
@@ -502,9 +605,14 @@ function switchSession(el) {
 }
 
 function loadDemo(file, title, badge) {
-  document.getElementById('demo-frame').src = file
+  const frame = document.getElementById('demo-frame')
+  frame.src = file
   document.getElementById('main-title').textContent = title
   document.getElementById('main-badge').textContent = badge
+  frame.onload = () => {
+    const theme = localStorage.getItem('meso-theme') || 'light'
+    try { frame.contentDocument.documentElement.setAttribute('data-theme', theme) } catch(e) {}
+  }
 }
 
 function filterSessions(val) { renderSessions(currentApp, val) }
@@ -512,6 +620,18 @@ function filterSessions(val) { renderSessions(currentApp, val) }
 function toggleSidebar() {
   collapsed = !collapsed
   document.getElementById('app-sidebar').classList.toggle('collapsed', collapsed)
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme)
+  const frame = document.getElementById('demo-frame')
+  try { frame.contentDocument.documentElement.setAttribute('data-theme', theme) } catch(e) {}
+}
+
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+  localStorage.setItem('meso-theme', next)
+  applyTheme(next)
 }
 
 renderSessions('streaming')

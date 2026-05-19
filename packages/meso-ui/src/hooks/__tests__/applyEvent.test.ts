@@ -95,7 +95,7 @@ describe('applyEvent state machine', () => {
   })
 
   it('unknown event type: returns state unchanged', () => {
-    const next = applyEvent(initialState, { type: 'done' })
+    applyEvent(initialState, { type: 'done' })
     // done changes status, just verify the function is pure (no mutation)
     expect(initialState.status).toBe('idle')
   })

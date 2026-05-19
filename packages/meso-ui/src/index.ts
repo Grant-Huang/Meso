@@ -17,6 +17,9 @@ export type { ArtifactPanelProps, ArtifactType } from './components/ArtifactPane
 export { StageTimeline } from './components/StageTimeline'
 export type { StageTimelineProps, Stage, StageStatus } from './components/StageTimeline'
 
+export { MessageList } from './components/MessageList'
+export type { MessageListProps, Message } from './components/MessageList'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
 export type {
@@ -24,6 +27,7 @@ export type {
   SSEEventType,
   StreamState,
   StreamStatus,
+  StreamOptions,
   StageEvent,
   MemoryEvent,
   ThinkEvent,

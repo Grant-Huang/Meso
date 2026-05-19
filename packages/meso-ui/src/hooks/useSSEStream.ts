@@ -61,7 +61,14 @@ export interface StreamState {
   thinkDone: boolean
   textContent: string
   artifact: { type: ArtifactEvent['artifactType']; language?: string; content: string } | null
+  artifact_done?: boolean
   errorMessage: string | null
+}
+
+export interface StreamOptions {
+  method?: 'GET' | 'POST'
+  headers?: Record<string, string>
+  body?: Record<string, unknown>
 }
 
 const initialState: StreamState = {
@@ -72,59 +79,79 @@ const initialState: StreamState = {
   thinkDone: false,
   textContent: '',
   artifact: null,
+  artifact_done: false,
   errorMessage: null,
 }
 
 export function useSSEStream(url: string) {
   const [state, setState] = useState<StreamState>(initialState)
-  const esRef = useRef<EventSource | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const abort = useCallback(() => {
+    abortRef.current?.abort()
+    setState(prev => ({ ...prev, status: 'idle' }))
+  }, [])
 
   const reset = useCallback(() => {
-    esRef.current?.close()
+    abortRef.current?.abort()
     setState(initialState)
   }, [])
 
-  const start = useCallback(
-    (body?: Record<string, unknown>) => {
-      esRef.current?.close()
-      setState({ ...initialState, status: 'streaming' })
+  const start = useCallback(async (options?: StreamOptions) => {
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    setState({ ...initialState, status: 'streaming' })
 
-      // POST then stream — or direct GET for simple cases
-      const fullUrl = body
-        ? `${url}?${new URLSearchParams(Object.entries(body).map(([k, v]) => [k, String(v)]))}`.toString()
-        : url
+    const method = options?.method ?? (options?.body ? 'POST' : 'GET')
 
-      const es = new EventSource(fullUrl)
-      esRef.current = es
+    try {
+      const resp = await fetch(url, {
+        method,
+        headers: {
+          ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}),
+          ...options?.headers,
+        },
+        body: options?.body ? JSON.stringify(options.body) : undefined,
+        signal: ctrl.signal,
+      })
 
-      es.onmessage = (e) => {
-        let event: SSEEvent
-        try {
-          event = JSON.parse(e.data) as SSEEvent
-        } catch {
-          return
-        }
-
-        setState((prev) => applyEvent(prev, event))
-
-        if (event.type === 'done' || event.type === 'error') {
-          es.close()
-        }
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`)
       }
 
-      es.onerror = () => {
-        es.close()
-        setState((prev) => ({
-          ...prev,
-          status: 'error',
-          errorMessage: '连接中断',
-        }))
-      }
-    },
-    [url],
-  )
+      const reader = resp.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
 
-  return { state, start, reset }
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const data = line.slice(6).trim()
+          if (data === '[DONE]') return
+          let event: SSEEvent
+          try { event = JSON.parse(data) as SSEEvent } catch { continue }
+          setState(prev => applyEvent(prev, event))
+          if (event.type === 'done' || event.type === 'error') return
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return
+      setState(prev => ({
+        ...prev,
+        status: 'error',
+        errorMessage: (err as Error).message,
+      }))
+    }
+  }, [url])
+
+  return { state, start, abort, reset }
 }
 
 function applyEvent(prev: StreamState, event: SSEEvent): StreamState {
@@ -155,6 +182,7 @@ function applyEvent(prev: StreamState, event: SSEEvent): StreamState {
           language: event.language,
           content: (prev.artifact?.content ?? '') + event.delta,
         },
+        artifact_done: event.done ?? false,
       }
     case 'done':
       return { ...prev, status: 'done' }

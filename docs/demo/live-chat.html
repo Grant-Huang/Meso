@@ -207,7 +207,7 @@
     <option value="">— 未配置 —</option>
   </select>
   <span class="cfg-label">模型</span>
-  <select class="cfg-select" id="sel-model"></select>
+  <input class="cfg-input" type="text" id="inp-model" style="width:200px" placeholder="模型名称">
   <span class="cfg-label">模式</span>
   <select class="cfg-select" id="sel-mode" onchange="onModeChange()">
     <option value="general">通用对话</option>
@@ -258,15 +258,15 @@
 <script>
 /* ── Provider definitions ── */
 const PROVIDER_DEFS = {
-  zhipu:        { name:'智谱 AI',       models:['glm-4-flash','glm-4','glm-4-plus'],                  baseUrl:'https://open.bigmodel.cn/api/paas/v4',  authHeader: k=>`Bearer ${k}` },
-  qwen:         { name:'通义千问',       models:['qwen-plus','qwen-max','qwen-turbo','qwen-long'],      baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1', authHeader: k=>`Bearer ${k}` },
-  kimi:         { name:'Kimi',          models:['moonshot-v1-8k','moonshot-v1-32k','moonshot-v1-128k'],baseUrl:'https://api.moonshot.cn/v1',             authHeader: k=>`Bearer ${k}` },
-  deepseek:     { name:'DeepSeek',      models:['deepseek-chat','deepseek-reasoner'],                  baseUrl:'https://api.deepseek.com/v1',            authHeader: k=>`Bearer ${k}` },
-  'minimax-cn': { name:'MiniMax国内',   models:['abab6.5s-chat','abab6.5-chat'],                       baseUrl:'https://api.minimax.chat/v1',            authHeader: k=>`Bearer ${k}` },
-  anthropic:    { name:'Anthropic',     models:['claude-opus-4-7','claude-sonnet-4-6','claude-haiku-4-5'], baseUrl:'https://api.anthropic.com/v1',      authHeader: k=>`Bearer ${k}`, isAnthropic: true },
-  openai:       { name:'OpenAI',        models:['gpt-4o','gpt-4o-mini','o4-mini','gpt-4-turbo'],       baseUrl:'https://api.openai.com/v1',              authHeader: k=>`Bearer ${k}` },
-  'minimax-intl':{ name:'MiniMax国际',  models:['MiniMax-Text-01'],                                    baseUrl:'https://api.minimaxi.chat/v1',           authHeader: k=>`Bearer ${k}` },
-  private:      { name:'私有部署',      models:[],                                                     baseUrl:'',                                       authHeader: k=>`Bearer ${k}` },
+  zhipu:         { name:'智谱 AI',      defaultModel:'glm-4-flash',         baseUrl:'https://open.bigmodel.cn/api/paas/v4',               authHeader: k=>`Bearer ${k}` },
+  qwen:          { name:'通义千问',      defaultModel:'qwen-plus',           baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1',  authHeader: k=>`Bearer ${k}` },
+  kimi:          { name:'Kimi',         defaultModel:'moonshot-v1-8k',      baseUrl:'https://api.moonshot.cn/v1',                         authHeader: k=>`Bearer ${k}` },
+  deepseek:      { name:'DeepSeek',     defaultModel:'deepseek-chat',       baseUrl:'https://api.deepseek.com/v1',                        authHeader: k=>`Bearer ${k}` },
+  'minimax-cn':  { name:'MiniMax国内',  defaultModel:'abab6.5s-chat',       baseUrl:'https://api.minimax.chat/v1',                        authHeader: k=>`Bearer ${k}` },
+  anthropic:     { name:'Anthropic',    defaultModel:'claude-sonnet-4-6',   baseUrl:'https://api.anthropic.com/v1',                       authHeader: k=>`Bearer ${k}`, isAnthropic: true },
+  openai:        { name:'OpenAI',       defaultModel:'gpt-4o',              baseUrl:'https://api.openai.com/v1',                          authHeader: k=>`Bearer ${k}` },
+  'minimax-intl':{ name:'MiniMax国际',  defaultModel:'MiniMax-Text-01',     baseUrl:'https://api.minimaxi.chat/v1',                       authHeader: k=>`Bearer ${k}` },
+  private:       { name:'私有部署',     defaultModel:'',                    baseUrl:'http://localhost:11434/v1',                          authHeader: k=>`Bearer ${k}` },
 }
 
 const MESO_SYSTEM_PROMPT = `你是 Meso 流式会话平台的专业助手。Meso 是一个基于流式会话（SSE 事件流）的 UI 基础平台，专为 AI 应用构建三栏式工业协作界面。
@@ -351,9 +351,9 @@ function onProviderChange() {
   const cfg = getLLMConfig()
   const def = PROVIDER_DEFS[pid]
   const saved = cfg[pid] || {}
-  const modelSel = document.getElementById('sel-model')
-  const models = pid === 'private' ? (saved.model ? [saved.model] : ['custom-model']) : def.models
-  modelSel.innerHTML = models.map(m => `<option value="${m}"${saved.model===m?' selected':''}>${m}</option>`).join('')
+  const modelInp = document.getElementById('inp-model')
+  modelInp.value = saved.model || def.defaultModel
+  modelInp.placeholder = def.defaultModel || '模型名称'
   setStatus('就绪', 'ok')
 }
 
@@ -409,9 +409,9 @@ async function sendMessage() {
   const apiKey = cfg[pid]?.apiKey
   if (!apiKey) { setStatus('API Key 未配置，请打开设置页', 'err'); return }
 
-  const model = document.getElementById('sel-model').value
   const def = PROVIDER_DEFS[pid]
-  const baseUrl = pid === 'private' ? (cfg[pid]?.baseUrl || def.baseUrl) : def.baseUrl
+  const model = document.getElementById('inp-model').value.trim() || def.defaultModel
+  const baseUrl = cfg[pid]?.baseUrl || def.baseUrl
 
   ta.value = ''; onInput()
   const emptyState = document.getElementById('empty-state')

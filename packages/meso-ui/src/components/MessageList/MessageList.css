@@ -1,0 +1,45 @@
+.meso-message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.meso-message-list__inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.meso-message-list__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+}
+
+.meso-message-list__live {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meso-memory-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meso-memory-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--color-accent);
+}

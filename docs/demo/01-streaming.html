@@ -364,6 +364,80 @@ const DEMOS = {
       { type:'stage', name:'生成回复', state:'done' },
       { type:'done' },
     ]
+  },
+  memory: {
+    userMsg: 'Meso 的记忆系统是如何工作的？',
+    events: [
+      // Show memory retrieval then a rich explanation
+      { type:'stage', name:'召回相关记忆', state:'active' },
+      { type:'stage', name:'召回相关记忆', state:'done' },
+      { type:'memory', snippets:[
+        { cat:'架构文档', text:'memory 事件携带 items: string[] 注入长期上下文' },
+        { cat:'设计原则', text:'记忆召回发生在 think 之前，作为推理的前置输入' },
+        { cat:'会话历史', text:'上次讨论了 Stage 阶段事件的折叠策略' },
+      ]},
+      { type:'think', delta:'用户问的是记忆系统的工作原理。\n', done:false },
+      { type:'think', delta:'应该从事件流的角度解释：memory 事件在 stage 之后、think 之前发出。\n', done:false },
+      { type:'think', delta:'记忆系统不是独立模块，而是 SSE 流上的一个事件类型，与会话流完全融合。', done:true },
+      { type:'text', delta:'Meso 的记忆系统通过 SSE 事件流深度融合到会话中，' },
+      { type:'text', delta:'而不是作为独立的"知识库查询"模块存在。\n\n' },
+      { type:'text', delta:'**工作流程**：当用户发送消息后，后端 Agent 在进入推理前，' },
+      { type:'text', delta:'先向记忆层发起检索——历史对话摘要、用户偏好、关联文档片段。\n' },
+      { type:'text', delta:'检索结果以 `memory` 事件推送到前端，界面以记忆碎片（chip）的形式呈现，' },
+      { type:'text', delta:'告诉用户"系统调取了哪些上下文"，而不是黑盒操作。\n\n' },
+      { type:'text', delta:'**关键设计**：记忆是流的一部分，不是流的前提条件。' },
+      { type:'text', delta:'这意味着记忆可以分批到达——先到的记忆先参与推理，推理和记忆并发进行。' },
+      { type:'done' },
+    ]
+  },
+  agents: {
+    userMsg: '一个复杂任务是如何被多个 Agent 协同完成的？',
+    events: [
+      { type:'stage', name:'解析用户意图', state:'active' },
+      { type:'stage', name:'解析用户意图', state:'done' },
+      { type:'stage', name:'分配子任务 → 数据分析 Agent', state:'active' },
+      { type:'stage', name:'分配子任务 → 数据分析 Agent', state:'done' },
+      { type:'stage', name:'分配子任务 → 排产优化 Agent', state:'active' },
+      { type:'stage', name:'分配子任务 → 排产优化 Agent', state:'done' },
+      { type:'stage', name:'聚合结果 · 生成回复', state:'active' },
+      { type:'think', delta:'两个 Agent 并行执行完毕。数据分析 Agent 返回了异常根因，\n', done:false },
+      { type:'think', delta:'排产优化 Agent 返回了新的产能分配方案。\n', done:false },
+      { type:'think', delta:'需要将两份结果整合为一个有结构的回复，并生成 Artifact 展示方案对比。', done:true },
+      { type:'text', delta:'在 Meso 的多 Agent 架构中，每个 `stage` 事件对应一个 Agent 或工具调用的生命周期。\n\n' },
+      { type:'text', delta:'用户看到的是统一的进度时间线——但背后，' },
+      { type:'text', delta:'AgentNexus 可能正在并行调度数个专业 Agent：\n\n' },
+      { type:'text', delta:'- **数据分析 Agent**：跨系统聚合指标，识别异常\n' },
+      { type:'text', delta:'- **排产优化 Agent**：重新计算产能分配\n' },
+      { type:'text', delta:'- **审批路由 Agent**：评估操作权限，准备确认节点\n\n' },
+      { type:'text', delta:'每个 Agent 完成时发出 `stage done` 事件，流式界面实时更新进度。\n' },
+      { type:'text', delta:'用户在任意节点都可以介入——这就是"**流式会话作为多 Agent 指挥中心**"的含义。' },
+      { type:'stage', name:'聚合结果 · 生成回复', state:'done' },
+      { type:'done' },
+    ]
+  },
+  protocol: {
+    userMsg: '解释 Meso SSE 事件协议的设计思路',
+    events: [
+      { type:'think', delta:'用户想了解协议设计思路，不是 API 文档。\n', done:false },
+      { type:'think', delta:'重点应该是：为什么选择这 7 种事件类型？它们覆盖了哪些维度？\n', done:false },
+      { type:'think', delta:'可以用"状态机"视角来解释：每个事件类型驱动 UI 的一种状态转换。', done:true },
+      { type:'text', delta:'Meso 的 SSE 协议是一个**状态机驱动的 UI 协议**，不是通用消息总线。\n\n' },
+      { type:'text', delta:'7 种事件类型恰好覆盖了一次 AI 会话的全部 UI 状态：\n\n' },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'type SSEEvent =\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | StageEvent    // 进度时间线 → 展示 Agent 执行阶段\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | MemoryEvent   // 记忆碎片  → 展示上下文来源\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | ThinkEvent    // 推理过程  → 可折叠的思考块\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | TextEvent     // 流式正文  → 逐字打字效果\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | ArtifactEvent // 结构产物  → 代码/卡片/图表\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | DoneEvent     // 会话终止  → 解锁交互\n', done:false },
+      { type:'artifact', id:'proto', lang:'TypeScript', delta:'  | ErrorEvent    // 错误状态  → 显示错误并允许重试\n', done:true },
+      { type:'text', delta:'\n设计原则：**每个事件对应 UI 的一个独立维度**，' },
+      { type:'text', delta:'而不是把所有信息混入同一个事件类型。\n\n' },
+      { type:'text', delta:'这让前端可以组合式地响应每种事件，' },
+      { type:'text', delta:'也让后端可以独立控制每个维度的时序——' },
+      { type:'text', delta:'比如 `memory` 可以在 `think` 之前到达，`stage` 可以在任何时刻更新。' },
+      { type:'done' },
+    ]
   }
 }
 

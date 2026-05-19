@@ -208,6 +208,11 @@
   </select>
   <span class="cfg-label">模型</span>
   <select class="cfg-select" id="sel-model"></select>
+  <span class="cfg-label">模式</span>
+  <select class="cfg-select" id="sel-mode" onchange="onModeChange()">
+    <option value="general">通用对话</option>
+    <option value="meso">Meso 助手</option>
+  </select>
   <div class="cfg-sep"></div>
   <button class="btn-clear" onclick="clearHistory()">清空对话</button>
   <span class="cfg-status" id="cfg-status"></span>
@@ -263,6 +268,48 @@ const PROVIDER_DEFS = {
   'minimax-intl':{ name:'MiniMax国际',  models:['MiniMax-Text-01'],                                    baseUrl:'https://api.minimaxi.chat/v1',           authHeader: k=>`Bearer ${k}` },
   private:      { name:'私有部署',      models:[],                                                     baseUrl:'',                                       authHeader: k=>`Bearer ${k}` },
 }
+
+const MESO_SYSTEM_PROMPT = `你是 Meso 流式会话平台的专业助手。Meso 是一个基于流式会话（SSE 事件流）的 UI 基础平台，专为 AI 应用构建三栏式工业协作界面。
+
+## Meso 核心概念
+
+### SSE 事件协议（7种事件类型）
+- stage: 阶段进度事件，{label: string, status: 'active'|'done'}，展示 Agent 执行阶段时间线
+- memory: 记忆注入事件，{items: string[]}，展示从记忆层召回的上下文碎片（chip 形式）
+- think: 推理过程事件，{delta: string, done?: boolean}，可折叠的 Think Block，流式追加
+- text: 正文流事件，{delta: string}，逐字打字效果的主要回复内容
+- artifact: 结构产物事件，{artifactType: 'code'|'html'|'mermaid', language?, delta, done?}，触发右侧 Artifact 面板
+- done: 会话完成事件，解锁输入框和操作按钮
+- error: 错误事件，{message: string}，显示错误状态
+
+### 架构层次
+- 三栏布局：左侧导航栏（145px/52px 收起）+ 会话列表列（260px）+ 主内容区
+- 组件库 @meso/ui：ThreeColumnLayout, ChatBubble, ThinkBlock, StreamingCursor, ArtifactPanel, StageTimeline
+- 主题系统：CSS Custom Properties，:root（Plan A 浅色）和 [data-theme="dark"]（Plan C 深色）
+- Token 体系：--color-bg, --color-accent(#3d6b52 浅色/#5a9e70 深色), --color-text, --color-border 等
+
+### 设计原则
+- 流式是灵魂：所有能力（记忆、知识、Artifact）都是 SSE 流上的事件，不是独立模块
+- 对话+动态工作台：不是纯文本聊天，Artifact 面板可渲染代码、HTML 预览、Mermaid 图表
+- 平台与业务分离：@meso/ui 是平台层，业务逻辑通过 props 注入，不侵入平台代码
+- FOUC 防御：内联 script 在 CSS 加载前读取 localStorage 设置 data-theme
+
+### useSSEStream Hook
+\`\`\`typescript
+const { state, start, reset } = useSSEStream('/api/stream')
+// state.status: 'idle'|'streaming'|'done'|'error'
+// state.stages: StageEvent[]
+// state.memoryItems: string[]
+// state.thinkContent: string, state.thinkDone: boolean
+// state.textContent: string
+// state.artifact: {type, language?, content} | null
+start({ query: '用户输入', ...params })
+\`\`\`
+
+### 工业协作视角
+Meso 定位为工业软件 2.0 的 UI 层：以流式会话替代传统"菜单-表单-图表"交互，用 AgentNexus 多 Agent 编排替代固定工作流，让制造业用户用自然语言表达意图，系统完成"感知-推理-行动"闭环。
+
+请基于以上知识准确回答关于 Meso 架构、设计、实现的问题。对于不确定的细节，明确说明。`
 
 /* ── State ── */
 let messages = []
@@ -418,7 +465,7 @@ async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, conte
   const resp = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ model, messages, stream: true }),
+    body: JSON.stringify({ model, messages: buildMessages(), stream: true }),
     signal: abortCtrl.signal,
   })
 
@@ -472,7 +519,7 @@ async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, conte
 /* ── Anthropic streaming ── */
 async function streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, thinkBody, cursorEl }) {
   abortCtrl = new AbortController()
-  const anthropicMessages = messages.map(m => ({ role: m.role, content: m.content }))
+  const anthropicMessages = buildMessages().filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
 
   const resp = await fetch(`${baseUrl}/messages`, {
     method: 'POST',
@@ -483,7 +530,11 @@ async function streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, 
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model, messages: anthropicMessages, max_tokens: 4096, stream: true,
+      model,
+      messages: anthropicMessages,
+      system: document.getElementById('sel-mode').value === 'meso' ? MESO_SYSTEM_PROMPT : undefined,
+      max_tokens: 4096,
+      stream: true,
     }),
     signal: abortCtrl.signal,
   })
@@ -623,6 +674,38 @@ function esc(s) {
 }
 function mkEl(tag, cls) { const e = document.createElement(tag); e.className = cls; return e }
 function scrollThread() { const t = document.getElementById('chat-thread'); t.scrollTop = t.scrollHeight }
+
+/* ── Mode helpers ── */
+function buildMessages() {
+  const mode = document.getElementById('sel-mode').value
+  if (mode === 'meso') {
+    return [{ role: 'system', content: MESO_SYSTEM_PROMPT }, ...messages]
+  }
+  return messages
+}
+
+function onModeChange() {
+  const mode = document.getElementById('sel-mode').value
+  const ta = document.getElementById('composer-input')
+  const sugg = document.getElementById('suggestions')
+  if (mode === 'meso') {
+    ta.placeholder = '问关于 Meso 的问题…（Ctrl+Enter 发送）'
+    if (sugg) sugg.innerHTML = `
+      <span class="suggestion" onclick="useSuggestion(this)">useSSEStream 的 state 有哪些字段？</span>
+      <span class="suggestion" onclick="useSuggestion(this)">memory 事件和 think 事件有什么区别？</span>
+      <span class="suggestion" onclick="useSuggestion(this)">如何用 Meso 实现工业场景的多 Agent 协同？</span>
+      <span class="suggestion" onclick="useSuggestion(this)">ArtifactEvent 支持哪些 artifactType？</span>
+    `
+  } else {
+    ta.placeholder = '发送消息…（Ctrl+Enter 发送）'
+    if (sugg) sugg.innerHTML = `
+      <span class="suggestion" onclick="useSuggestion(this)">用 Python 写一个快速排序</span>
+      <span class="suggestion" onclick="useSuggestion(this)">解释一下流式输出的原理</span>
+      <span class="suggestion" onclick="useSuggestion(this)">写一首关于代码的短诗</span>
+      <span class="suggestion" onclick="useSuggestion(this)">列出世界上最高的五座山</span>
+    `
+  }
+}
 
 /* ── Init ── */
 populateProviders()

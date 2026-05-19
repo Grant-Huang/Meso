@@ -181,3 +181,26 @@
   flex: 1;
   overflow: hidden;
 }
+
+/* ── Responsive breakpoints ── */
+
+/* Tablet: hide session column, keep sidebar */
+@media (max-width: 900px) {
+  .meso-session-col {
+    display: none;
+  }
+}
+
+/* Mobile: also collapse sidebar */
+@media (max-width: 600px) {
+  .meso-sidebar {
+    width: var(--sidebar-w-collapsed, 52px) !important;
+    min-width: var(--sidebar-w-collapsed, 52px) !important;
+  }
+  .meso-sidebar__title { opacity: 0 !important; }
+  .meso-sidebar__logo { opacity: 0 !important; width: 0 !important; margin: 0 !important; }
+  .meso-sidebar__header { justify-content: center !important; padding: 0 !important; }
+  .meso-sidebar__nav-label { opacity: 0 !important; }
+  .meso-sidebar__nav-item { justify-content: center !important; padding: 8px 0 !important; margin: 1px 4px !important; }
+  .meso-sidebar__toggle { width: 40px !important; height: 40px !important; }
+}

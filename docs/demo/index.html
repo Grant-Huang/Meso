@@ -221,6 +221,47 @@
     [data-theme="dark"] .icon-sun  { display: block; }
     .main-content { flex: 1; overflow: hidden; }
     #demo-frame { width: 100%; height: 100%; border: none; background: var(--color-bg); }
+
+    /* ── Sidebar footer / user menu ── */
+    .sidebar-footer {
+      position: relative; flex-shrink: 0;
+      border-top: 1px solid var(--color-border-light);
+      padding: 6px;
+    }
+    .user-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 6px 8px; border: none; background: none;
+      border-radius: 6px; cursor: pointer; color: var(--color-text);
+      transition: background 0.12s;
+    }
+    .user-btn:hover { background: rgba(82,124,94,0.08); }
+    .user-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--color-accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; transition: opacity 0.15s; }
+    #app-sidebar.collapsed .user-name { opacity: 0; }
+    #app-sidebar.collapsed .user-btn { justify-content: center; padding: 6px 0; }
+
+    .user-menu {
+      position: absolute; bottom: calc(100% + 4px); left: 6px; right: 6px;
+      background: var(--color-bg-white, #fff);
+      border: 1px solid var(--color-border);
+      border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      padding: 4px; display: none; flex-direction: column; gap: 1px;
+      z-index: 100;
+    }
+    .user-menu.open { display: flex; }
+    .user-menu-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 5px; cursor: pointer;
+      font-size: 13px; color: var(--color-text);
+      transition: background 0.1s;
+    }
+    .user-menu-item:hover { background: rgba(82,124,94,0.08); }
+    .user-menu-sep { height: 1px; background: var(--color-border); margin: 3px 0; }
   </style>
 </head>
 <body>
@@ -341,11 +382,12 @@
   <!-- User footer -->
   <div class="sidebar-footer">
     <div class="user-menu" id="user-menu">
-      <div class="user-menu-item" onclick="closeUserMenu()">
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-          <circle cx="7.5" cy="5" r="2.5"/><path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/>
+      <div class="user-menu-item" onclick="openSettings()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="7.5" r="2.2"/>
+          <path d="M7.5 1v1.5M7.5 12v1.5M1 7.5h1.5M12 7.5h1.5M3.2 3.2l1 1M10.8 10.8l1 1M10.8 3.2l-1 1M3.2 10.8l1-1"/>
         </svg>
-        账号设置
+        设置
       </div>
       <div class="user-menu-item" onclick="openHelp()">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
@@ -353,7 +395,7 @@
           <path d="M5.5 5.8a2 2 0 013.8.7c0 1.4-1.8 1.8-1.8 3"/>
           <circle cx="7.5" cy="11.5" r="0.6" fill="currentColor" stroke="none"/>
         </svg>
-        帮助文档
+        帮助
       </div>
       <div class="user-menu-sep"></div>
       <div class="user-menu-item" onclick="closeUserMenu()">
@@ -430,6 +472,7 @@ const APPS = {
       { id: 's2', title: 'Think Block',         sub: '推理过程 · 自动折叠',         file: '01-streaming.html#think' },
       { id: 's3', title: 'Artifact 边流边渲染', sub: '代码 · 分屏弹出',             file: '01-streaming.html#artifact' },
       { id: 's4', title: '完整一次对话',         sub: 'Stage + Think + Artifact',   file: '01-streaming.html#full' },
+      { id: 's5', title: '真实流式对话 🔑',      sub: '需配置 API Key · 实时调用',   file: 'live-chat.html' },
     ]
   },
   layout: {
@@ -534,6 +577,10 @@ function closeUserMenu() {
 function openHelp() {
   closeUserMenu()
   window.open('../help.html', '_blank', 'noopener')
+}
+function openSettings() {
+  closeUserMenu()
+  window.open('../settings.html', '_blank', 'noopener')
 }
 document.addEventListener('click', closeUserMenu)
 

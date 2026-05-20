@@ -541,7 +541,7 @@ export function App() {
       appName="MyApp"
       navItems={[...]}
       sessionColumn={<SessionList />}
-      mainHeader={<button onClick={toggle}>{theme === 'dark' ? '☀️' : '🌙'}</button>}
+      mainHeader={<button onClick={toggle}><ThemeIcon theme={theme} /></button>}
     >
       <ChatArea />
     </ThreeColumnLayout>
@@ -746,7 +746,7 @@ Meso 采用固定的三栏结构，所有尺寸均通过 CSS 自定义属性控�
 
 \`\`\`
 ┌─────────────────────────────────────────┐  ← 52px header
-│  基础流式输出  [流式会话]          ☀︎/🌙 │
+│  基础流式输出  [流式会话]          [◑主题] │
 ├─────────────────────────────────────────┤
 │                                         │
 │   chat / content area（flex:1）         │
@@ -1138,7 +1138,7 @@ Meso 的记忆系统分为**短期记忆**和**长期记忆**两层，在每次�
 
 \`\`\`
 ┌────────────────────────────────────────────┐
-│  💾 用户偏好·代码风格  💾 项目背景·AI-KA   │  ← memory chips
+│  [◈ 用户偏好·代码风格]  [◈ 项目背景·AI-KA]  │  ← memory chips
 ├────────────────────────────────────────────┤
 │  [ 输入消息…                          发送 ]│
 └────────────────────────────────────────────┘
@@ -1316,7 +1316,7 @@ export function App() {
       sessionColumn={<SessionList />}
       mainHeader={
         <button onClick={toggle} title="切换主题">
-          {theme === 'dark' ? '☀️' : '🌙'}
+          <ThemeIcon theme={theme} />
         </button>
       }
     >

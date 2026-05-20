@@ -26,20 +26,20 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 0 24px;
+      padding: 0 20px;
       height: 52px;
       border-bottom: 1px solid var(--color-border);
       background: var(--color-surface);
       flex-shrink: 0;
     }
     .settings-header h1 {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--color-text);
     }
     .header-spacer { flex: 1; }
     .btn-close {
-      width: 32px; height: 32px;
+      width: 30px; height: 30px;
       border: none; background: none;
       border-radius: 6px;
       color: var(--color-text-muted);
@@ -56,88 +56,79 @@
       overflow: hidden;
     }
 
-    /* ── Provider sidebar ── */
-    .provider-list {
-      width: 200px;
+    /* ── Left nav (categories) ── */
+    .settings-nav {
+      width: 160px;
       flex-shrink: 0;
       border-right: 1px solid var(--color-border);
       overflow-y: auto;
       padding: 12px 0;
-      background: var(--color-surface);
+      background: var(--color-bg-sidebar, var(--color-surface));
     }
-    .provider-group-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--color-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 14px 16px 6px;
-    }
-    .provider-item {
+    .nav-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 16px;
+      gap: 9px;
+      padding: 9px 16px;
       cursor: pointer;
       border-radius: 0;
       transition: background 0.12s;
       user-select: none;
-    }
-    .provider-item:hover { background: var(--nav-hover-bg); }
-    .provider-item.active { background: var(--nav-active-bg); color: var(--color-accent); }
-    .provider-item.active .provider-name { color: var(--color-accent); font-weight: 500; }
-    .provider-icon {
-      width: 24px; height: 24px;
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      flex-shrink: 0;
-      color: #fff;
-    }
-    .provider-name { font-size: 13px; color: var(--color-text); }
-    .provider-configured {
-      margin-left: auto;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--color-accent);
-      flex-shrink: 0;
-    }
-
-    /* ── Config pane ── */
-    .config-pane {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px 40px;
-      max-width: 640px;
-    }
-    .config-pane-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 6px;
+      font-size: 13px;
       color: var(--color-text);
     }
-    .config-pane-desc {
-      font-size: 13px;
-      color: var(--color-text-muted);
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-    .config-pane-desc a {
+    .nav-item:hover { background: var(--nav-hover-bg); }
+    .nav-item.active {
+      background: var(--nav-active-bg);
       color: var(--color-accent);
-      text-decoration: none;
+      font-weight: 500;
+    }
+    .nav-item.disabled {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+    .nav-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    /* ── Main area ── */
+    .settings-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 36px;
+    }
+    .settings-main-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 20px;
+    }
+
+    /* ── Provider form card ── */
+    .llm-form-card {
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      background: var(--color-surface);
+      max-width: 580px;
+      margin-bottom: 28px;
     }
 
     /* ── Form ── */
-    .form-group { margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
     .form-label {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
-      color: var(--color-text);
-      margin-bottom: 6px;
+      color: var(--color-text-muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
     .form-label .optional {
       font-size: 11px;
@@ -146,6 +137,8 @@
       background: var(--nav-hover-bg);
       padding: 1px 6px;
       border-radius: 4px;
+      text-transform: none;
+      letter-spacing: 0;
     }
     .form-input-wrap { position: relative; }
     .form-input {
@@ -164,7 +157,7 @@
       border-color: var(--color-accent);
       box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
     }
-    .form-input.key-input { padding-right: 40px; font-family: monospace; letter-spacing: 0.04em; }
+    .form-input.key-input { padding-right: 38px; font-family: monospace; letter-spacing: 0.04em; }
     .btn-show-key {
       position: absolute;
       right: 8px; top: 50%;
@@ -196,7 +189,7 @@
       cursor: pointer;
       outline: none;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
       background-position: right 10px center;
       padding-right: 30px;
@@ -204,24 +197,49 @@
     }
     .form-select:focus { border-color: var(--color-accent); outline: none; }
 
+    /* ── Range slider row ── */
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .range-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--color-accent);
+      cursor: pointer;
+    }
+    .range-val {
+      font-size: 13px;
+      color: var(--color-text);
+      font-variant-numeric: tabular-nums;
+      min-width: 32px;
+      text-align: right;
+    }
+    .range-bound {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+
     /* ── Actions ── */
     .form-actions {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-top: 28px;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-border);
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--color-border-light, var(--color-border));
     }
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 16px;
+      padding: 7px 16px;
       border-radius: 6px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       border: none;
       transition: background 0.15s, opacity 0.15s;
+      font-family: inherit;
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary {
@@ -235,34 +253,123 @@
       border: 1px solid var(--color-border);
     }
     .btn-secondary:hover:not(:disabled) { background: var(--nav-active-bg); }
-    .test-result {
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      display: none;
+    .btn-danger {
+      background: transparent;
+      color: #c0392b;
+      border: 1px solid color-mix(in srgb, #e05252 40%, transparent);
     }
-    .test-result.success { display: inline; background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); }
-    .test-result.error { display: inline; background: color-mix(in srgb, #e05252 12%, transparent); color: #e05252; }
-
-    /* ── Empty pane ── */
-    .empty-pane {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      height: 100%;
-      color: var(--color-text-muted);
-      font-size: 14px;
+    .btn-danger:hover:not(:disabled) {
+      background: color-mix(in srgb, #e05252 10%, transparent);
     }
 
     /* ── Divider ── */
-    .form-divider {
-      border: none;
-      border-top: 1px solid var(--color-border);
-      margin: 24px 0;
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 16px;
+      max-width: 580px;
+    }
+    .section-divider-label {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .section-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
     }
 
+    /* ── Configured list ── */
+    .configured-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 580px;
+    }
+    .configured-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+    }
+    .configured-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .configured-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .configured-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .configured-model {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .configured-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-edit {
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--color-border);
+      background: var(--nav-hover-bg);
+      color: var(--color-text);
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+    .btn-edit:hover { background: var(--nav-active-bg); }
+    .btn-delete {
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      transition: all 0.12s;
+    }
+    .btn-delete:hover {
+      background: color-mix(in srgb, #e05252 10%, transparent);
+      border-color: color-mix(in srgb, #e05252 30%, transparent);
+      color: #c0392b;
+    }
+    .configured-empty {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      padding: 14px 0;
+      text-align: center;
+      border: 1px dashed var(--color-border);
+      border-radius: 8px;
+      max-width: 580px;
+    }
+
+    /* ── Toast ── */
     .save-toast {
       position: fixed;
       bottom: 24px; right: 24px;
@@ -285,91 +392,32 @@
 
 <!-- Header -->
 <header class="settings-header">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-    <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
-  </svg>
-  <h1>设置</h1>
-  <div class="header-spacer"></div>
   <button class="btn-close" onclick="window.close()" title="关闭">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   </button>
+  <h1>设置</h1>
 </header>
 
 <!-- Body -->
 <div class="settings-body">
 
-  <!-- Provider list -->
-  <nav class="provider-list" id="provider-list">
-    <div class="provider-group-label">国内模型</div>
-    <div class="provider-item" data-id="zhipu" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#2563eb;">智</div>
-      <span class="provider-name">智谱 AI</span>
-      <div class="provider-configured" id="dot-zhipu" style="display:none;"></div>
+  <!-- Left nav -->
+  <nav class="settings-nav">
+    <div class="nav-item active" id="nav-llm" onclick="selectNav('llm')">
+      <span class="nav-icon">🤖</span>
+      大语言模型
     </div>
-    <div class="provider-item" data-id="qwen" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#7c3aed;">千</div>
-      <span class="provider-name">通义千问</span>
-      <div class="provider-configured" id="dot-qwen" style="display:none;"></div>
-    </div>
-    <div class="provider-item" data-id="kimi" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#0891b2;">K</div>
-      <span class="provider-name">Kimi</span>
-      <div class="provider-configured" id="dot-kimi" style="display:none;"></div>
-    </div>
-    <div class="provider-item" data-id="deepseek" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#0f766e;">DS</div>
-      <span class="provider-name">DeepSeek</span>
-      <div class="provider-configured" id="dot-deepseek" style="display:none;"></div>
-    </div>
-    <div class="provider-item" data-id="minimax-cn" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#b45309;">MM</div>
-      <span class="provider-name">MiniMax</span>
-      <div class="provider-configured" id="dot-minimax-cn" style="display:none;"></div>
-    </div>
-
-    <div class="provider-group-label">国际模型</div>
-    <div class="provider-item" data-id="anthropic" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#c2410c;">C</div>
-      <span class="provider-name">Anthropic</span>
-      <div class="provider-configured" id="dot-anthropic" style="display:none;"></div>
-    </div>
-    <div class="provider-item" data-id="openai" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#16a34a;">AI</div>
-      <span class="provider-name">OpenAI</span>
-      <div class="provider-configured" id="dot-openai" style="display:none;"></div>
-    </div>
-    <div class="provider-item" data-id="minimax-intl" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#9333ea;">M+</div>
-      <span class="provider-name">MiniMax 国际</span>
-      <div class="provider-configured" id="dot-minimax-intl" style="display:none;"></div>
-    </div>
-
-    <div class="provider-group-label">自托管</div>
-    <div class="provider-item" data-id="private" onclick="selectProvider(this)">
-      <div class="provider-icon" style="background:#475569;">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-        </svg>
-      </div>
-      <span class="provider-name">私有部署</span>
-      <div class="provider-configured" id="dot-private" style="display:none;"></div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">⚙</span>
+      通用
     </div>
   </nav>
 
-  <!-- Config pane -->
-  <div class="config-pane" id="config-pane">
-    <div class="empty-pane" id="empty-pane">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" stroke-width="1.5">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-      </svg>
-      <span>选择左侧服务商以配置</span>
-    </div>
-    <div id="provider-form" style="display:none;"></div>
+  <!-- Main area -->
+  <div class="settings-main" id="settings-main">
+    <!-- LLM panel rendered by JS -->
   </div>
 
 </div>
@@ -378,229 +426,22 @@
 
 <script>
 const PROVIDERS = {
-  zhipu: {
-    name: '智谱 AI (GLM)',
-    desc: '国产大模型，支持 GLM-4、GLM-4-Flash 等系列。',
-    apiKeyHint: '在智谱 AI 开放平台创建 API Key。',
-    defaultModel: 'glm-4-flash',
-    modelHint: '常用：glm-4-flash · glm-4 · glm-4-plus · glm-4-long · glm-4-air',
-    defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    hasGroupId: false,
-  },
-  qwen: {
-    name: '通义千问 (Qwen)',
-    desc: '阿里云百炼平台，支持 Qwen-Max、Qwen-Plus 等系列。',
-    apiKeyHint: '在阿里云百炼控制台获取 API Key。',
-    defaultModel: 'qwen-plus',
-    modelHint: '常用：qwen-max · qwen-plus · qwen-turbo · qwen-long · qwen2.5-72b-instruct',
-    defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    hasGroupId: false,
-  },
-  kimi: {
-    name: 'Kimi (Moonshot AI)',
-    desc: '月之暗面推出的长上下文大模型。',
-    apiKeyHint: '在 Moonshot AI 开放平台创建 API Key。',
-    defaultModel: 'moonshot-v1-8k',
-    modelHint: '常用：moonshot-v1-8k · moonshot-v1-32k · moonshot-v1-128k',
-    defaultBaseUrl: 'https://api.moonshot.cn/v1',
-    hasGroupId: false,
-  },
-  deepseek: {
-    name: 'DeepSeek',
-    desc: '幻方量化推出的高性价比大模型，支持推理模式。',
-    apiKeyHint: '在 DeepSeek 开放平台创建 API Key。',
-    defaultModel: 'deepseek-chat',
-    modelHint: '常用：deepseek-chat · deepseek-reasoner',
-    defaultBaseUrl: 'https://api.deepseek.com/v1',
-    hasGroupId: false,
-  },
-  'minimax-cn': {
-    name: 'MiniMax（国内版）',
-    desc: '国内版需要 API Key，Group ID 为可选参数。',
-    apiKeyHint: '在 MiniMax 开放平台创建 API Key。',
-    defaultModel: 'abab6.5s-chat',
-    modelHint: '常用：abab6.5s-chat · abab6.5-chat · abab5.5s-chat',
-    defaultBaseUrl: 'https://api.minimax.chat/v1',
-    hasGroupId: true,
-    groupIdHint: 'Group ID 可在 MiniMax 控制台"团队信息"中找到，不填则使用默认配置。',
-  },
-  anthropic: {
-    name: 'Anthropic (Claude)',
-    desc: 'Anthropic 旗下 Claude 系列模型，支持官方 API 或兼容代理。',
-    apiKeyHint: '在 Anthropic Console 创建 API Key。',
-    defaultModel: 'claude-sonnet-4-6',
-    modelHint: '常用：claude-opus-4-7 · claude-sonnet-4-6 · claude-haiku-4-5',
-    defaultBaseUrl: 'https://api.anthropic.com/v1',
-    hasGroupId: false,
-  },
-  openai: {
-    name: 'OpenAI',
-    desc: 'GPT-4、o 系列模型，支持官方 API 或兼容代理（如 Azure、第三方中转）。',
-    apiKeyHint: '在 OpenAI Platform 创建 API Key。',
-    defaultModel: 'gpt-4o',
-    modelHint: '常用：gpt-4o · gpt-4o-mini · o3 · o4-mini · gpt-4-turbo',
-    defaultBaseUrl: 'https://api.openai.com/v1',
-    hasGroupId: false,
-  },
-  'minimax-intl': {
-    name: 'MiniMax 国际版',
-    desc: '国际版 MiniMax，仅需 API Key，无需 Group ID。',
-    apiKeyHint: '在 MiniMax 国际版控制台创建 API Key。',
-    defaultModel: 'MiniMax-Text-01',
-    modelHint: '常用：MiniMax-Text-01 · abab6.5s-chat',
-    defaultBaseUrl: 'https://api.minimaxi.chat/v1',
-    hasGroupId: false,
-  },
-  private: {
-    name: '私有部署',
-    desc: '兼容 OpenAI API 格式的自托管模型（如 Ollama、vLLM、LocalAI 等）。',
-    apiKeyHint: '若服务端不需要鉴权，可留空或填入任意字符。',
-    defaultModel: '',
-    modelHint: '填写实际部署的模型名称，如 llama3 · qwen2.5 · mistral',
-    defaultBaseUrl: 'http://localhost:11434/v1',
-    hasGroupId: false,
-  },
+  zhipu:         { name:'智谱 AI (GLM)',      shortName:'智谱',    icon:'智', iconBg:'#2563eb', desc:'国产大模型，GLM-4 系列。', apiKeyHint:'在智谱 AI 开放平台创建 API Key。', defaultModel:'glm-4-flash', modelHint:'glm-4-flash · glm-4 · glm-4-plus · glm-4-long', defaultBaseUrl:'https://open.bigmodel.cn/api/paas/v4', hasGroupId:false },
+  qwen:          { name:'通义千问 (Qwen)',     shortName:'千问',    icon:'千', iconBg:'#7c3aed', desc:'阿里云百炼平台，Qwen 系列。', apiKeyHint:'在阿里云百炼控制台获取 API Key。', defaultModel:'qwen-plus', modelHint:'qwen-max · qwen-plus · qwen-turbo · qwen-long', defaultBaseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1', hasGroupId:false },
+  kimi:          { name:'Kimi (Moonshot AI)', shortName:'Kimi',   icon:'K',  iconBg:'#0891b2', desc:'月之暗面长上下文大模型。', apiKeyHint:'在 Moonshot AI 开放平台创建 API Key。', defaultModel:'moonshot-v1-8k', modelHint:'moonshot-v1-8k · moonshot-v1-32k · moonshot-v1-128k', defaultBaseUrl:'https://api.moonshot.cn/v1', hasGroupId:false },
+  deepseek:      { name:'DeepSeek',           shortName:'DS',     icon:'DS', iconBg:'#0f766e', desc:'高性价比，支持推理模式。', apiKeyHint:'在 DeepSeek 开放平台创建 API Key。', defaultModel:'deepseek-chat', modelHint:'deepseek-chat · deepseek-reasoner', defaultBaseUrl:'https://api.deepseek.com/v1', hasGroupId:false },
+  'minimax-cn':  { name:'MiniMax（国内）',     shortName:'MM',     icon:'MM', iconBg:'#b45309', desc:'国内版需要 API Key。', apiKeyHint:'在 MiniMax 开放平台创建 API Key。', defaultModel:'abab6.5s-chat', modelHint:'abab6.5s-chat · abab6.5-chat', defaultBaseUrl:'https://api.minimax.chat/v1', hasGroupId:true, groupIdHint:'Group ID 可在 MiniMax 控制台"团队信息"中找到，不填使用默认配置。' },
+  anthropic:     { name:'Anthropic (Claude)', shortName:'Claude', icon:'C',  iconBg:'#c2410c', desc:'Claude 系列模型。', apiKeyHint:'在 Anthropic Console 创建 API Key。', defaultModel:'claude-sonnet-4-6', modelHint:'claude-opus-4-7 · claude-sonnet-4-6 · claude-haiku-4-5', defaultBaseUrl:'https://api.anthropic.com/v1', hasGroupId:false },
+  openai:        { name:'OpenAI',             shortName:'GPT',    icon:'AI', iconBg:'#16a34a', desc:'GPT-4、o 系列模型。', apiKeyHint:'在 OpenAI Platform 创建 API Key。', defaultModel:'gpt-4o', modelHint:'gpt-4o · gpt-4o-mini · o3 · o4-mini', defaultBaseUrl:'https://api.openai.com/v1', hasGroupId:false },
+  'minimax-intl':{ name:'MiniMax 国际版',     shortName:'MiniMax',icon:'M+', iconBg:'#9333ea', desc:'国际版无需 Group ID。', apiKeyHint:'在 MiniMax 国际版控制台创建 API Key。', defaultModel:'MiniMax-Text-01', modelHint:'MiniMax-Text-01', defaultBaseUrl:'https://api.minimaxi.chat/v1', hasGroupId:false },
+  private:       { name:'私有部署',           shortName:'本地',   icon:'⚙', iconBg:'#475569', desc:'兼容 OpenAI API 的自托管模型。', apiKeyHint:'若不需要鉴权可留空或填任意字符。', defaultModel:'', modelHint:'llama3 · qwen2.5 · mistral 等', defaultBaseUrl:'http://localhost:11434/v1', hasGroupId:false },
 }
-
-let currentProvider = null
 
 function getConfig() {
   try { return JSON.parse(localStorage.getItem('meso-llm-config') || '{}') } catch { return {} }
 }
 function saveConfig(data) {
   localStorage.setItem('meso-llm-config', JSON.stringify(data))
-}
-
-function renderDots() {
-  const cfg = getConfig()
-  for (const id of Object.keys(PROVIDERS)) {
-    const dot = document.getElementById('dot-' + id)
-    if (dot) dot.style.display = cfg[id]?.apiKey ? '' : 'none'
-  }
-}
-
-function selectProvider(el) {
-  document.querySelectorAll('.provider-item').forEach(i => i.classList.remove('active'))
-  el.classList.add('active')
-  currentProvider = el.dataset.id
-  renderForm(currentProvider)
-}
-
-function renderForm(id) {
-  const p = PROVIDERS[id]
-  const cfg = getConfig()
-  const saved = cfg[id] || {}
-  document.getElementById('empty-pane').style.display = 'none'
-  const form = document.getElementById('provider-form')
-  form.style.display = ''
-
-  const currentModel = saved.model !== undefined ? saved.model : p.defaultModel
-  const currentBaseUrl = saved.baseUrl !== undefined ? saved.baseUrl : p.defaultBaseUrl
-
-  form.innerHTML = `
-    <h2 class="config-pane-title">${p.name}</h2>
-    <p class="config-pane-desc">${p.desc}</p>
-
-    <div class="form-group">
-      <label class="form-label">API Key</label>
-      <div class="form-input-wrap">
-        <input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off" value="${saved.apiKey || ''}">
-        <button class="btn-show-key" onclick="toggleKey('f-apikey', this)" tabindex="-1">
-          <svg id="eye-icon-f-apikey" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </div>
-      <div class="form-hint">${p.apiKeyHint}</div>
-    </div>
-
-    ${p.hasGroupId ? `
-    <div class="form-group">
-      <label class="form-label">Group ID <span class="optional">可选</span></label>
-      <input class="form-input" type="text" id="f-groupid" placeholder="填入 Group ID（可不填）" value="${saved.groupId || ''}">
-      <div class="form-hint">${p.groupIdHint}</div>
-    </div>` : ''}
-
-    <div class="form-group">
-      <label class="form-label">模型名称</label>
-      <input class="form-input" type="text" id="f-model" placeholder="${p.defaultModel || '输入模型名称'}" value="${currentModel}">
-      <div class="form-hint">${p.modelHint}</div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Base URL</label>
-      <input class="form-input" type="text" id="f-baseurl" placeholder="${p.defaultBaseUrl}" value="${currentBaseUrl}">
-      <div class="form-hint">修改此地址可接入兼容代理或自定义端点。留空则使用默认地址。</div>
-    </div>
-
-    <div class="form-actions">
-      <button class="btn btn-secondary" id="btn-test" onclick="testConnection()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        测试连接
-      </button>
-      <button class="btn btn-primary" onclick="saveProvider()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-          <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
-        </svg>
-        保存
-      </button>
-      <span class="test-result" id="test-result"></span>
-    </div>
-  `
-}
-
-function toggleKey(inputId, btn) {
-  const input = document.getElementById(inputId)
-  const icon = document.getElementById('eye-icon-' + inputId)
-  if (input.type === 'password') {
-    input.type = 'text'
-    icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>`
-  } else {
-    input.type = 'password'
-    icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`
-  }
-}
-
-function saveProvider() {
-  const p = PROVIDERS[currentProvider]
-  const cfg = getConfig()
-  const entry = {
-    apiKey: document.getElementById('f-apikey')?.value.trim() || '',
-    model: document.getElementById('f-model')?.value.trim() || p.defaultModel,
-    baseUrl: document.getElementById('f-baseurl')?.value.trim() || p.defaultBaseUrl,
-  }
-  if (p.hasGroupId) entry.groupId = document.getElementById('f-groupid')?.value.trim() || ''
-  cfg[currentProvider] = entry
-  saveConfig(cfg)
-  renderDots()
-  showToast('已保存')
-}
-
-function testConnection() {
-  const btn = document.getElementById('btn-test')
-  const result = document.getElementById('test-result')
-  btn.disabled = true
-  result.className = 'test-result'
-  result.textContent = '正在测试…'
-  result.style.display = 'inline'
-
-  const apiKey = document.getElementById('f-apikey')?.value.trim()
-  setTimeout(() => {
-    btn.disabled = false
-    if (!apiKey) {
-      result.className = 'test-result error'
-      result.textContent = '请先填写 API Key'
-    } else {
-      const ok = Math.random() > 0.35
-      result.className = 'test-result ' + (ok ? 'success' : 'error')
-      result.textContent = ok ? '连接成功' : '连接失败，请检查 API Key 或网络'
-    }
-  }, 1200)
 }
 
 function showToast(msg) {
@@ -610,7 +451,240 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2000)
 }
 
-renderDots()
+function selectNav(section) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'))
+  document.getElementById('nav-' + section).classList.add('active')
+  if (section === 'llm') renderLLMPanel()
+}
+
+/* ── LLM panel ── */
+function renderLLMPanel() {
+  const main = document.getElementById('settings-main')
+  const cfg = getConfig()
+
+  // determine initial provider selection
+  const configuredIds = Object.keys(PROVIDERS).filter(id => cfg[id]?.apiKey)
+  const providerIds = Object.keys(PROVIDERS)
+  const initialId = configuredIds.length > 0 ? configuredIds[0] : providerIds[0]
+
+  const providerOptions = providerIds.map(id => {
+    const p = PROVIDERS[id]
+    return '<option value="' + id + '">' + p.name + '<\/option>'
+  }).join('')
+
+  main.innerHTML = '<h2 class="settings-main-title">大语言模型<\/h2>' +
+    '<div class="llm-form-card" id="llm-form-card">' +
+      '<div class="form-group">' +
+        '<label class="form-label">服务商<\/label>' +
+        '<select class="form-select" id="f-provider" onchange="onProviderSelect()">' + providerOptions + '<\/select>' +
+      '<\/div>' +
+      '<div id="f-provider-desc" class="form-hint" style="margin-bottom:14px;"><\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">API Key<\/label>' +
+        '<div class="form-input-wrap">' +
+          '<input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off">' +
+          '<button class="btn-show-key" onclick="toggleKey(\'f-apikey\', this)" tabindex="-1">' +
+            '<svg id="eye-icon-f-apikey" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+              '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
+              '<circle cx="12" cy="12" r="3"/>' +
+            '<\/svg>' +
+          '<\/button>' +
+        '<\/div>' +
+        '<div class="form-hint" id="f-apikey-hint"><\/div>' +
+      '<\/div>' +
+      '<div id="f-groupid-wrap" class="form-group" style="display:none;">' +
+        '<label class="form-label">Group ID <span class="optional">可选<\/span><\/label>' +
+        '<input class="form-input" type="text" id="f-groupid" placeholder="填入 Group ID（可不填）">' +
+        '<div class="form-hint" id="f-groupid-hint"><\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">模型名称<\/label>' +
+        '<input class="form-input" type="text" id="f-model" placeholder="">' +
+        '<div class="form-hint" id="f-model-hint"><\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">Base URL<\/label>' +
+        '<input class="form-input" type="text" id="f-baseurl" placeholder="">' +
+        '<div class="form-hint">修改此地址可接入兼容代理或自定义端点。<\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">温度 (Temperature)<\/label>' +
+        '<div class="range-row">' +
+          '<span class="range-bound">0.0<\/span>' +
+          '<input type="range" id="f-temperature" min="0" max="2" step="0.1" value="0.7" oninput="document.getElementById(\'f-temperature-val\').textContent = parseFloat(this.value).toFixed(1)">' +
+          '<span class="range-bound">2.0<\/span>' +
+          '<span class="range-val" id="f-temperature-val">0.7<\/span>' +
+        '<\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">Max Tokens<\/label>' +
+        '<input class="form-input" type="number" id="f-maxtokens" min="1" max="32768" step="1" value="4096" style="width:140px;">' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">Top-P<\/label>' +
+        '<div class="range-row">' +
+          '<span class="range-bound">0.0<\/span>' +
+          '<input type="range" id="f-topp" min="0" max="1" step="0.05" value="1.0" oninput="document.getElementById(\'f-topp-val\').textContent = parseFloat(this.value).toFixed(2)">' +
+          '<span class="range-bound">1.0<\/span>' +
+          '<span class="range-val" id="f-topp-val">1.00<\/span>' +
+        '<\/div>' +
+      '<\/div>' +
+      '<div class="form-actions">' +
+        '<button class="btn btn-primary" onclick="saveProvider()">保存配置<\/button>' +
+        '<button class="btn btn-danger" onclick="clearProvider()">清除<\/button>' +
+      '<\/div>' +
+    '<\/div>' +
+    '<div class="section-divider">' +
+      '<span class="section-divider-label">已配置的模型<\/span>' +
+      '<div class="section-divider-line"><\/div>' +
+    '<\/div>' +
+    '<div id="configured-list-wrap"><\/div>'
+
+  // set initial provider
+  document.getElementById('f-provider').value = initialId
+  fillFormForProvider(initialId)
+  renderConfiguredList()
+}
+
+function onProviderSelect() {
+  const id = document.getElementById('f-provider').value
+  fillFormForProvider(id)
+}
+
+function fillFormForProvider(id) {
+  const p = PROVIDERS[id]
+  const cfg = getConfig()
+  const saved = cfg[id] || {}
+
+  document.getElementById('f-provider-desc').textContent = p.desc
+  document.getElementById('f-apikey').value = saved.apiKey || ''
+  document.getElementById('f-apikey-hint').textContent = p.apiKeyHint
+
+  // group id
+  const groupWrap = document.getElementById('f-groupid-wrap')
+  if (p.hasGroupId) {
+    groupWrap.style.display = ''
+    document.getElementById('f-groupid').value = saved.groupId || ''
+    document.getElementById('f-groupid-hint').textContent = p.groupIdHint || ''
+  } else {
+    groupWrap.style.display = 'none'
+  }
+
+  document.getElementById('f-model').value = saved.model !== undefined ? saved.model : p.defaultModel
+  document.getElementById('f-model').placeholder = p.defaultModel || '输入模型名称'
+  document.getElementById('f-model-hint').textContent = p.modelHint
+
+  document.getElementById('f-baseurl').value = saved.baseUrl !== undefined ? saved.baseUrl : p.defaultBaseUrl
+  document.getElementById('f-baseurl').placeholder = p.defaultBaseUrl
+
+  const temp = saved.temperature !== undefined ? saved.temperature : 0.7
+  const maxTok = saved.maxTokens !== undefined ? saved.maxTokens : 4096
+  const topP = saved.topP !== undefined ? saved.topP : 1.0
+
+  document.getElementById('f-temperature').value = temp
+  document.getElementById('f-temperature-val').textContent = parseFloat(temp).toFixed(1)
+  document.getElementById('f-maxtokens').value = maxTok
+  document.getElementById('f-topp').value = topP
+  document.getElementById('f-topp-val').textContent = parseFloat(topP).toFixed(2)
+}
+
+function saveProvider() {
+  const id = document.getElementById('f-provider').value
+  const p = PROVIDERS[id]
+  const cfg = getConfig()
+
+  const entry = {
+    apiKey:      document.getElementById('f-apikey').value.trim(),
+    model:       document.getElementById('f-model').value.trim() || p.defaultModel,
+    baseUrl:     document.getElementById('f-baseurl').value.trim() || p.defaultBaseUrl,
+    temperature: parseFloat(document.getElementById('f-temperature').value),
+    maxTokens:   parseInt(document.getElementById('f-maxtokens').value, 10) || 4096,
+    topP:        parseFloat(document.getElementById('f-topp').value),
+  }
+  if (p.hasGroupId) {
+    entry.groupId = document.getElementById('f-groupid').value.trim()
+  }
+
+  cfg[id] = entry
+  saveConfig(cfg)
+  renderConfiguredList()
+  showToast('已保存')
+}
+
+function clearProvider() {
+  const id = document.getElementById('f-provider').value
+  const p = PROVIDERS[id]
+  if (!confirm('确定要清除 ' + p.name + ' 的配置吗？')) return
+  const cfg = getConfig()
+  delete cfg[id]
+  saveConfig(cfg)
+  fillFormForProvider(id)
+  renderConfiguredList()
+  showToast('已清除')
+}
+
+function editProvider(id) {
+  document.getElementById('f-provider').value = id
+  fillFormForProvider(id)
+  document.getElementById('llm-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function deleteProvider(id) {
+  const p = PROVIDERS[id]
+  if (!confirm('确定要删除 ' + p.name + ' 的配置吗？')) return
+  const cfg = getConfig()
+  delete cfg[id]
+  saveConfig(cfg)
+  renderConfiguredList()
+  showToast('已删除')
+}
+
+function renderConfiguredList() {
+  const wrap = document.getElementById('configured-list-wrap')
+  if (!wrap) return
+  const cfg = getConfig()
+  const configured = Object.keys(PROVIDERS).filter(id => cfg[id]?.apiKey)
+
+  if (configured.length === 0) {
+    wrap.innerHTML = '<div class="configured-empty">暂无已配置的模型，请在上方添加配置<\/div>'
+    return
+  }
+
+  wrap.innerHTML = '<div class="configured-list" id="configured-list"><\/div>'
+  const list = document.getElementById('configured-list')
+  configured.forEach(id => {
+    const p = PROVIDERS[id]
+    const saved = cfg[id]
+    const card = document.createElement('div')
+    card.className = 'configured-card'
+    card.innerHTML =
+      '<div class="configured-icon" style="background:' + p.iconBg + ';">' + p.icon + '<\/div>' +
+      '<div class="configured-info">' +
+        '<div class="configured-name">' + p.shortName + '<\/div>' +
+        '<div class="configured-model">' + (saved.model || p.defaultModel) + '<\/div>' +
+      '<\/div>' +
+      '<div class="configured-actions">' +
+        '<button class="btn-edit" onclick="editProvider(\'' + id + '\')">编辑<\/button>' +
+        '<button class="btn-delete" onclick="deleteProvider(\'' + id + '\')" title="删除">×<\/button>' +
+      '<\/div>'
+    list.appendChild(card)
+  })
+}
+
+function toggleKey(inputId, btn) {
+  const input = document.getElementById(inputId)
+  const icon = document.getElementById('eye-icon-' + inputId)
+  if (input.type === 'password') {
+    input.type = 'text'
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"><\/path><line x1="1" y1="1" x2="23" y2="23"><\/line>'
+  } else {
+    input.type = 'password'
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"><\/path><circle cx="12" cy="12" r="3"><\/circle>'
+  }
+}
+
+// init
+selectNav('llm')
 </script>
 </body>
 </html>

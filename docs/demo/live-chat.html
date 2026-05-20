@@ -88,11 +88,12 @@
     .ai-content em { font-style: italic; }
     .ai-content ul, .ai-content ol { padding-left: 20px; margin-bottom: 8px; }
     .ai-content li { margin-bottom: 2px; }
-    .ai-content h1,.ai-content h2,.ai-content h3 { font-weight: 600; margin: 12px 0 6px; }
+    .ai-content h1,.ai-content h2,.ai-content h3,.ai-content h4 { font-weight: 600; margin: 12px 0 6px; }
     .ai-content blockquote {
       border-left: 3px solid var(--color-border); padding-left: 12px;
       color: var(--color-text-muted); margin: 8px 0;
     }
+    .ai-content hr { border: none; border-top: 1px solid var(--color-border); margin: 12px 0; }
 
     .cursor {
       display: inline-block; width: 2px; height: 1em;
@@ -118,7 +119,7 @@
     .think-chevron { font-size: 10px; transition: transform 0.2s; }
     .think-block.open .think-chevron { transform: rotate(90deg); }
     .think-body {
-      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+      max-height: 0; overflow: hidden; transition: max-height 0.15s ease;
       padding: 0 10px; font-size: 12px; line-height: 1.6;
       color: var(--color-text-muted); white-space: pre-wrap; word-break: break-word;
     }
@@ -258,15 +259,15 @@
 <script>
 /* ── Provider definitions ── */
 const PROVIDER_DEFS = {
-  zhipu:         { name:'智谱 AI',      defaultModel:'glm-4-flash',         baseUrl:'https://open.bigmodel.cn/api/paas/v4',               authHeader: k=>`Bearer ${k}` },
-  qwen:          { name:'通义千问',      defaultModel:'qwen-plus',           baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1',  authHeader: k=>`Bearer ${k}` },
-  kimi:          { name:'Kimi',         defaultModel:'moonshot-v1-8k',      baseUrl:'https://api.moonshot.cn/v1',                         authHeader: k=>`Bearer ${k}` },
-  deepseek:      { name:'DeepSeek',     defaultModel:'deepseek-chat',       baseUrl:'https://api.deepseek.com/v1',                        authHeader: k=>`Bearer ${k}` },
-  'minimax-cn':  { name:'MiniMax国内',  defaultModel:'abab6.5s-chat',       baseUrl:'https://api.minimax.chat/v1',                        authHeader: k=>`Bearer ${k}` },
-  anthropic:     { name:'Anthropic',    defaultModel:'claude-sonnet-4-6',   baseUrl:'https://api.anthropic.com/v1',                       authHeader: k=>`Bearer ${k}`, isAnthropic: true },
-  openai:        { name:'OpenAI',       defaultModel:'gpt-4o',              baseUrl:'https://api.openai.com/v1',                          authHeader: k=>`Bearer ${k}` },
-  'minimax-intl':{ name:'MiniMax国际',  defaultModel:'MiniMax-Text-01',     baseUrl:'https://api.minimaxi.chat/v1',                       authHeader: k=>`Bearer ${k}` },
-  private:       { name:'私有部署',     defaultModel:'',                    baseUrl:'http://localhost:11434/v1',                          authHeader: k=>`Bearer ${k}` },
+  zhipu:         { name:'智谱 AI',      defaultModel:'glm-4-flash',         baseUrl:'https://open.bigmodel.cn/api/paas/v4',               authHeader: k=>'Bearer ' + k },
+  qwen:          { name:'通义千问',      defaultModel:'qwen-plus',           baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1',  authHeader: k=>'Bearer ' + k },
+  kimi:          { name:'Kimi',         defaultModel:'moonshot-v1-8k',      baseUrl:'https://api.moonshot.cn/v1',                         authHeader: k=>'Bearer ' + k },
+  deepseek:      { name:'DeepSeek',     defaultModel:'deepseek-chat',       baseUrl:'https://api.deepseek.com/v1',                        authHeader: k=>'Bearer ' + k },
+  'minimax-cn':  { name:'MiniMax国内',  defaultModel:'abab6.5s-chat',       baseUrl:'https://api.minimax.chat/v1',                        authHeader: k=>'Bearer ' + k },
+  anthropic:     { name:'Anthropic',    defaultModel:'claude-sonnet-4-6',   baseUrl:'https://api.anthropic.com/v1',                       authHeader: k=>'Bearer ' + k, isAnthropic: true },
+  openai:        { name:'OpenAI',       defaultModel:'gpt-4o',              baseUrl:'https://api.openai.com/v1',                          authHeader: k=>'Bearer ' + k },
+  'minimax-intl':{ name:'MiniMax国际',  defaultModel:'MiniMax-Text-01',     baseUrl:'https://api.minimaxi.chat/v1',                       authHeader: k=>'Bearer ' + k },
+  private:       { name:'私有部署',     defaultModel:'',                    baseUrl:'http://localhost:11434/v1',                          authHeader: k=>'Bearer ' + k },
 }
 
 const MESO_SYSTEM_PROMPT = `你是 Meso 流式会话平台的专业助手。Meso 是一个基于流式会话（SSE 事件流）的 UI 基础平台，专为 AI 应用构建三栏式工业协作界面。
@@ -367,7 +368,7 @@ function setStatus(text, cls) {
 function onInput() {
   const ta = document.getElementById('composer-input')
   const len = ta.value.length
-  document.getElementById('char-count').textContent = len > 0 ? `${len}` : ''
+  document.getElementById('char-count').textContent = len > 0 ? '' + len : ''
   document.getElementById('send-btn').disabled = len === 0 || streaming
   ta.style.height = 'auto'
   ta.style.height = Math.min(ta.scrollHeight, 160) + 'px'
@@ -382,19 +383,13 @@ function useSuggestion(el) {
 }
 function clearHistory() {
   messages = []
-  document.getElementById('chat-thread').innerHTML = ''
-  document.getElementById('empty-state') || (() => {
-    const es = document.createElement('div'); es.id = 'empty-state'; es.className = 'empty-state'
-    es.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>选择服务商后发送消息开始对话</span>'
-    document.getElementById('chat-thread').appendChild(es)
-  })()
   const thread = document.getElementById('chat-thread')
-  thread.innerHTML = `<div class="empty-state" id="empty-state">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-    <span>对话已清空</span>
-  </div>`
+  thread.innerHTML = '<div class="empty-state" id="empty-state">' +
+    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">' +
+      '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' +
+    '</svg>' +
+    '<span>对话已清空</span>' +
+  '</div>'
 }
 
 /* ── Send ── */
@@ -413,6 +408,11 @@ async function sendMessage() {
   const model = document.getElementById('inp-model').value.trim() || def.defaultModel
   const baseUrl = cfg[pid]?.baseUrl || def.baseUrl
 
+  // Read LLM params from saved config
+  const temperature = cfg[pid]?.temperature !== undefined ? cfg[pid].temperature : 0.7
+  const maxTokens = cfg[pid]?.maxTokens !== undefined ? cfg[pid].maxTokens : 4096
+  const topP = cfg[pid]?.topP !== undefined ? cfg[pid].topP : 1.0
+
   ta.value = ''; onInput()
   const emptyState = document.getElementById('empty-state')
   if (emptyState) emptyState.remove()
@@ -429,9 +429,9 @@ async function sendMessage() {
 
   try {
     if (def.isAnthropic) {
-      await streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, thinkBody, cursorEl })
+      await streamAnthropic({ apiKey, model, baseUrl, maxTokens, temperature, contentEl, thinkBlock, thinkBody, cursorEl })
     } else {
-      await streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, contentEl, thinkBlock, thinkBody, cursorEl })
+      await streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, temperature, maxTokens, topP, contentEl, thinkBlock, thinkBody, cursorEl })
     }
     messages.push({ role: 'assistant', content: contentEl.dataset.raw || contentEl.textContent })
     setStatus('✓ 完成', 'ok')
@@ -452,7 +452,7 @@ async function sendMessage() {
 }
 
 /* ── OpenAI-compatible streaming ── */
-async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, contentEl, thinkBlock, thinkBody, cursorEl }) {
+async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, temperature, maxTokens, topP, contentEl, thinkBlock, thinkBody, cursorEl }) {
   abortCtrl = new AbortController()
   const headers = {
     'Content-Type': 'application/json',
@@ -462,16 +462,16 @@ async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, conte
     headers['GroupId'] = cfg[pid].groupId
   }
 
-  const resp = await fetch(`${baseUrl}/chat/completions`, {
+  const resp = await fetch(baseUrl + '/chat/completions', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ model, messages: buildMessages(), stream: true }),
+    body: JSON.stringify({ model, messages: buildMessages(), stream: true, temperature, max_tokens: maxTokens, top_p: topP }),
     signal: abortCtrl.signal,
   })
 
   if (!resp.ok) {
     const errBody = await resp.text()
-    let msg = `HTTP ${resp.status}`
+    let msg = 'HTTP ' + resp.status
     try { msg = JSON.parse(errBody).error?.message || msg } catch {}
     throw new Error(msg)
   }
@@ -504,7 +504,7 @@ async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, conte
       }
       if (delta.content) {
         // Close think block when text starts
-        if (thinkRaw && thinkBlock.style.display !== 'none') {
+        if (thinkRaw && !thinkBlock.classList.contains('done')) {
           finalizeThink(thinkBlock)
         }
         raw += delta.content
@@ -517,11 +517,11 @@ async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, conte
 }
 
 /* ── Anthropic streaming ── */
-async function streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, thinkBody, cursorEl }) {
+async function streamAnthropic({ apiKey, model, baseUrl, maxTokens, temperature, contentEl, thinkBlock, thinkBody, cursorEl }) {
   abortCtrl = new AbortController()
   const anthropicMessages = buildMessages().filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
 
-  const resp = await fetch(`${baseUrl}/messages`, {
+  const resp = await fetch(baseUrl + '/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -533,15 +533,16 @@ async function streamAnthropic({ apiKey, model, baseUrl, contentEl, thinkBlock, 
       model,
       messages: anthropicMessages,
       system: document.getElementById('sel-mode').value === 'meso' ? MESO_SYSTEM_PROMPT : undefined,
-      max_tokens: 4096,
+      max_tokens: maxTokens,
       stream: true,
+      temperature,
     }),
     signal: abortCtrl.signal,
   })
 
   if (!resp.ok) {
     const errBody = await resp.text()
-    let msg = `HTTP ${resp.status}`
+    let msg = 'HTTP ' + resp.status
     try { msg = JSON.parse(errBody).error?.message || msg } catch {}
     throw new Error(msg)
   }
@@ -592,7 +593,7 @@ function stopStream() {
 /* ── DOM helpers ── */
 function appendUserBubble(text) {
   const row = document.createElement('div'); row.className = 'message-row'
-  row.innerHTML = `<div class="bubble-user"><div class="bubble-user-content">${esc(text)}</div></div>`
+  row.innerHTML = '<div class="bubble-user"><div class="bubble-user-content">' + esc(text) + '</div></div>'
   document.getElementById('chat-thread').appendChild(row)
   scrollThread()
 }
@@ -600,7 +601,7 @@ function appendUserBubble(text) {
 function appendAIBubble() {
   const row = document.createElement('div'); row.className = 'message-row'
   const thinkBlock = mkEl('div', 'think-block'); thinkBlock.style.display = 'none'
-  thinkBlock.innerHTML = `<div class="think-header" onclick="this.parentElement.classList.toggle('open')"><span class="think-chevron">▶</span> <span class="think-label">思考中…</span></div><div class="think-body"></div>`
+  thinkBlock.innerHTML = '<div class="think-header" onclick="this.parentElement.classList.toggle(\'open\')"><span class="think-chevron">▶</span> <span class="think-label">思考中…</span></div><div class="think-body"></div>'
   const thinkBody = thinkBlock.querySelector('.think-body')
   const contentEl = mkEl('div', 'ai-content'); contentEl.dataset.raw = ''
   const cursorEl = mkEl('span', 'cursor')
@@ -620,8 +621,10 @@ function appendThink(block, body, text, done) {
 }
 
 function finalizeThink(block) {
+  if (block.classList.contains('done')) return
   block.querySelector('.think-label').textContent = '已思考（点击展开）'
-  block.classList.remove('open'); block.classList.add('done')
+  block.classList.remove('open')
+  block.classList.add('done')
 }
 
 function showError(row, msg) {
@@ -639,33 +642,46 @@ function renderMarkdown(el, raw, cursor) {
 }
 
 function mdToHtml(s) {
-  // code blocks
-  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
-    `<pre><code>${esc(code.trim())}</code></pre>`)
-  // inline code
-  s = s.replace(/`([^`\n]+)`/g, (_, c) => `<code>${esc(c)}</code>`)
-  // bold
+  // Protect code blocks first
+  const codeBlocks = []
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, function(_, lang, code) {
+    const idx = codeBlocks.length
+    codeBlocks.push('<pre><code>' + esc(code.trim()) + '</code></pre>')
+    return '\x00CODE' + idx + '\x00'
+  })
+  // Inline code
+  s = s.replace(/`([^`\n]+)`/g, function(_, c) { return '<code>' + esc(c) + '</code>' })
+  // Bold & italic
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  // italic
-  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  // headings
+  s = s.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+  // Headings
+  s = s.replace(/^#### (.+)$/gm, '<h4>$1</h4>')
   s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>')
   s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>')
   s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>')
-  // blockquote
+  // Blockquote
   s = s.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-  // unordered list
-  s = s.replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
-  s = s.replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
-  // ordered list
-  s = s.replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-  // paragraphs: split on double newline
-  s = s.split(/\n\n+/).map(p => {
+  // HR
+  s = s.replace(/^---+$/gm, '<hr>')
+  // Lists: collect consecutive items then wrap
+  s = s.replace(/((?:^[-*] .+\n?)+)/gm, function(block) {
+    const items = block.trim().split('\n').map(function(l) { return '<li>' + l.replace(/^[-*] /, '') + '</li>' }).join('')
+    return '<ul>' + items + '</ul>'
+  })
+  s = s.replace(/((?:^\d+\. .+\n?)+)/gm, function(block) {
+    const items = block.trim().split('\n').map(function(l) { return '<li>' + l.replace(/^\d+\. /, '') + '</li>' }).join('')
+    return '<ol>' + items + '</ol>'
+  })
+  // Paragraphs
+  s = s.split(/\n\n+/).map(function(p) {
     p = p.trim()
     if (!p) return ''
-    if (/^<(h[1-3]|pre|ul|ol|blockquote)/.test(p)) return p
+    if (/^<(h[1-4]|pre|ul|ol|blockquote|hr|\x00CODE)/.test(p)) return p
     return '<p>' + p.replace(/\n/g, '<br>') + '</p>'
   }).join('\n')
+  // Restore code blocks
+  s = s.replace(/\x00CODE(\d+)\x00/g, function(_, i) { return codeBlocks[parseInt(i)] })
   return s
 }
 
@@ -690,20 +706,18 @@ function onModeChange() {
   const sugg = document.getElementById('suggestions')
   if (mode === 'meso') {
     ta.placeholder = '问关于 Meso 的问题…（Ctrl+Enter 发送）'
-    if (sugg) sugg.innerHTML = `
-      <span class="suggestion" onclick="useSuggestion(this)">useSSEStream 的 state 有哪些字段？</span>
-      <span class="suggestion" onclick="useSuggestion(this)">memory 事件和 think 事件有什么区别？</span>
-      <span class="suggestion" onclick="useSuggestion(this)">如何用 Meso 实现工业场景的多 Agent 协同？</span>
-      <span class="suggestion" onclick="useSuggestion(this)">ArtifactEvent 支持哪些 artifactType？</span>
-    `
+    if (sugg) sugg.innerHTML =
+      '<span class="suggestion" onclick="useSuggestion(this)">useSSEStream 的 state 有哪些字段？</span>' +
+      '<span class="suggestion" onclick="useSuggestion(this)">memory 事件和 think 事件有什么区别？</span>' +
+      '<span class="suggestion" onclick="useSuggestion(this)">如何用 Meso 实现工业场景的多 Agent 协同？</span>' +
+      '<span class="suggestion" onclick="useSuggestion(this)">ArtifactEvent 支持哪些 artifactType？</span>'
   } else {
     ta.placeholder = '发送消息…（Ctrl+Enter 发送）'
-    if (sugg) sugg.innerHTML = `
-      <span class="suggestion" onclick="useSuggestion(this)">用 Python 写一个快速排序</span>
-      <span class="suggestion" onclick="useSuggestion(this)">解释一下流式输出的原理</span>
-      <span class="suggestion" onclick="useSuggestion(this)">写一首关于代码的短诗</span>
-      <span class="suggestion" onclick="useSuggestion(this)">列出世界上最高的五座山</span>
-    `
+    if (sugg) sugg.innerHTML =
+      '<span class="suggestion" onclick="useSuggestion(this)">用 Python 写一个快速排序</span>' +
+      '<span class="suggestion" onclick="useSuggestion(this)">解释一下流式输出的原理</span>' +
+      '<span class="suggestion" onclick="useSuggestion(this)">写一首关于代码的短诗</span>' +
+      '<span class="suggestion" onclick="useSuggestion(this)">列出世界上最高的五座山</span>'
   }
 }
 

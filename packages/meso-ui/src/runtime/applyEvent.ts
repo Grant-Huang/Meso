@@ -1,0 +1,81 @@
+import type { SSEEvent } from './protocol'
+import type { StreamState } from './streamState'
+
+/**
+ * Pure state machine reducer.
+ * Apply one SSE event to the current StreamState and return the next state.
+ * Does not mutate the input state.
+ */
+export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
+  switch (event.type) {
+    case 'stage': {
+      const { name, state: stageState } = event.payload
+      return {
+        ...state,
+        stages: [
+          ...state.stages.filter(s => s.name !== name),
+          { name, state: stageState },
+        ],
+      }
+    }
+
+    case 'memory':
+      return { ...state, memorySnippets: event.payload.snippets }
+
+    case 'think':
+      return {
+        ...state,
+        thinkContent: state.thinkContent + event.payload.delta,
+        thinkDone: event.payload.done ?? false,
+      }
+
+    case 'text':
+      return { ...state, textContent: state.textContent + event.payload.delta }
+
+    case 'artifact': {
+      const { id, lang, delta, done } = event.payload
+      const existing = state.artifacts[id]
+      const artifactOrder = state.artifactOrder.includes(id)
+        ? state.artifactOrder
+        : [...state.artifactOrder, id]
+      return {
+        ...state,
+        artifactOrder,
+        artifacts: {
+          ...state.artifacts,
+          [id]: {
+            id,
+            lang,
+            content: (existing?.content ?? '') + delta,
+            done: done ?? false,
+          },
+        },
+      }
+    }
+
+    case 'done':
+      return { ...state, status: 'done' }
+
+    case 'error':
+      return {
+        ...state,
+        status: 'error',
+        errorMessage: event.payload.message,
+      }
+
+    case 'extension': {
+      const { name } = event.payload
+      return {
+        ...state,
+        extensions: {
+          ...state.extensions,
+          [name]: [...(state.extensions[name] ?? []), event],
+        },
+        extensionLog: [...state.extensionLog, event],
+      }
+    }
+
+    default:
+      return state
+  }
+}

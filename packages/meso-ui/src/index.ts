@@ -22,20 +22,35 @@ export type { MessageListProps, Message } from './components/MessageList'
 
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
-export type {
-  SSEEvent,
-  SSEEventType,
-  StreamState,
-  StreamStatus,
-  StreamOptions,
-  StageEvent,
-  MemoryEvent,
-  ThinkEvent,
-  TextEvent,
-  ArtifactEvent,
-  DoneEvent,
-  ErrorEvent,
-} from './hooks/useSSEStream'
+export type { StreamOptions } from './hooks/useSSEStream'
 
 export { useTheme } from './hooks/useTheme'
 export type { Theme } from './hooks/useTheme'
+
+// Runtime (also available as @meso/ui/runtime for React-free usage)
+export {
+  PROTOCOL_VERSION,
+  parseSSELine,
+  applyEvent,
+  createInitialStreamState,
+} from './runtime'
+export type {
+  SSEEvent,
+  StageEvent,
+  StagePayload,
+  MemoryEvent,
+  MemorySnippet,
+  MemoryPayload,
+  ThinkEvent,
+  TextEvent,
+  ArtifactEvent,
+  ArtifactPayload,
+  DoneEvent,
+  ErrorEvent,
+  ErrorPayload,
+  ExtensionEvent,
+  ExtensionPayload,
+  StreamState,
+  StreamStatus,
+  ArtifactState,
+} from './runtime'

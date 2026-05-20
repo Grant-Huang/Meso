@@ -1,102 +1,180 @@
 import { describe, it, expect } from 'vitest'
-import type { StreamState, SSEEvent } from '../useSSEStream'
+import { applyEvent, createInitialStreamState } from '../../runtime'
+import type { StreamState } from '../../runtime'
+import type { SSEEvent } from '../../runtime/protocol'
 
-// Copy applyEvent here for testing (it's an internal pure function)
-// We test the state machine logic independently
-const initialState: StreamState = {
-  status: 'idle',
-  stages: [],
-  memoryItems: [],
-  thinkContent: '',
-  thinkDone: false,
-  textContent: '',
-  artifact: null,
-  errorMessage: null,
-}
+const initial = createInitialStreamState()
+const streaming: StreamState = { ...initial, status: 'streaming' }
 
-function applyEvent(prev: StreamState, event: SSEEvent): StreamState {
-  switch (event.type) {
-    case 'stage':
-      return { ...prev, stages: [...prev.stages.filter(s => s.label !== event.label), event] }
-    case 'memory':
-      return { ...prev, memoryItems: event.items }
-    case 'think':
-      return { ...prev, thinkContent: prev.thinkContent + event.delta, thinkDone: event.done ?? false }
-    case 'text':
-      return { ...prev, textContent: prev.textContent + event.delta }
-    case 'artifact':
-      return { ...prev, artifact: { type: event.artifactType, language: event.language, content: (prev.artifact?.content ?? '') + event.delta } }
-    case 'done':
-      return { ...prev, status: 'done' }
-    case 'error':
-      return { ...prev, status: 'error', errorMessage: event.message }
-    default:
-      return prev
-  }
-}
+function ev<T extends SSEEvent>(e: T): T { return e }
 
 describe('applyEvent state machine', () => {
-  it('stage: adds new stage', () => {
-    const next = applyEvent(initialState, { type: 'stage', label: '召回记忆', status: 'active' })
-    expect(next.stages).toHaveLength(1)
-    expect(next.stages[0].label).toBe('召回记忆')
-    expect(next.stages[0].status).toBe('active')
+  describe('stage', () => {
+    it('adds new stage', () => {
+      const next = applyEvent(streaming, ev({
+        type: 'stage', schema_version: '1.0',
+        payload: { name: '召回记忆', state: 'active' },
+      }))
+      expect(next.stages).toHaveLength(1)
+      expect(next.stages[0].name).toBe('召回记忆')
+      expect(next.stages[0].state).toBe('active')
+    })
+
+    it('deduplicates by name (upsert, append to end)', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'stage', schema_version: '1.0',
+        payload: { name: '召回记忆', state: 'active' },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'stage', schema_version: '1.0',
+        payload: { name: '召回记忆', state: 'done' },
+      }))
+      expect(s2.stages).toHaveLength(1)
+      expect(s2.stages[0].state).toBe('done')
+    })
+
+    it('keeps multiple different stages', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'stage', schema_version: '1.0',
+        payload: { name: 'A', state: 'done' },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'stage', schema_version: '1.0',
+        payload: { name: 'B', state: 'active' },
+      }))
+      expect(s2.stages).toHaveLength(2)
+    })
   })
 
-  it('stage: updates existing stage by label (dedup)', () => {
-    const s1 = applyEvent(initialState, { type: 'stage', label: '召回记忆', status: 'active' })
-    const s2 = applyEvent(s1, { type: 'stage', label: '召回记忆', status: 'done' })
-    expect(s2.stages).toHaveLength(1)
-    expect(s2.stages[0].status).toBe('done')
+  describe('memory', () => {
+    it('replaces memorySnippets', () => {
+      const next = applyEvent(streaming, ev({
+        type: 'memory', schema_version: '1.0',
+        payload: { snippets: [{ category: 'preference', content: '偏好简洁' }] },
+      }))
+      expect(next.memorySnippets).toEqual([{ category: 'preference', content: '偏好简洁' }])
+    })
   })
 
-  it('stage: keeps multiple different stages', () => {
-    const s1 = applyEvent(initialState, { type: 'stage', label: 'A', status: 'done' })
-    const s2 = applyEvent(s1, { type: 'stage', label: 'B', status: 'active' })
-    expect(s2.stages).toHaveLength(2)
+  describe('think', () => {
+    it('appends delta and sets thinkDone', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'think', schema_version: '1.0',
+        payload: { delta: 'hello ', done: false },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'think', schema_version: '1.0',
+        payload: { delta: 'world', done: true },
+      }))
+      expect(s2.thinkContent).toBe('hello world')
+      expect(s2.thinkDone).toBe(true)
+    })
   })
 
-  it('memory: replaces memoryItems', () => {
-    const next = applyEvent(initialState, { type: 'memory', items: ['item1', 'item2'] })
-    expect(next.memoryItems).toEqual(['item1', 'item2'])
+  describe('text', () => {
+    it('appends delta', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'text', schema_version: '1.0',
+        payload: { delta: 'Hello' },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'text', schema_version: '1.0',
+        payload: { delta: ' world' },
+      }))
+      expect(s2.textContent).toBe('Hello world')
+    })
   })
 
-  it('think: appends delta, sets thinkDone false', () => {
-    const s1 = applyEvent(initialState, { type: 'think', delta: 'hello ', done: false })
-    const s2 = applyEvent(s1, { type: 'think', delta: 'world', done: true })
-    expect(s2.thinkContent).toBe('hello world')
-    expect(s2.thinkDone).toBe(true)
+  describe('artifact', () => {
+    it('creates artifact entry and appends delta', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'artifact', schema_version: '1.0',
+        payload: { id: 'a1', lang: 'python', delta: 'def ', done: false },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'artifact', schema_version: '1.0',
+        payload: { id: 'a1', lang: 'python', delta: 'foo(): pass', done: true },
+      }))
+      expect(s2.artifactOrder).toEqual(['a1'])
+      expect(s2.artifacts['a1'].content).toBe('def foo(): pass')
+      expect(s2.artifacts['a1'].lang).toBe('python')
+      expect(s2.artifacts['a1'].done).toBe(true)
+    })
+
+    it('tracks multiple artifacts in insertion order', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'artifact', schema_version: '1.0',
+        payload: { id: 'a1', lang: 'python', delta: 'x', done: true },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'artifact', schema_version: '1.0',
+        payload: { id: 'a2', lang: 'html preview', delta: '<h1>', done: false },
+      }))
+      expect(s2.artifactOrder).toEqual(['a1', 'a2'])
+    })
   })
 
-  it('text: appends delta', () => {
-    const s1 = applyEvent(initialState, { type: 'text', delta: 'Hello' })
-    const s2 = applyEvent(s1, { type: 'text', delta: ' world' })
-    expect(s2.textContent).toBe('Hello world')
+  describe('done', () => {
+    it('sets status to done', () => {
+      const next = applyEvent(streaming, ev({
+        type: 'done', schema_version: '1.0', payload: {},
+      }))
+      expect(next.status).toBe('done')
+    })
   })
 
-  it('artifact: creates artifact and appends delta', () => {
-    const s1 = applyEvent(initialState, { type: 'artifact', artifactType: 'code', language: 'python', delta: 'def ', done: false })
-    const s2 = applyEvent(s1, { type: 'artifact', artifactType: 'code', language: 'python', delta: 'foo(): pass', done: true })
-    expect(s2.artifact?.type).toBe('code')
-    expect(s2.artifact?.content).toBe('def foo(): pass')
-    expect(s2.artifact?.language).toBe('python')
+  describe('error', () => {
+    it('sets status and errorMessage', () => {
+      const next = applyEvent(streaming, ev({
+        type: 'error', schema_version: '1.0',
+        payload: { message: '连接失败' },
+      }))
+      expect(next.status).toBe('error')
+      expect(next.errorMessage).toBe('连接失败')
+    })
   })
 
-  it('done: sets status to done', () => {
-    const streaming = { ...initialState, status: 'streaming' as const }
-    const next = applyEvent(streaming, { type: 'done' })
-    expect(next.status).toBe('done')
+  describe('extension', () => {
+    it('appends to extensionLog in order', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'extension', schema_version: '1.0',
+        payload: { name: 'tool_progress', data: { status: 'running' } },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'extension', schema_version: '1.0',
+        payload: { name: 'tool_progress', data: { status: 'done' } },
+      }))
+      expect(s2.extensionLog).toHaveLength(2)
+      expect(s2.extensions['tool_progress']).toHaveLength(2)
+    })
+
+    it('keys by name for lookup while preserving log order', () => {
+      const s1 = applyEvent(streaming, ev({
+        type: 'extension', schema_version: '1.0',
+        payload: { name: 'tool_a', data: {} },
+      }))
+      const s2 = applyEvent(s1, ev({
+        type: 'extension', schema_version: '1.0',
+        payload: { name: 'tool_b', data: {} },
+      }))
+      const s3 = applyEvent(s2, ev({
+        type: 'extension', schema_version: '1.0',
+        payload: { name: 'tool_a', data: {} },
+      }))
+      expect(s3.extensionLog).toHaveLength(3)
+      expect(s3.extensions['tool_a']).toHaveLength(2)
+      expect(s3.extensions['tool_b']).toHaveLength(1)
+    })
   })
 
-  it('error: sets status and errorMessage', () => {
-    const next = applyEvent(initialState, { type: 'error', message: '连接失败' })
-    expect(next.status).toBe('error')
-    expect(next.errorMessage).toBe('连接失败')
-  })
-
-  it('unknown event type: returns state unchanged', () => {
-    applyEvent(initialState, { type: 'done' })
-    // done changes status, just verify the function is pure (no mutation)
-    expect(initialState.status).toBe('idle')
+  describe('immutability', () => {
+    it('does not mutate the input state', () => {
+      const before = { ...streaming }
+      applyEvent(streaming, ev({
+        type: 'text', schema_version: '1.0',
+        payload: { delta: 'mutate test' },
+      }))
+      expect(streaming).toEqual(before)
+    })
   })
 })

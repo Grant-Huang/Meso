@@ -434,7 +434,7 @@ async function sendMessage() {
       await streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, contentEl, thinkBlock, thinkBody, cursorEl })
     }
     messages.push({ role: 'assistant', content: contentEl.dataset.raw || contentEl.textContent })
-    setStatus('✓ 完成', 'ok')
+    setStatus('完成', 'ok')
   } catch (err) {
     if (err.name === 'AbortError') {
       setStatus('已停止', 'ok')

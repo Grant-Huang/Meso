@@ -13,10 +13,10 @@ Follows [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://sem
 ### Added
 
 - `useSSEStream`: rewritten with `fetch` + `ReadableStream`
-  - ✅ Supports POST requests with JSON body
-  - ✅ Supports custom HTTP headers (Authorization, etc.)
-  - ✅ New `abort()` return value — stops an in-flight stream gracefully
-  - ✅ New `StreamOptions` type exported from package
+  - Supports POST requests with JSON body
+  - Supports custom HTTP headers (Authorization, etc.)
+  - New `abort()` return value — stops an in-flight stream gracefully
+  - New `StreamOptions` type exported from package
 - `ArtifactPanel`: new `onDownload` prop + built-in download button
   - Default behavior: triggers browser file download as `artifact.<ext>`
   - Override with `onDownload` callback for custom handling

@@ -291,23 +291,6 @@
     /* Divider */
     .divider { height: 1px; background: var(--color-border-light); margin: 24px 0; }
 
-    /* Ant-design reference box */
-    .aika-box {
-      background: #f3f5f0;
-      border-radius: 8px;
-      padding: 16px 20px;
-      border: 1px solid #d0d9cf;
-      max-width: 460px;
-    }
-    .aika-primary-chip {
-      display: inline-block;
-      background: #4f7f67;
-      color: #fff;
-      border-radius: 8px;
-      padding: 6px 18px;
-      font-size: 13px;
-      margin-right: 8px;
-    }
     .comparison-row {
       display: flex;
       gap: 24px;
@@ -498,36 +481,9 @@
 </div>
 
 <!-- ══════════════════════════════════════════════
-     Section 2: AI-KA reference
+     Section 2: Live Components
 ══════════════════════════════════════════════ -->
-<h2>六、AI-KA 参考值（Ant Design colorPrimary）</h2>
-<div class="aika-box">
-  <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:12px;">
-    AI-KA 实现中 Ant Design <code style="font-size:12px;">colorPrimary</code> 为 <strong>#4f7f67</strong>，与 spec 同系、略深一点。
-  </p>
-  <div class="comparison-row">
-    <div class="chip-pair">
-      <div class="chip" style="background:#527c5e;"></div>
-      <div class="chip-label">Spec<br>#527c5e</div>
-    </div>
-    <div class="chip-pair">
-      <div class="chip" style="background:#4f7f67;"></div>
-      <div class="chip-label">AI-KA<br>#4f7f67</div>
-    </div>
-    <div class="chip-pair">
-      <div class="chip" style="background:#2f7d4a;"></div>
-      <div class="chip-label">accent-dark<br>#2f7d4a</div>
-    </div>
-  </div>
-  <p style="font-size:12px; color:var(--color-text-muted); margin-top:12px;">
-    colorBgContainer: #f3f5f0 ← 对比 Meso --color-bg #ecefe9，稍浅
-  </p>
-</div>
-
-<!-- ══════════════════════════════════════════════
-     Section 3: Live Components
-══════════════════════════════════════════════ -->
-<h2>七、按钮</h2>
+<h2>六、按钮</h2>
 <div class="demo-row">
   <button class="btn btn-primary">主操作</button>
   <button class="btn btn-success">确认</button>
@@ -537,7 +493,7 @@
   <button class="btn btn-ghost">激活态</button>
 </div>
 
-<h2>八、标签 / Badge</h2>
+<h2>七、标签 / Badge</h2>
 <div class="demo-row" style="padding:4px 0">
   <span class="tag tag-info">信息</span>
   <span class="tag tag-success">成功</span>
@@ -545,12 +501,12 @@
   <span class="tag tag-error">错误</span>
 </div>
 
-<h2>九、输入框</h2>
+<h2>八、输入框</h2>
 <div class="demo-row">
   <input class="input-demo" type="text" placeholder="点击聚焦，边框变为 accent 色…" />
 </div>
 
-<h2>十、文字层级</h2>
+<h2>九、文字层级</h2>
 <div class="text-stack">
   <span class="text-primary">主文字 #2f3a32 · 15px · 页面正文、会话标题</span>
   <span class="text-secondary">次要文字 rgba(47,58,50,0.6) · 14px · 副标题、描述</span>
@@ -559,7 +515,7 @@
   <a class="text-link">链接颜色 #527c5e · 带下划线</a>
 </div>
 
-<h2>十一、背景卡片对比</h2>
+<h2>十、背景卡片对比</h2>
 <div class="card-grid">
   <div class="card card-bg">
     <span class="card-label">--color-bg-elevated #f4f6f2</span>
@@ -583,7 +539,7 @@
   </div>
 </div>
 
-<h2>十二、会话列表（Session List）</h2>
+<h2>十一、会话列表（Session List）</h2>
 <div class="session-list">
   <div class="session-item active">
     产品需求分析 <span class="session-time">刚刚</span>
@@ -602,7 +558,7 @@
   激活项：border-left: 2px solid #527c5e · background: rgba(82,124,94,0.12)
 </p>
 
-<h2>十三、聊天气泡</h2>
+<h2>十二、聊天气泡</h2>
 <div class="chat-area">
   <div class="bubble-user">
     Meso 的配色方案是什么风格？
@@ -620,7 +576,7 @@
   </div>
 </div>
 
-<h2>十四、阶段进度条（Stage Timeline）</h2>
+<h2>十三、阶段进度条（Stage Timeline）</h2>
 <ul class="stage-list">
   <li class="stage-item">
     <span class="dot dot-done"></span>
@@ -640,7 +596,7 @@
   </li>
 </ul>
 
-<h2>十五、分隔条（Splitter）</h2>
+<h2>十四、分隔条（Splitter）</h2>
 <div class="demo-row" style="align-items:center; gap:0;">
   <div style="background:var(--color-bg-elevated); border-radius:10px 0 0 10px; border:1px solid var(--color-border); padding:20px 24px; width:180px; font-size:13px; color:var(--color-text-secondary);">
     Chat 区域 (60%)

@@ -476,7 +476,7 @@ Meso 是一个以**流式会话为核心**的 AI 应用基础平台，提供统�
 ## 平台定位
 
 \`\`\`
-业务应用层   AI-KA / 新项目 / 其他应用
+业务应用层   YourApp / 新项目 / 其他应用
               ↑  只需提供 App Manifest
 平台服务层   Meso（本仓库）
               ↑  npm install @meso/ui
@@ -1127,7 +1127,7 @@ Meso 的记忆系统分为**短期记忆**和**长期记忆**两层，在每次�
 \`\`\`
 --- 相关记忆 ---
 [用户偏好 · 代码风格] TypeScript，arrow functions，2空格缩进
-[项目背景 · AI-KA] 审查分析工具，处理法律合同文档
+[项目背景 · DocReview] 文档审查工具，处理合同与技术文档
 --- 用户消息 ---
 帮我写一个文件上传组件
 \`\`\`
@@ -1138,7 +1138,7 @@ Meso 的记忆系统分为**短期记忆**和**长期记忆**两层，在每次�
 
 \`\`\`
 ┌────────────────────────────────────────────┐
-│  [◈ 用户偏好·代码风格]  [◈ 项目背景·AI-KA]  │  ← memory chips
+│  [◈ 用户偏好·代码风格]  [◈ 项目背景·DocReview]  │  ← memory chips
 ├────────────────────────────────────────────┤
 │  [ 输入消息…                          发送 ]│
 └────────────────────────────────────────────┘
@@ -1263,7 +1263,7 @@ Meso 通过 **App Manifest** 机制支持多应用模式。不同应用可以拥
     </svg>`,
     content: `# 接入指南
 
-本节提供新项目从零开始接入 Meso 平台的完整步骤，以及从 AI-KA 迁移的指南。
+本节提供新项目从零开始接入 Meso 平台的完整步骤。
 
 ## 新项目接入
 
@@ -1421,18 +1421,6 @@ async def chat(body: ChatRequest):
         yield f"data: {json.dumps({'type':'done'})}\\n\\n"
     return StreamingResponse(generate(), media_type="text/event-stream")
 \`\`\`
-
----
-
-## 从 AI-KA 迁移
-
-| 变更项 | AI-KA 旧方式 | Meso 新方式 |
-|---|---|---|
-| 布局 | 自定义 flex 布局 | \`<ThreeColumnLayout>\` |
-| 主题 | CSS 变量不统一 | 统一 meso-tokens.css |
-| 流式 | 自定义 fetch + ReadableStream | \`useSSEStream\` hook |
-| 记忆 | 无 | \`memory\` manifest 配置 |
-| 组件 | 内联实现 | \`@meso/ui\` 导入 |
 
 ---
 

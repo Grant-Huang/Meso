@@ -57,9 +57,6 @@
   /* Misc */
   --splitter-hover:       #9cb8a8;
 
-  /* AI-KA reference (for color comparison demos) */
-  --aika-primary:         #4f7f67;
-  --aika-bg-container:    #f3f5f0;
 }
 
 /* ── Dark theme (Plan C) ── */
@@ -103,7 +100,4 @@
   /* Misc */
   --splitter-hover:       #4a6455;
 
-  /* AI-KA reference (dark equivalents) */
-  --aika-primary:         #6a9e83;
-  --aika-bg-container:    #1e2820;
 }

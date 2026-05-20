@@ -164,7 +164,6 @@ score = 0.35 * keyword_score + 0.65 * semantic_score
 ### 5.3 记忆审批（可选）
 
 自动提炼的内容默认进入"待审批"队列，用户在侧栏的记忆管理页面确认后才真正写入。
-（与 AI-KA 的 review_queue 机制同源）
 
 ---
 

@@ -30,7 +30,7 @@
 Meso (llm-platform)   ← 本 repo：平台层（流式对话核心 + UI框架 + 记忆 + 插件机制）
       ↑
 各业务应用             ← 基于平台构建，只需提供 App Manifest
-（AI-KA / 新项目 / ...）
+（DocReview / 工业协作 / 其他应用 / ...）
 ```
 
 **平台层不包含业务逻辑。** 每个应用通过 App Manifest 声明自己需要的知识库、工具、提示词，平台负责将它们注入流式对话。
@@ -44,7 +44,6 @@ Meso (llm-platform)   ← 本 repo：平台层（流式对话核心 + UI框架 +
 | [UI 规范](docs/ui-spec.md) | 布局、配色、字体、流式渲染状态、组件规范 |
 | [记忆系统](docs/memory-system.md) | 短期/长期记忆设计、Obsidian 集成 |
 | [应用插件系统](docs/app-plugin-system.md) | App Manifest、知识库、Tools、Skill |
-| [迁移计划](docs/migration-plan.md) | 从 AI-KA 提取平台层的步骤 |
 
 ## 技术栈
 

@@ -14,7 +14,7 @@
 apps/
 ├── chat-assistant/           # 通用对话助手
 │   └── manifest.json
-├── doc-reviewer/             # 文档审查（AI-KA 的业务逻辑迁移至此）
+├── doc-reviewer/             # 文档审查
 │   ├── manifest.json
 │   ├── skills/
 │   │   └── review-domain.md

@@ -469,92 +469,76 @@ function renderLLMPanel() {
 
   const providerOptions = providerIds.map(id => {
     const p = PROVIDERS[id]
-    return `<option value="${id}">${p.name}</option>`
+    return '<option value="' + id + '">' + p.name + '<\/option>'
   }).join('')
 
-  main.innerHTML = `
-    <h2 class="settings-main-title">大语言模型</h2>
-
-    <div class="llm-form-card" id="llm-form-card">
-      <div class="form-group">
-        <label class="form-label">服务商</label>
-        <select class="form-select" id="f-provider" onchange="onProviderSelect()">${providerOptions}</select>
-      </div>
-
-      <div id="f-provider-desc" class="form-hint" style="margin-bottom:14px;"></div>
-
-      <div class="form-group">
-        <label class="form-label">API Key</label>
-        <div class="form-input-wrap">
-          <input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off">
-          <button class="btn-show-key" onclick="toggleKey('f-apikey', this)" tabindex="-1">
-            <svg id="eye-icon-f-apikey" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>
-        <div class="form-hint" id="f-apikey-hint"></div>
-      </div>
-
-      <div id="f-groupid-wrap" class="form-group" style="display:none;">
-        <label class="form-label">Group ID <span class="optional">可选</span></label>
-        <input class="form-input" type="text" id="f-groupid" placeholder="填入 Group ID（可不填）">
-        <div class="form-hint" id="f-groupid-hint"></div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">模型名称</label>
-        <input class="form-input" type="text" id="f-model" placeholder="">
-        <div class="form-hint" id="f-model-hint"></div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Base URL</label>
-        <input class="form-input" type="text" id="f-baseurl" placeholder="">
-        <div class="form-hint">修改此地址可接入兼容代理或自定义端点。</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">温度 (Temperature)</label>
-        <div class="range-row">
-          <span class="range-bound">0.0</span>
-          <input type="range" id="f-temperature" min="0" max="2" step="0.1" value="0.7"
-            oninput="document.getElementById('f-temperature-val').textContent = parseFloat(this.value).toFixed(1)">
-          <span class="range-bound">2.0</span>
-          <span class="range-val" id="f-temperature-val">0.7</span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Max Tokens</label>
-        <input class="form-input" type="number" id="f-maxtokens" min="1" max="32768" step="1" value="4096" style="width:140px;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Top-P</label>
-        <div class="range-row">
-          <span class="range-bound">0.0</span>
-          <input type="range" id="f-topp" min="0" max="1" step="0.05" value="1.0"
-            oninput="document.getElementById('f-topp-val').textContent = parseFloat(this.value).toFixed(2)">
-          <span class="range-bound">1.0</span>
-          <span class="range-val" id="f-topp-val">1.00</span>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveProvider()">保存配置</button>
-        <button class="btn btn-danger" onclick="clearProvider()">清除</button>
-      </div>
-    </div>
-
-    <div class="section-divider">
-      <span class="section-divider-label">已配置的模型</span>
-      <div class="section-divider-line"></div>
-    </div>
-
-    <div id="configured-list-wrap"></div>
-  `
+  main.innerHTML = '<h2 class="settings-main-title">大语言模型<\/h2>' +
+    '<div class="llm-form-card" id="llm-form-card">' +
+      '<div class="form-group">' +
+        '<label class="form-label">服务商<\/label>' +
+        '<select class="form-select" id="f-provider" onchange="onProviderSelect()">' + providerOptions + '<\/select>' +
+      '<\/div>' +
+      '<div id="f-provider-desc" class="form-hint" style="margin-bottom:14px;"><\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">API Key<\/label>' +
+        '<div class="form-input-wrap">' +
+          '<input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off">' +
+          '<button class="btn-show-key" onclick="toggleKey(\'f-apikey\', this)" tabindex="-1">' +
+            '<svg id="eye-icon-f-apikey" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+              '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
+              '<circle cx="12" cy="12" r="3"/>' +
+            '<\/svg>' +
+          '<\/button>' +
+        '<\/div>' +
+        '<div class="form-hint" id="f-apikey-hint"><\/div>' +
+      '<\/div>' +
+      '<div id="f-groupid-wrap" class="form-group" style="display:none;">' +
+        '<label class="form-label">Group ID <span class="optional">可选<\/span><\/label>' +
+        '<input class="form-input" type="text" id="f-groupid" placeholder="填入 Group ID（可不填）">' +
+        '<div class="form-hint" id="f-groupid-hint"><\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">模型名称<\/label>' +
+        '<input class="form-input" type="text" id="f-model" placeholder="">' +
+        '<div class="form-hint" id="f-model-hint"><\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">Base URL<\/label>' +
+        '<input class="form-input" type="text" id="f-baseurl" placeholder="">' +
+        '<div class="form-hint">修改此地址可接入兼容代理或自定义端点。<\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">温度 (Temperature)<\/label>' +
+        '<div class="range-row">' +
+          '<span class="range-bound">0.0<\/span>' +
+          '<input type="range" id="f-temperature" min="0" max="2" step="0.1" value="0.7" oninput="document.getElementById(\'f-temperature-val\').textContent = parseFloat(this.value).toFixed(1)">' +
+          '<span class="range-bound">2.0<\/span>' +
+          '<span class="range-val" id="f-temperature-val">0.7<\/span>' +
+        '<\/div>' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">Max Tokens<\/label>' +
+        '<input class="form-input" type="number" id="f-maxtokens" min="1" max="32768" step="1" value="4096" style="width:140px;">' +
+      '<\/div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">Top-P<\/label>' +
+        '<div class="range-row">' +
+          '<span class="range-bound">0.0<\/span>' +
+          '<input type="range" id="f-topp" min="0" max="1" step="0.05" value="1.0" oninput="document.getElementById(\'f-topp-val\').textContent = parseFloat(this.value).toFixed(2)">' +
+          '<span class="range-bound">1.0<\/span>' +
+          '<span class="range-val" id="f-topp-val">1.00<\/span>' +
+        '<\/div>' +
+      '<\/div>' +
+      '<div class="form-actions">' +
+        '<button class="btn btn-primary" onclick="saveProvider()">保存配置<\/button>' +
+        '<button class="btn btn-danger" onclick="clearProvider()">清除<\/button>' +
+      '<\/div>' +
+    '<\/div>' +
+    '<div class="section-divider">' +
+      '<span class="section-divider-label">已配置的模型<\/span>' +
+      '<div class="section-divider-line"><\/div>' +
+    '<\/div>' +
+    '<div id="configured-list-wrap"><\/div>'
 
   // set initial provider
   document.getElementById('f-provider').value = initialId
@@ -630,7 +614,7 @@ function saveProvider() {
 function clearProvider() {
   const id = document.getElementById('f-provider').value
   const p = PROVIDERS[id]
-  if (!confirm(`确定要清除 ${p.name} 的配置吗？`)) return
+  if (!confirm('确定要清除 ' + p.name + ' 的配置吗？')) return
   const cfg = getConfig()
   delete cfg[id]
   saveConfig(cfg)
@@ -647,7 +631,7 @@ function editProvider(id) {
 
 function deleteProvider(id) {
   const p = PROVIDERS[id]
-  if (!confirm(`确定要删除 ${p.name} 的配置吗？`)) return
+  if (!confirm('确定要删除 ' + p.name + ' 的配置吗？')) return
   const cfg = getConfig()
   delete cfg[id]
   saveConfig(cfg)
@@ -662,28 +646,27 @@ function renderConfiguredList() {
   const configured = Object.keys(PROVIDERS).filter(id => cfg[id]?.apiKey)
 
   if (configured.length === 0) {
-    wrap.innerHTML = '<div class="configured-empty">暂无已配置的模型，请在上方添加配置</div>'
+    wrap.innerHTML = '<div class="configured-empty">暂无已配置的模型，请在上方添加配置<\/div>'
     return
   }
 
-  wrap.innerHTML = '<div class="configured-list" id="configured-list"></div>'
+  wrap.innerHTML = '<div class="configured-list" id="configured-list"><\/div>'
   const list = document.getElementById('configured-list')
   configured.forEach(id => {
     const p = PROVIDERS[id]
     const saved = cfg[id]
     const card = document.createElement('div')
     card.className = 'configured-card'
-    card.innerHTML = `
-      <div class="configured-icon" style="background:${p.iconBg};">${p.icon}</div>
-      <div class="configured-info">
-        <div class="configured-name">${p.shortName}</div>
-        <div class="configured-model">${saved.model || p.defaultModel}</div>
-      </div>
-      <div class="configured-actions">
-        <button class="btn-edit" onclick="editProvider('${id}')">编辑</button>
-        <button class="btn-delete" onclick="deleteProvider('${id}')" title="删除">×</button>
-      </div>
-    `
+    card.innerHTML =
+      '<div class="configured-icon" style="background:' + p.iconBg + ';">' + p.icon + '<\/div>' +
+      '<div class="configured-info">' +
+        '<div class="configured-name">' + p.shortName + '<\/div>' +
+        '<div class="configured-model">' + (saved.model || p.defaultModel) + '<\/div>' +
+      '<\/div>' +
+      '<div class="configured-actions">' +
+        '<button class="btn-edit" onclick="editProvider(\'' + id + '\')">编辑<\/button>' +
+        '<button class="btn-delete" onclick="deleteProvider(\'' + id + '\')" title="删除">×<\/button>' +
+      '<\/div>'
     list.appendChild(card)
   })
 }
@@ -693,10 +676,10 @@ function toggleKey(inputId, btn) {
   const icon = document.getElementById('eye-icon-' + inputId)
   if (input.type === 'password') {
     input.type = 'text'
-    icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"><\/path><line x1="1" y1="1" x2="23" y2="23"><\/line>'
   } else {
     input.type = 'password'
-    icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"><\/path><circle cx="12" cy="12" r="3"><\/circle>'
   }
 }
 

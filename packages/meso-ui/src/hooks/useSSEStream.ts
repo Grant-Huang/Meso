@@ -7,20 +7,41 @@ export type {
   StreamState,
   StreamStatus,
   ArtifactState,
+  ToolCallStatus,
+  ToolCallState,
   SSEEvent,
   StageEvent,
   StagePayload,
   MemoryEvent,
   MemorySnippet,
+  MemorySavedEvent,
+  MemorySavedPayload,
+  SoulEvent,
+  SoulPayload,
   ThinkEvent,
   ThinkPayload,
   TextEvent,
   TextPayload,
   ArtifactEvent,
+  ToolRisk,
+  ToolCallEvent,
+  ToolCallPayload,
+  ToolResultEvent,
+  ToolResultPayload,
   DoneEvent,
   ErrorEvent,
   ExtensionEvent,
   ExtensionPayload,
+} from '../runtime'
+
+import type {
+  StagePayload,
+  MemorySnippet,
+  MemorySavedPayload,
+  SoulPayload,
+  ToolCallPayload,
+  ToolResultPayload,
+  ArtifactState,
 } from '../runtime'
 
 export interface StreamOptions {
@@ -29,14 +50,30 @@ export interface StreamOptions {
   body?: Record<string, unknown>
 }
 
+/** Lifecycle callbacks fired after each matching SSE event is applied to state. */
+export interface StreamCallbacks {
+  onStageChange?: (stage: StagePayload) => void
+  onMemoryRecalled?: (snippets: MemorySnippet[]) => void
+  onMemorySaved?: (saved: MemorySavedPayload) => void
+  onSoulActivated?: (soul: SoulPayload) => void
+  onToolCall?: (call: ToolCallPayload) => void
+  onToolResult?: (result: ToolResultPayload) => void
+  onArtifact?: (artifact: ArtifactState) => void
+  onError?: (message: string, code?: string) => void
+  onDone?: (finalState: StreamState) => void
+}
+
 /**
  * React hook wrapping the Meso SSE runtime.
  * For fetch-free usage (custom transports, Node.js), import directly from
  * @meso/ui/runtime: { parseSSELine, applyEvent, createInitialStreamState }
  */
-export function useSSEStream(url: string) {
+export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
   const [state, setState] = useState<StreamState>(createInitialStreamState)
   const abortRef = useRef<AbortController | null>(null)
+  // Always read the latest callbacks without putting them in dependency arrays
+  const callbacksRef = useRef<StreamCallbacks | undefined>(callbacks)
+  callbacksRef.current = callbacks
 
   const abort = useCallback(() => {
     abortRef.current?.abort()
@@ -52,7 +89,10 @@ export function useSSEStream(url: string) {
     abortRef.current?.abort()
     const ctrl = new AbortController()
     abortRef.current = ctrl
-    setState({ ...createInitialStreamState(), status: 'streaming' })
+
+    const initial: StreamState = { ...createInitialStreamState(), status: 'streaming' }
+    setState(initial)
+    let current = initial
 
     const method = options?.method ?? (options?.body ? 'POST' : 'GET')
 
@@ -83,17 +123,38 @@ export function useSSEStream(url: string) {
         for (const line of lines) {
           const event = parseSSELine(line)
           if (!event) continue
-          setState(prev => applyEvent(prev, event))
+
+          const next = applyEvent(current, event)
+          current = next
+          setState(next)
+
+          const cb = callbacksRef.current
+          if (cb) {
+            switch (event.type) {
+              case 'stage':       cb.onStageChange?.(event.payload); break
+              case 'memory':      cb.onMemoryRecalled?.(event.payload.snippets); break
+              case 'memory_saved':cb.onMemorySaved?.(event.payload); break
+              case 'soul':        cb.onSoulActivated?.(event.payload); break
+              case 'tool_call':   cb.onToolCall?.(event.payload); break
+              case 'tool_result': cb.onToolResult?.(event.payload); break
+              case 'artifact': {
+                const art = next.artifacts[event.payload.id]
+                if (art) cb.onArtifact?.(art)
+                break
+              }
+              case 'error': cb.onError?.(event.payload.message, event.payload.code); break
+              case 'done':  cb.onDone?.(next); break
+            }
+          }
+
           if (event.type === 'done' || event.type === 'error') return
         }
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
-      setState(prev => ({
-        ...prev,
-        status: 'error',
-        errorMessage: (err as Error).message,
-      }))
+      const msg = (err as Error).message
+      setState(prev => ({ ...prev, status: 'error', errorMessage: msg }))
+      callbacksRef.current?.onError?.(msg)
     }
   }, [url])
 

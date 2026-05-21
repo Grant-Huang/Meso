@@ -22,6 +22,43 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
     case 'memory':
       return { ...state, memorySnippets: event.payload.snippets }
 
+    case 'memory_saved':
+      return { ...state, memorySaved: [...state.memorySaved, event.payload] }
+
+    case 'soul':
+      return { ...state, activeSoul: event.payload }
+
+    case 'tool_call': {
+      const { id } = event.payload
+      return {
+        ...state,
+        toolCallOrder: state.toolCallOrder.includes(id)
+          ? state.toolCallOrder
+          : [...state.toolCallOrder, id],
+        toolCalls: {
+          ...state.toolCalls,
+          [id]: { call: event.payload, status: 'pending' },
+        },
+      }
+    }
+
+    case 'tool_result': {
+      const { tool_call_id } = event.payload
+      const existing = state.toolCalls[tool_call_id]
+      const status = event.payload.error ? 'error' : 'done'
+      return {
+        ...state,
+        toolCalls: {
+          ...state.toolCalls,
+          [tool_call_id]: {
+            call: existing?.call ?? { id: tool_call_id, name: '(unknown)', args: {} },
+            result: event.payload,
+            status,
+          },
+        },
+      }
+    }
+
     case 'think':
       return {
         ...state,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { applyEvent, createInitialStreamState } from '../../runtime'
 import type { StreamState } from '../../runtime'
-import type { SSEEvent } from '../../runtime/protocol'
+import type { SSEEvent } from '../../runtime'
 
 const initial = createInitialStreamState()
 const streaming: StreamState = { ...initial, status: 'streaming' }

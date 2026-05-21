@@ -20,9 +20,18 @@ export type { StageTimelineProps, Stage, StageStatus } from './components/StageT
 export { MessageList } from './components/MessageList'
 export type { MessageListProps, Message } from './components/MessageList'
 
+export { ToolCallBlock } from './components/ToolCallBlock'
+export type { ToolCallBlockProps } from './components/ToolCallBlock'
+
+export { SoulIndicator } from './components/SoulIndicator'
+export type { SoulIndicatorProps } from './components/SoulIndicator'
+
+export { ConfirmGate } from './components/ConfirmGate'
+export type { ConfirmGateProps } from './components/ConfirmGate'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
-export type { StreamOptions } from './hooks/useSSEStream'
+export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'
 
 export { useTheme } from './hooks/useTheme'
 export type { Theme } from './hooks/useTheme'
@@ -41,12 +50,21 @@ export type {
   MemoryEvent,
   MemorySnippet,
   MemoryPayload,
+  MemorySavedEvent,
+  MemorySavedPayload,
+  SoulEvent,
+  SoulPayload,
   ThinkEvent,
   ThinkPayload,
   TextEvent,
   TextPayload,
   ArtifactEvent,
   ArtifactPayload,
+  ToolRisk,
+  ToolCallEvent,
+  ToolCallPayload,
+  ToolResultEvent,
+  ToolResultPayload,
   DoneEvent,
   ErrorEvent,
   ErrorPayload,
@@ -55,4 +73,6 @@ export type {
   StreamState,
   StreamStatus,
   ArtifactState,
+  ToolCallStatus,
+  ToolCallState,
 } from './runtime'

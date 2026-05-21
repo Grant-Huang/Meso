@@ -85,6 +85,45 @@ describe('error-stream contract', () => {
   })
 })
 
+describe('tools-stream contract', () => {
+  it('final state matches snapshot', () => {
+    expect(replayFixture('tools-stream.txt')).toMatchObject(
+      loadSnapshot('tools-stream.snapshot.json'),
+    )
+  })
+
+  it('toolCallOrder preserves arrival order', () => {
+    const state = replayFixture('tools-stream.txt')
+    expect(state.toolCallOrder).toEqual(['tc1', 'tc2'])
+  })
+
+  it('tool_result correlates by tool_call_id', () => {
+    const state = replayFixture('tools-stream.txt')
+    expect(state.toolCalls['tc1'].status).toBe('done')
+    expect(state.toolCalls['tc1'].result?.output).toBe('找到 3 条相关记录')
+  })
+
+  it('memory_saved accumulates entries', () => {
+    const state = replayFixture('tools-stream.txt')
+    expect(state.memorySaved).toHaveLength(1)
+    expect(state.memorySaved[0].id).toBe('m1')
+  })
+})
+
+describe('soul-stream contract', () => {
+  it('final state matches snapshot', () => {
+    expect(replayFixture('soul-stream.txt')).toMatchObject(
+      loadSnapshot('soul-stream.snapshot.json'),
+    )
+  })
+
+  it('activeSoul set from soul event', () => {
+    const state = replayFixture('soul-stream.txt')
+    expect(state.activeSoul?.id).toBe('research-assistant')
+    expect(state.activeSoul?.traits).toEqual(['严谨', '好奇', '简洁'])
+  })
+})
+
 // ── parseSSELine edge cases ──────────────────────────────────────────────────
 
 describe('parseSSELine', () => {
@@ -127,6 +166,49 @@ describe('applyEvent', () => {
       payload: { snippets: [{ category: 'pref', content: 'concise' }] },
     })
     expect(s.memorySnippets).toHaveLength(1)
+  })
+
+  it('memory_saved: accumulates entries', () => {
+    const s1 = applyEvent(streaming, { type: 'memory_saved', schema_version: '1.0', payload: { id: 'm1', category: 'fact', preview: 'p1' } })
+    const s2 = applyEvent(s1,       { type: 'memory_saved', schema_version: '1.0', payload: { id: 'm2', category: 'preference', preview: 'p2' } })
+    expect(s2.memorySaved).toHaveLength(2)
+    expect(s2.memorySaved[1].id).toBe('m2')
+  })
+
+  it('soul: sets activeSoul', () => {
+    const s = applyEvent(streaming, {
+      type: 'soul', schema_version: '1.0',
+      payload: { id: 'bot', name: 'Bot', version: '1.0.0' },
+    })
+    expect(s.activeSoul?.id).toBe('bot')
+  })
+
+  it('tool_call: appends to order list, status pending', () => {
+    const s = applyEvent(streaming, {
+      type: 'tool_call', schema_version: '1.0',
+      payload: { id: 'tc1', name: 'read_file', args: { path: '/a' }, risk: 'safe' },
+    })
+    expect(s.toolCallOrder).toEqual(['tc1'])
+    expect(s.toolCalls['tc1'].status).toBe('pending')
+  })
+
+  it('tool_call: order list deduplicates by id', () => {
+    const s1 = applyEvent(streaming, { type: 'tool_call', schema_version: '1.0', payload: { id: 'tc1', name: 'x', args: {} } })
+    const s2 = applyEvent(s1,       { type: 'tool_call', schema_version: '1.0', payload: { id: 'tc1', name: 'x', args: {} } })
+    expect(s2.toolCallOrder).toHaveLength(1)
+  })
+
+  it('tool_result: correlates and sets done status', () => {
+    const s1 = applyEvent(streaming, { type: 'tool_call', schema_version: '1.0', payload: { id: 'tc1', name: 'x', args: {} } })
+    const s2 = applyEvent(s1, { type: 'tool_result', schema_version: '1.0', payload: { tool_call_id: 'tc1', output: 'ok' } })
+    expect(s2.toolCalls['tc1'].status).toBe('done')
+    expect(s2.toolCalls['tc1'].result?.output).toBe('ok')
+  })
+
+  it('tool_result with error: status=error', () => {
+    const s1 = applyEvent(streaming, { type: 'tool_call', schema_version: '1.0', payload: { id: 'tc1', name: 'x', args: {} } })
+    const s2 = applyEvent(s1, { type: 'tool_result', schema_version: '1.0', payload: { tool_call_id: 'tc1', output: '', error: '权限拒绝' } })
+    expect(s2.toolCalls['tc1'].status).toBe('error')
   })
 
   it('artifact: tracks multiple by id in insertion order', () => {

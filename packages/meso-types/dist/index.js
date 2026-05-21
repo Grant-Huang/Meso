@@ -1,53 +1,86 @@
-const s = "1.0";
-function l() {
+const t = "1.0";
+function i() {
   return {
     status: "idle",
     stages: [],
     memorySnippets: [],
+    memorySaved: [],
+    activeSoul: null,
     thinkContent: "",
     thinkDone: !1,
     textContent: "",
     artifacts: {},
     artifactOrder: [],
+    toolCalls: {},
+    toolCallOrder: [],
     extensions: {},
     extensionLog: [],
     errorMessage: null
   };
 }
-function d(r, e) {
-  switch (e.type) {
+function d(r, a) {
+  switch (a.type) {
     case "stage": {
-      const { name: t, state: n } = e.payload;
+      const { name: o, state: l } = a.payload;
       return {
         ...r,
         stages: [
-          ...r.stages.filter((a) => a.name !== t),
-          { name: t, state: n }
+          ...r.stages.filter((n) => n.name !== o),
+          { name: o, state: l }
         ]
       };
     }
     case "memory":
-      return { ...r, memorySnippets: e.payload.snippets };
+      return { ...r, memorySnippets: a.payload.snippets };
+    case "memory_saved":
+      return { ...r, memorySaved: [...r.memorySaved, a.payload] };
+    case "soul":
+      return { ...r, activeSoul: a.payload };
+    case "tool_call": {
+      const { id: o } = a.payload;
+      return {
+        ...r,
+        toolCallOrder: r.toolCallOrder.includes(o) ? r.toolCallOrder : [...r.toolCallOrder, o],
+        toolCalls: {
+          ...r.toolCalls,
+          [o]: { call: a.payload, status: "pending" }
+        }
+      };
+    }
+    case "tool_result": {
+      const { tool_call_id: o } = a.payload, l = r.toolCalls[o], n = a.payload.error ? "error" : "done";
+      return {
+        ...r,
+        toolCalls: {
+          ...r.toolCalls,
+          [o]: {
+            call: (l == null ? void 0 : l.call) ?? { id: o, name: "(unknown)", args: {} },
+            result: a.payload,
+            status: n
+          }
+        }
+      };
+    }
     case "think":
       return {
         ...r,
-        thinkContent: r.thinkContent + e.payload.delta,
-        thinkDone: e.payload.done ?? !1
+        thinkContent: r.thinkContent + a.payload.delta,
+        thinkDone: a.payload.done ?? !1
       };
     case "text":
-      return { ...r, textContent: r.textContent + e.payload.delta };
+      return { ...r, textContent: r.textContent + a.payload.delta };
     case "artifact": {
-      const { id: t, lang: n, delta: a, done: i } = e.payload, o = r.artifacts[t], c = r.artifactOrder.includes(t) ? r.artifactOrder : [...r.artifactOrder, t];
+      const { id: o, lang: l, delta: n, done: s } = a.payload, e = r.artifacts[o], c = r.artifactOrder.includes(o) ? r.artifactOrder : [...r.artifactOrder, o];
       return {
         ...r,
         artifactOrder: c,
         artifacts: {
           ...r.artifacts,
-          [t]: {
-            id: t,
-            lang: n,
-            content: ((o == null ? void 0 : o.content) ?? "") + a,
-            done: i ?? !1
+          [o]: {
+            id: o,
+            lang: l,
+            content: ((e == null ? void 0 : e.content) ?? "") + n,
+            done: s ?? !1
           }
         }
       };
@@ -58,17 +91,17 @@ function d(r, e) {
       return {
         ...r,
         status: "error",
-        errorMessage: e.payload.message
+        errorMessage: a.payload.message
       };
     case "extension": {
-      const { name: t } = e.payload;
+      const { name: o } = a.payload;
       return {
         ...r,
         extensions: {
           ...r.extensions,
-          [t]: [...r.extensions[t] ?? [], e]
+          [o]: [...r.extensions[o] ?? [], a]
         },
-        extensionLog: [...r.extensionLog, e]
+        extensionLog: [...r.extensionLog, a]
       };
     }
     default:
@@ -77,22 +110,22 @@ function d(r, e) {
 }
 function u(r) {
   if (!r.startsWith("data: ")) return null;
-  const e = r.slice(6).trim();
-  if (e === "[DONE]")
-    return { type: "done", schema_version: s, payload: {} };
-  let t;
+  const a = r.slice(6).trim();
+  if (a === "[DONE]")
+    return { type: "done", schema_version: t, payload: {} };
+  let o;
   try {
-    t = JSON.parse(e);
+    o = JSON.parse(a);
   } catch {
     return null;
   }
-  if (!t || typeof t != "object" || Array.isArray(t)) return null;
-  const n = t;
-  return typeof n.type != "string" || !n.payload || typeof n.payload != "object" || Array.isArray(n.payload) ? null : (n.schema_version || (n.schema_version = s), n);
+  if (!o || typeof o != "object" || Array.isArray(o)) return null;
+  const l = o;
+  return typeof l.type != "string" || !l.payload || typeof l.payload != "object" || Array.isArray(l.payload) ? null : (l.schema_version || (l.schema_version = t), l);
 }
 export {
-  s as PROTOCOL_VERSION,
+  t as PROTOCOL_VERSION,
   d as applyEvent,
-  l as createInitialStreamState,
+  i as createInitialStreamState,
   u as parseSSELine
 };

@@ -151,6 +151,48 @@ function ChatPane() {
 
 ---
 
+## 输入区（Composer）约定
+
+> **平台立场（normative）**：Meso 不提供 Composer 组件。输入区由应用自行开发，平台仅提供样式 token 支持贴底、最大宽度等布局行为。
+
+**原因**：输入区的工具栏按钮（附件、知识库、Tools 开关）因应用而异，平台提供一个固定实现反而会成为障碍。
+
+**推荐实现模式**：
+
+```tsx
+// 应用自绘 Composer，使用平台 CSS token 确保视觉一致
+function Composer({ onSend, disabled }: { onSend: (text: string) => void; disabled: boolean }) {
+  const [text, setText] = useState('')
+  return (
+    <div className="my-composer">          {/* 应用自定义类名 */}
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            onSend(text)
+            setText('')
+          }
+        }}
+        style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg-white)' }}
+      />
+      <button
+        onClick={() => { onSend(text); setText('') }}
+        disabled={disabled}
+        style={{ background: 'var(--color-accent)', color: '#fff' }}
+      >
+        发送
+      </button>
+    </div>
+  )
+}
+```
+
+布局建议：将 Composer 放在 `ThreeColumnLayout` 的 `children` 槽位底部，使用 `position: sticky; bottom: 0` 贴底。
+
+---
+
 ## 与常见框架的集成
 
 ### Next.js（App Router）

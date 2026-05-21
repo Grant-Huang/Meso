@@ -1,4 +1,18 @@
-export { PROTOCOL_VERSION } from './protocol'
+/**
+ * Re-exports everything from @meso/types.
+ * Implementation lives solely in @meso/types — do not duplicate here.
+ *
+ * Consumers who don't need React can import from @meso/types directly
+ * (zero-dep, smaller bundle). This re-export exists so that
+ * `@meso/ui/runtime` continues to work as a convenience path.
+ */
+export {
+  PROTOCOL_VERSION,
+  createInitialStreamState,
+  applyEvent,
+  parseSSELine,
+} from '@meso/types'
+
 export type {
   ProtocolVersion,
   SSEEvent,
@@ -18,10 +32,7 @@ export type {
   ErrorPayload,
   ExtensionEvent,
   ExtensionPayload,
-} from './protocol'
-
-export type { StreamState, StreamStatus, ArtifactState } from './streamState'
-export { createInitialStreamState } from './streamState'
-
-export { applyEvent } from './applyEvent'
-export { parseSSELine } from './parseSSELine'
+  StreamState,
+  StreamStatus,
+  ArtifactState,
+} from '@meso/types'

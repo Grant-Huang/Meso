@@ -173,6 +173,16 @@ FOUC 防护脚本（放在 `<head>` 内 `tokens.css` 加载之前）：
 
 ---
 
+## 输入区（Composer）
+
+**平台不提供 Composer 组件**——输入区由应用自行实现。
+
+原因：工具栏按钮（附件、知识库选择、Tools 开关）因应用而异，固定实现反而成为障碍。平台提供 CSS token（`--color-border`、`--color-bg-white`、`--color-accent` 等）供应用在自绘输入区时保持视觉一致。
+
+详见 [接入指南 §Composer](docs/integration-guide.md#输入区composer约定)。
+
+---
+
 ## 文档
 
 | 文档 | 内容 |

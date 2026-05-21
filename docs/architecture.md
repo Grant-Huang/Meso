@@ -184,7 +184,7 @@ POST /api/v1/chat/stream
 所有流式事件格式统一为：
 
 ```
-data: {"type": "<event_type>", "payload": {...}}\n\n
+data: {"type": "<event_type>", "schema_version": "1.0", "payload": {...}}\n\n
 ```
 
 | event_type | payload | 说明 |

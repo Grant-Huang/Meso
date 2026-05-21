@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "stages": [{ "name": "执行工具", "state": "done" }],
+  "textContent": "工具调用完成",
+  "toolCallOrder": ["tc1", "tc2"],
+  "toolCalls": {
+    "tc1": {
+      "call": { "id": "tc1", "name": "search_knowledge", "args": { "query": "用户偏好" }, "risk": "safe" },
+      "result": { "tool_call_id": "tc1", "output": "找到 3 条相关记录", "duration_ms": 120 },
+      "status": "done"
+    },
+    "tc2": {
+      "call": { "id": "tc2", "name": "write_file", "args": { "path": "/tmp/out.txt", "content": "hello" }, "risk": "write" },
+      "result": { "tool_call_id": "tc2", "output": "写入成功", "duration_ms": 45 },
+      "status": "done"
+    }
+  },
+  "memorySaved": [{ "id": "m1", "category": "fact", "preview": "用户询问了偏好信息" }],
+  "errorMessage": null
+}

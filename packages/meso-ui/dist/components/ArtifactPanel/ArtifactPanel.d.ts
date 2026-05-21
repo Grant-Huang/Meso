@@ -1,4 +1,3 @@
-import './ArtifactPanel.css';
 export type ArtifactType = 'code' | 'html' | 'mermaid';
 export interface ArtifactPanelProps {
     type: ArtifactType;

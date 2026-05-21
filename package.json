@@ -2,6 +2,7 @@
   "name": "meso",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "demo"
   ]
 }

@@ -59,7 +59,7 @@ Meso 采用固定的三栏结构，所有尺寸通过 CSS 变量控制。
 }
 ```
 
-折叠时：导航文字 `opacity → 0`（100ms）；图标居中；展开时 `tooltip` 提示导航项名称。
+折叠时：导航文字 `opacity → 0`（100ms）；图标居中。
 
 ---
 
@@ -161,7 +161,7 @@ function SessionItem({ session, active, onClick }) {
 
 ---
 
-## footerSlot：侧栏底部区域
+## sidebarFooter：侧栏底部区域
 
 典型用途：用户头像 + 设置按钮。
 

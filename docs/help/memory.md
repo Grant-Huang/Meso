@@ -1,129 +1,122 @@
 # 记忆系统
 
-> **平台边界说明**：本页分两部分。**§ 平台 API** 是规范性内容（`@meso/ui` 的契约）；**§ 参考实现** 是非规范性示例，仅供参考，第三方可使用任意存储方案。
+记忆系统分两层：**平台 API**（已实现，属于 `@meso/ui` 契约）和**后端设计建议**（非规范，由第三方自行实现）。
 
 ---
 
-## 平台 API（normative）
+## 平台 API（已实现）
 
 ### memory SSE 事件
 
-后端发送 `memory` 事件，通知前端本轮召回了哪些记忆片段：
+后端在 SSE 流中发送 `memory` 事件，告知前端本轮召回了哪些记忆片段：
 
 ```json
 {"type":"memory","schema_version":"1.0","payload":{
   "snippets":[
-    {"category":"preference","content":"偏好 TypeScript，arrow functions，2空格缩进"},
-    {"category":"project","content":"当前项目：Meso，React 18 + Vite，monorepo"},
-    {"category":"fact","content":"用户时区 UTC+8，工作日 10:00–19:00"}
+    {"category":"preference","content":"偏好 TypeScript，arrow functions"},
+    {"category":"project","content":"当前项目：Meso，React 18 + Vite"},
+    {"category":"fact","content":"用户时区 UTC+8"}
   ]
 }}
 ```
 
-| 字段 | 说明 |
-|------|------|
-| `snippets` | 数组，整体替换（非增量）。一次对话通常发送一次，在生成正文前 |
-| `category` | 分类标签，用于 UI 展示。内容由后端决定，平台不约束 |
-| `content` | 记忆文本，建议简洁（一句话）|
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `snippets` | `MemorySnippet[]` | 整体替换（非增量）。一次对话通常发送一次，在生成正文前 |
+| `category` | `string` | 分类标签。内容由后端决定，平台不约束 |
+| `content` | `string` | 记忆文本，建议简洁（一句话）|
 
 ### Memory Chips UI
 
 收到 `memory` 事件后，`MessageList` 在流式区域顶部自动渲染记忆芯片：
 
 ```
-┌────────────────────────────────────────────────────────┐
-│  [preference] 偏好 TypeScript  [project] Meso · Vite   │
-└────────────────────────────────────────────────────────┘
+[preference] 偏好 TypeScript    [project] Meso · Vite    [fact] UTC+8
 ```
 
-- 芯片格式：`[category] content`
-- hover 时展示完整内容（content 过长时截断）
+- 格式：`[category] content`
 - 多个芯片横向排列，超出换行
+- 平台不在历史消息中重现记忆芯片（只在当前流式轮次显示）
 
-### 读取 StreamState 中的记忆数据
+### 在代码中读取记忆数据
 
 ```typescript
-// 手动访问（不使用 MessageList 时）
+// streaming.memorySnippets 是 MemorySnippet[] 数组
 state.memorySnippets.forEach(s => {
   console.log(`[${s.category}] ${s.content}`)
 })
 
-// 在流结束后保存到历史消息
+// 流结束后，应用自行决定如何保存记忆信息
 useEffect(() => {
   if (state.status === 'done') {
     setMessages(prev => [...prev, {
       id: crypto.randomUUID(),
       role: 'assistant',
       content: state.textContent,
-      metadata: { memoriesUsed: state.memorySnippets },
+      metadata: {
+        memoriesUsed: state.memorySnippets,  // 应用自行存储
+      },
     }])
     reset()
   }
 }, [state.status])
 ```
 
+### 不需要记忆系统时
+
+不发送 `memory` 事件即可。Memory Chips 区域不会出现，其余功能完全正常。
+
 ---
 
-## 参考实现（non-normative）
+## 后端实现（非规范，参考建议）
 
-以下内容描述一种可行的后端记忆系统实现方式，**不属于平台契约**，仅供参考。
+以下是一种后端记忆系统的典型设计思路，**不属于平台契约**，实现方式完全由第三方自主决定。
 
-### 记忆分层架构
+### 整体流程
 
 ```
 用户发送消息
      ↓
-[ 短期记忆召回 ]  当前会话历史 + 摘要
-[ 长期记忆召回 ]  跨会话持久化记忆
-     ↓ 混合排序（BM25 关键词 + 向量语义）
-Top-K 片段注入 system prompt
+后端召回相关记忆（任意检索策略）
      ↓
-发送 memory SSE 事件 → 前端显示 Memory 芯片
+发送 memory SSE 事件（片段 → 前端芯片 UI）
+     ↓
+将记忆注入 system prompt
      ↓
 LLM 生成 → 流式输出
+     ↓
+对话结束后提取新记忆（可选）
 ```
 
-### 短期记忆（会话内）
+### 记忆分层参考
 
-```json
-{
-  "id": "sess_abc123",
-  "appId": "doc-review",
-  "createdAt": "2024-01-15T10:00:00Z",
-  "summary": "用户在审查一份劳动合同，重点关注第5条保密条款",
-  "messages": [
-    {"role": "user",      "content": "帮我看看第5条有没有问题"},
-    {"role": "assistant", "content": "第5条保密义务范围较宽…"}
-  ]
-}
-```
+| 层次 | 典型存储 | 内容 | 生命周期 |
+|------|---------|------|---------|
+| 短期记忆 | 内存 / Redis | 当前会话消息历史 + 摘要 | 会话级 |
+| 长期记忆 | 向量数据库 / 文件 | 用户偏好、项目事实 | 跨会话持久 |
 
-- 超过 N 轮后旧消息压缩为摘要
-- 会话关闭后保留 30 天（可配置）
+### 召回策略参考
 
-### 长期记忆（跨会话）
-
-存储为 Markdown 文件，YAML frontmatter 携带元数据：
-
-```markdown
----
-category: preference
-created: 2024-01-15
-source: session_abc123
----
-
-用户偏好 TypeScript，使用 arrow functions，不喜欢 class 语法。
-缩进 2 个空格，文件使用 kebab-case 命名。
-```
-
-### 召回策略
-
-| 方式 | 算法 | 参考权重 |
+| 方式 | 算法 | 适用场景 |
 |------|------|---------|
-| 关键词匹配 | BM25 | 40% |
-| 语义相似度 | 向量余弦相似度 | 60% |
+| 关键词匹配 | BM25 | 精确事实查询 |
+| 语义相似度 | 向量余弦 | 模糊意图理解 |
+| 混合排序 | 加权融合 | 通用场景 |
 
-### App Manifest 记忆配置（应用侧）
+### 推荐的 category 约定
+
+平台不约束 `category` 的值，以下仅为建议：
+
+| category | 含义 |
+|---------|------|
+| `preference` | 用户偏好（代码风格、语言习惯…）|
+| `project` | 当前项目上下文 |
+| `fact` | 用户告知的客观事实 |
+| `instruction` | 用户给 AI 的长期指令 |
+
+### App Manifest 记忆配置（参考）
+
+如果你的后端支持 App Manifest，可用以下字段控制记忆行为（字段由后端解析，平台不读取）：
 
 ```json
 {
@@ -131,21 +124,7 @@ source: session_abc123
     "recallTopK": 5,
     "autoExtract": true,
     "recallCategories": ["preference", "project", "fact"],
-    "autoSaveCategory": "fact",
-    "extractPrompt": "从对话中提取值得长期记住的用户偏好或项目事实，一句话。"
+    "autoSaveCategory": "fact"
   }
 }
 ```
-
-| 字段 | 说明 |
-|------|------|
-| `recallTopK` | 每次召回最多返回多少条（默认 5）|
-| `autoExtract` | 对话结束后是否自动提取新记忆 |
-| `recallCategories` | 只召回指定分类 |
-| `autoSaveCategory` | 自动提取的记忆归入此分类 |
-
----
-
-## 不实现记忆系统时
-
-如果你的后端暂时不需要记忆系统，只需不发送 `memory` 事件即可。Memory Chips 区域不会出现，其余功能完全正常。

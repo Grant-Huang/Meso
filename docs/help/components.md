@@ -55,10 +55,10 @@ import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
 ```tsx
 <ThreeColumnLayout
   appName="My App"
-  logo={<MyLogo />}               // 可选，替换默认品牌名
   navItems={navItems}
-  sessionColumn={<SessionList />} // 可选，中栏
-  footerSlot={<UserProfile />}    // 可选，侧栏底部
+  sessionColumn={<SessionList />}   // 必填，中栏
+  sidebarFooter={<UserProfile />}   // 可选，侧栏底部
+  mainHeader={<PageTitle />}        // 可选，主区顶部
   defaultCollapsed={false}
 >
   <MainContent />
@@ -69,13 +69,13 @@ import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
 
 | Prop | 类型 | 默认 | 说明 |
 |------|------|------|------|
-| `appName` | `string` | `'Meso'` | 侧栏顶部品牌名（`logo` 存在时隐藏）|
-| `logo` | `ReactNode` | — | 自定义 Logo，替换品牌名文字 |
+| `appName` | `string` | `'Meso'` | 侧栏顶部品牌名 |
 | `navItems` | `NavItem[]` | `[]` | 左侧导航项，由应用完全控制 |
-| `sessionColumn` | `ReactNode` | — | 中栏内容（会话列表等）|
-| `footerSlot` | `ReactNode` | — | 侧栏底部（用户头像、设置按钮等）|
+| `sessionColumn` | `ReactNode` | **必填** | 中栏内容（会话列表等）|
+| `sidebarFooter` | `ReactNode` | — | 侧栏底部（用户头像、设置按钮等）|
+| `mainHeader` | `ReactNode` | — | 主内容区顶部区域 |
 | `defaultCollapsed` | `boolean` | `false` | 侧栏初始折叠状态 |
-| `children` | `ReactNode` | 必填 | 右侧主内容区 |
+| `children` | `ReactNode` | **必填** | 右侧主内容区 |
 
 ### NavItem
 
@@ -86,7 +86,6 @@ interface NavItem {
   icon:     React.ReactNode   // 建议 16×16 SVG stroke 图标
   onClick?: () => void
   active?:  boolean           // 高亮当前页
-  tooltip?: string            // 侧栏折叠时的悬停提示
 }
 ```
 
@@ -103,7 +102,7 @@ interface NavItem {
   emptyState={<p>发送消息开始对话</p>}
   renderExtension={handler}
   onArtifactCopy={text => navigator.clipboard.writeText(text)}
-  onArtifactDownload={(text, lang) => triggerDownload(text, lang)}
+  onArtifactDownload={text => triggerDownload(text)}
 />
 ```
 
@@ -116,7 +115,8 @@ interface NavItem {
 | `emptyState` | `ReactNode` | 无消息时的占位内容 |
 | `renderExtension` | `(e: ExtensionEvent) => ReactNode \| null` | 扩展事件渲染插槽，按 `extensionLog` 顺序调用 |
 | `onArtifactCopy` | `(content: string) => void` | Artifact 复制按钮回调 |
-| `onArtifactDownload` | `(content: string, lang: string) => void` | Artifact 下载按钮回调 |
+| `onArtifactDownload` | `(content: string) => void` | Artifact 下载按钮回调 |
+| `className` | `string` | 自定义 CSS 类名 |
 
 ### Message 类型
 

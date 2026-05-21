@@ -89,7 +89,7 @@ function toggleTheme() {
 | `--color-error` | #b83232 | #e06060 | 错误 |
 | `--color-warning` | #b45309 | #e0a030 | 警告 |
 | `--color-success` | #2a7a4f | #5fbe85 | 成功 |
-| `--color-info` | #2563a8 | #5ba0d8 | 信息 |
+| `--color-info` | #3d6b52 | #5a9e70 | 信息（当前与 accent 同色）|
 
 ### 布局尺寸
 

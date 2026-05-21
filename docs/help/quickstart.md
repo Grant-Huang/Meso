@@ -74,7 +74,7 @@ export function App() {
         },
       ]}
       sessionColumn={<SessionList />}   // 中栏，可选
-      footerSlot={<UserProfile />}      // 侧栏底部，可选
+      sidebarFooter={<UserProfile />}   // 可选，侧栏底部
     >
       {page === 'chat' && <ChatPage />}
     </ThreeColumnLayout>

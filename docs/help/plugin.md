@@ -1,41 +1,25 @@
 # 应用插件
 
-Meso 通过 App Manifest 支持多应用模式，每个应用有独立的提示词、工具集、知识库配置。
+Meso 通过 App Manifest 支持多应用模式。
 
-> **平台边界**：平台消费 Manifest 中的 `ui.*` 展示字段；`tools` 的执行逻辑、`knowledge` 的检索逻辑、`skill.system_prompt` 的注入由**第三方后端**实现，平台 UI 不执行任何业务逻辑。
+> **实现状态**：App Manifest 是**设计规范**，`manifest.json` 格式和字段语义已定义，前端加载与切换逻辑当前由应用自行实现。平台提供的接入点是：扩展事件（工具调用进度）+ 记忆事件（跨应用记忆）+ CSS token（视觉一致性）。
 
 ---
 
 ## 什么是"应用"
 
-一个 App = 一种对话人格 + 工具集 + 知识库的组合：
+一个 App = 一种对话人格 + 工具集 + 知识库的组合，通过左侧导航图标切换：
 
 | 应用 | 系统提示方向 | 工具 | 知识库 |
 |------|-------------|------|--------|
 | 通用对话 | 通用 AI 助手 | — | — |
-| 文档审查 | 专业文档分析师 | `search_knowledge`, `extract_entities` | legal-templates |
+| 文档审查 | 专业合同分析 | `search_knowledge`, `extract_entities` | legal-templates |
 | 代码助手 | 资深工程师 | `run_code`, `search_docs` | engineering-guidelines |
 | 数据分析 | 数据科学家 | `query_database`, `plot_chart` | — |
 
-用户点击左侧导航图标切换应用，平台加载对应 Manifest 并更新 UI 配置。
-
 ---
 
-## 平台消费 vs 应用实现
-
-| Manifest 字段 | 谁处理 | 说明 |
-|--------------|--------|------|
-| `ui.composer_placeholder` | **平台**（通过 prop 传给 Composer）| 平台通知应用更新 placeholder |
-| `ui.split_mode_default` | **平台** | 控制 ArtifactPanel 默认是否分屏 |
-| `ui.session_col_visible` | **平台** | 控制会话列是否默认显示 |
-| `skill.system_prompt` | **后端** | 注入到 LLM 请求，平台不读取 |
-| `tools` | **后端执行**，平台展示名称 | 平台在 Composer 工具栏展示工具开关 |
-| `knowledge` | **后端** | 检索逻辑由后端实现 |
-| `memory` | **后端** | 召回逻辑由后端实现 |
-
----
-
-## App Manifest 结构
+## App Manifest 格式
 
 ```json
 {
@@ -51,10 +35,9 @@ Meso 通过 App Manifest 支持多应用模式，每个应用有独立的提示�
   },
 
   "skill": {
-    "system_prompt": "你是一个专业的合同审查助手，关注法律风险和合规性。",
+    "system_prompt": "你是一个专业的合同审查助手，关注法律风险。",
     "focus_points": [
-      {"id": "liability", "name": "责任条款", "prompt": "重点审查责任限制和赔偿条款"},
-      {"id": "ip",        "name": "知识产权", "prompt": "关注知识产权归属和授权条款"}
+      {"id": "liability", "name": "责任条款"}
     ]
   },
 
@@ -62,13 +45,11 @@ Meso 通过 App Manifest 支持多应用模式，每个应用有独立的提示�
 
   "knowledge": {
     "enabled": true,
-    "index_dirs": ["legal-templates", "company-policies"],
-    "chunk_strategy": "structured"
+    "index_dirs": ["legal-templates", "company-policies"]
   },
 
   "memory": {
     "recall_categories": ["preference", "project"],
-    "auto_save_category": "fact",
     "recall_top_k": 5
   }
 }
@@ -76,68 +57,105 @@ Meso 通过 App Manifest 支持多应用模式，每个应用有独立的提示�
 
 ---
 
-## Manifest 字段说明
+## 各字段的职责归属
 
-### 基础字段
+| 字段 | 谁读取 / 执行 | 说明 |
+|------|-------------|------|
+| `id`, `name`, `icon` | 前端（应用侧）| 展示应用名和图标 |
+| `ui.*` | 前端（应用侧）| 控制 Composer placeholder、布局模式等 |
+| `skill.system_prompt` | **后端** | 注入到 LLM 请求；前端不读取 |
+| `tools[]` | **后端执行**，前端展示 | 后端负责工具调用；前端可在 Composer 展示工具开关 |
+| `knowledge.*` | **后端** | 知识库检索逻辑由后端实现 |
+| `memory.*` | **后端** | 记忆召回由后端实现；结果通过 `memory` SSE 事件推送前端 |
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `schema_version` | `"1.0"` | Manifest 版本（与 SSE 协议版本独立）|
-| `id` | string | URL-safe 唯一标识符，建议 kebab-case |
-| `name` | string | 显示名称，用于 UI 标题 |
-| `icon` | string | 内置图标集 ID，或 URL |
+---
 
-### `ui` — 展示配置（平台消费）
+## 前端如何接入 Manifest
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `composer_placeholder` | string | 输入框占位文字，由应用在 Composer 中使用 |
-| `split_mode_default` | boolean | 是否默认开启聊天 + Artifact 分屏模式 |
-| `session_col_visible` | boolean | 是否默认显示会话列表栏 |
+应用自行加载 Manifest，使用 `ui.*` 字段控制界面行为：
 
-### `tools` — 工具声明
+```typescript
+// 加载 Manifest
+async function loadApp(appId: string) {
+  const manifest = await fetch(`/api/apps/${appId}/manifest`).then(r => r.json())
 
-只需在 Manifest 中声明工具 ID，平台在 Composer 工具栏展示开关，执行逻辑全在后端：
+  setCurrentApp({
+    id:                  manifest.id,
+    name:                manifest.name,
+    composerPlaceholder: manifest.ui?.composer_placeholder ?? '输入消息…',
+    splitMode:           manifest.ui?.split_mode_default ?? false,
+    sessionColVisible:   manifest.ui?.session_col_visible ?? true,
+  })
+}
 
-```json
-"tools": ["search_knowledge", "extract_entities", "my_custom_tool"]
-```
-
-工具执行进度通过扩展事件推送前端（见 [扩展事件](#extension)）：
-
-```json
-{"type":"extension","schema_version":"1.0","payload":{
-  "name":"tool_progress",
-  "data":{"tool":"search_knowledge","status":"running","query":"保密条款"}
-}}
+// 在 ThreeColumnLayout 中使用
+<ThreeColumnLayout
+  appName={currentApp.name}
+  navItems={navItems}
+  sessionColumn={currentApp.sessionColVisible ? <SessionList /> : null}
+>
+  <ChatPage composerPlaceholder={currentApp.composerPlaceholder} />
+</ThreeColumnLayout>
 ```
 
 ---
 
-## 应用切换：平台做什么 / 应用做什么
+## 工具调用：扩展事件
+
+工具执行进度通过扩展事件推送到前端，不需要修改平台代码：
+
+```json
+{"type":"extension","schema_version":"1.0","payload":{
+  "name": "tool_progress",
+  "data": {"tool":"search_knowledge","status":"running","query":"保密条款"}
+}}
+```
+
+```tsx
+<MessageList
+  messages={messages}
+  streaming={state}
+  renderExtension={event => {
+    if (event.payload.name === 'tool_progress') {
+      const d = event.payload.data as { tool: string; status: string; query?: string }
+      return (
+        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '4px 0' }}>
+          {d.status === 'running' ? `⟳ 正在查询：${d.query}` : `✓ 查询完成`}
+        </div>
+      )
+    }
+  }}
+/>
+```
+
+详见 [扩展事件](#extension)。
+
+---
+
+## 应用切换流程
 
 ```
 用户点击导航图标
   │
-  ├─ 平台做：
-  │   加载 manifest.json
-  │   更新 ui.composer_placeholder（通过 callback 通知应用）
-  │   更新 ui.split_mode_default（调整布局）
-  │   更新 ui.session_col_visible（显示/隐藏会话列）
-  │   更新顶栏/侧栏显示的 app.name
+  ├─ 前端（应用侧）做：
+  │   fetch('/api/apps/:id/manifest')
+  │   更新 composer_placeholder
+  │   更新 split_mode、session_col_visible
+  │   更新顶栏 appName
+  │   恢复或创建新会话
   │
-  └─ 应用做：
-      切换 session 上下文（加载对应 app 的历史会话）
-      通知后端当前 appId（在下一次请求中携带）
-      重新初始化知识库索引（如有）
-      更新 system prompt（通过后端 API）
+  └─ 后端做（下次请求时）：
+      根据 appId 选择对应 system_prompt
+      加载对应知识库索引
+      使用对应工具集
+      记忆召回使用对应 recall_categories
 ```
 
 ---
 
-## 最小 Manifest（快速上手）
+## 最小 Manifest
 
-所有可选字段均可省略：
+所有可选字段均可省略，快速上手：
 
 ```json
 {
@@ -150,30 +168,3 @@ Meso 通过 App Manifest 支持多应用模式，每个应用有独立的提示�
   }
 }
 ```
-
----
-
-## 前端接入 Manifest
-
-```typescript
-// 加载 Manifest 并传递 ui 配置给平台
-async function loadApp(appId: string) {
-  const manifest = await fetch(`/api/apps/${appId}/manifest`).then(r => r.json())
-
-  setCurrentApp({
-    id: manifest.id,
-    name: manifest.name,
-    composerPlaceholder: manifest.ui?.composer_placeholder ?? '输入消息…',
-    splitMode: manifest.ui?.split_mode_default ?? false,
-  })
-}
-
-// 在 Composer 中使用
-<Composer
-  placeholder={currentApp.composerPlaceholder}
-  onSend={handleSend}
-  disabled={state.status === 'streaming'}
-/>
-```
-
-[应用插件演示](demo:09-plugin.html)

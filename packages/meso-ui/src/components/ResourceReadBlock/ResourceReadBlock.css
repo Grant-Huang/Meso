@@ -1,0 +1,110 @@
+.meso-resource {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 12px;
+  background: var(--color-bg-elevated);
+}
+
+.meso-resource__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.meso-resource__spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  border-top-color: var(--color-info);
+  animation: meso-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes meso-spin {
+  to { transform: rotate(360deg); }
+}
+
+.meso-resource__icon { flex-shrink: 0; }
+.meso-resource__icon--done  { color: var(--color-success); }
+.meso-resource__icon--error { color: var(--color-error); }
+
+.meso-resource__uri {
+  flex: 1;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meso-resource__server {
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  border-radius: 10px;
+  font-size: 10px;
+  color: var(--color-info);
+  flex-shrink: 0;
+}
+
+.meso-resource__duration {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.meso-resource__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.meso-resource__toggle:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.meso-resource__content {
+  border-top: 1px solid var(--color-border-light);
+}
+
+.meso-resource__text {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.meso-resource__text--error {
+  color: var(--color-error);
+}
+
+.meso-resource__image {
+  display: block;
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.meso-resource__blob-label {
+  display: block;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono, monospace);
+}

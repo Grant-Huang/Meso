@@ -250,15 +250,53 @@ const finalState = lines.reduce((state, line) => {
 
 ---
 
+## 步骤 5（可选）：工具调用与确认门
+
+如果你的后端使用 `tool_call` / `tool_result` 标准事件，传入确认回调即可：
+
+```tsx
+<MessageList
+  messages={messages}
+  streaming={state}
+  onToolConfirm={(toolCallId) => {
+    // 发送确认信号到后端（通过你的 channel）
+    fetch('/api/confirm-tool', { method: 'POST', body: JSON.stringify({ toolCallId }) })
+  }}
+  onToolCancel={(toolCallId) => {
+    fetch('/api/cancel-tool', { method: 'POST', body: JSON.stringify({ toolCallId }) })
+  }}
+/>
+```
+
+当 `tool_call` 的 `risk` 为 `"destructive"` 时，平台自动渲染确认门，
+用户点击"确认执行"后才调用 `onToolConfirm`。
+
+---
+
 ## 验收检查列表
 
 接入完成后，可按以下清单自检：
 
+**基础流式**
 - [ ] 发送消息后立即出现 StageTimeline 进度动画
 - [ ] Think block 在推理时展开，`done: true` 后自动折叠
 - [ ] 文字逐字流入，光标在末尾闪烁
 - [ ] Artifact 面板在代码开始流入时弹出
 - [ ] `done` 事件后光标消失，状态变为 `done`
 - [ ] 点击「停止」后流式中止，状态回到 `idle`
+
+**能力系统（如适用）**
+- [ ] `capabilities` 事件后 `state.availableCapabilities` 填充正确
+- [ ] `soul` 事件后 SoulIndicator 显示头像 + 特质标签
+- [ ] `skill_active` 事件后 SkillIndicator 显示技能名 + 焦点
+- [ ] `memory` 事件后记忆 chip 正确显示
+- [ ] `memory_saved` 事件后"已记忆"chip 追加在回复底部
+- [ ] `tool_call` 事件后 ToolCallBlock 显示 spinner
+- [ ] `tool_result` 事件后 ToolCallBlock 更新为 check/error
+- [ ] `risk: "destructive"` 工具触发确认门，点击确认后调用 `onToolConfirm`
+- [ ] `resource_read` 事件后 ResourceReadBlock 显示 URI + spinner
+- [ ] `resource_content` 事件后 ResourceReadBlock 更新为内容可折叠展示
+
+**布局**
 - [ ] 亮/暗主题切换后 FOUC 无闪烁
 - [ ] 窄屏（≤900px）会话列隐藏，窄屏（≤600px）侧栏自动折叠

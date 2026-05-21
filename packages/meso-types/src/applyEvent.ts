@@ -8,6 +8,9 @@ import type { StreamState } from './streamState'
  */
 export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
   switch (event.type) {
+    case 'capabilities':
+      return { ...state, availableCapabilities: event.payload }
+
     case 'stage': {
       const { name, state: stageState } = event.payload
       return {
@@ -27,6 +30,9 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
 
     case 'soul':
       return { ...state, activeSoul: event.payload }
+
+    case 'skill_active':
+      return { ...state, activeSkill: event.payload }
 
     case 'tool_call': {
       const { id } = event.payload
@@ -53,6 +59,37 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           [tool_call_id]: {
             call: existing?.call ?? { id: tool_call_id, name: '(unknown)', args: {} },
             result: event.payload,
+            status,
+          },
+        },
+      }
+    }
+
+    case 'resource_read': {
+      const { id } = event.payload
+      return {
+        ...state,
+        resourceReadOrder: state.resourceReadOrder.includes(id)
+          ? state.resourceReadOrder
+          : [...state.resourceReadOrder, id],
+        resourceReads: {
+          ...state.resourceReads,
+          [id]: { read: event.payload, status: 'pending' },
+        },
+      }
+    }
+
+    case 'resource_content': {
+      const { resource_read_id } = event.payload
+      const existing = state.resourceReads[resource_read_id]
+      const status = event.payload.error ? 'error' : 'done'
+      return {
+        ...state,
+        resourceReads: {
+          ...state.resourceReads,
+          [resource_read_id]: {
+            read: existing?.read ?? { id: resource_read_id, uri: '(unknown)' },
+            content: event.payload,
             status,
           },
         },

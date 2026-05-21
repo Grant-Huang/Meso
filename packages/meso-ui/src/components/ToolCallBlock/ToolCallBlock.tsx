@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ToolCallState, ToolRisk } from '../../runtime'
+import type { ToolCallState, ToolRisk, CapabilityProvider } from '../../runtime'
 import './ToolCallBlock.css'
 
 export interface ToolCallBlockProps {
@@ -16,6 +16,12 @@ const RISK_LABEL: Record<NonNullable<ToolRisk>, string> = {
   destructive: '危险',
 }
 
+const PROVIDER_LABEL: Partial<Record<CapabilityProvider, string>> = {
+  mcp: 'MCP',
+  api: 'API',
+  local: '本地',
+}
+
 export function ToolCallBlock({ toolCall, onConfirm, onCancel }: ToolCallBlockProps) {
   const [argsOpen, setArgsOpen] = useState(false)
   const [resultOpen, setResultOpen] = useState(false)
@@ -29,6 +35,14 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel }: ToolCallBlockPr
       <div className="meso-tool__header">
         <StatusIcon status={status} />
         <span className="meso-tool__name">{call.name}</span>
+        {call.provider && PROVIDER_LABEL[call.provider] && (
+          <span className={`meso-tool__provider meso-tool__provider--${call.provider}`}>
+            {PROVIDER_LABEL[call.provider]}
+          </span>
+        )}
+        {call.annotations?.open_world && (
+          <span className="meso-tool__annotation" title="此工具会访问外部网络">🌐</span>
+        )}
         {risk !== 'safe' && (
           <span className={`meso-tool__risk meso-tool__risk--${risk}`}>
             {RISK_LABEL[risk]}

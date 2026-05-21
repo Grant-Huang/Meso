@@ -1,0 +1,35 @@
+.meso-skill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  background: color-mix(in srgb, var(--color-info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info) 20%, transparent);
+  border-radius: 20px;
+  font-size: 11px;
+  user-select: none;
+  color: var(--color-info);
+}
+
+.meso-skill__icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.meso-skill__name {
+  font-weight: 500;
+}
+
+.meso-skill__focus {
+  color: color-mix(in srgb, var(--color-info) 70%, var(--color-text-secondary));
+  font-size: 10px;
+}
+
+.meso-skill__provider {
+  padding: 1px 5px;
+  background: color-mix(in srgb, var(--color-info) 15%, transparent);
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

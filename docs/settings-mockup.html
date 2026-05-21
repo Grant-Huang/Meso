@@ -37,18 +37,26 @@
     }
     .nav-rail.expanded { width: 145px; }
 
-    /* Logo — click to expand/collapse */
-    .nav-logo {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      background: var(--color-accent);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 13px; font-weight: 700;
-      margin-bottom: 6px; flex-shrink: 0;
-      cursor: pointer; border: none;
-      transition: filter 0.15s; align-self: flex-start;
+    /* Brand header — logo (non-clickable) + app name */
+    .nav-header {
+      display: flex; align-items: center;
+      height: 32px; gap: 0;
+      margin-bottom: 4px; flex-shrink: 0; overflow: hidden;
     }
-    .nav-logo:hover { filter: brightness(1.1); }
+    .nav-logo {
+      width: 24px; height: 24px;
+      border-radius: 6px; background: var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .nav-app-name {
+      font-size: 13px; font-weight: 600; color: var(--color-text);
+      white-space: nowrap; overflow: hidden;
+      max-width: 0; opacity: 0; margin-left: 0;
+      transition: max-width 0.25s cubic-bezier(.4,0,.2,1), opacity 0.2s, margin-left 0.2s;
+    }
+    .nav-rail.expanded .nav-app-name { max-width: 90px; opacity: 1; margin-left: 7px; }
 
     /* Search bar — visible only when expanded */
     .nav-search-wrap {
@@ -80,10 +88,12 @@
       text-align: left; white-space: nowrap;
       width: 100%; flex-shrink: 0; position: relative;
       justify-content: center;
+      font-family: inherit;
     }
     .nav-rail.expanded .nav-item { padding: 0 8px; gap: 8px; justify-content: flex-start; }
     .nav-item:hover { background: var(--nav-hover-bg); color: var(--color-text); }
     .nav-item.active { background: var(--nav-active-bg); color: var(--color-accent); }
+    .nav-item-toggle { margin-bottom: 6px; }
     .nav-item svg { flex-shrink: 0; }
     .nav-item-label {
       font-size: 13px; overflow: hidden;
@@ -524,8 +534,17 @@
 <!-- ══════════════════ LEFT NAV RAIL ══════════════════ -->
 <nav class="nav-rail" id="nav-rail">
 
-  <!-- Logo — click to expand/collapse -->
-  <button class="nav-logo" onclick="toggleNav()" title="展开/折叠侧栏">M</button>
+  <!-- Brand header: logo (non-clickable) + app name -->
+  <div class="nav-header">
+    <div class="nav-logo">M</div>
+    <span class="nav-app-name">Meso</span>
+  </div>
+
+  <!-- ≡ 折叠/展开 — 作为第一个导航项，是唯一的触发方式 -->
+  <button class="nav-item nav-item-toggle" onclick="toggleNav()" title="展开/折叠侧栏">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <span class="nav-item-label">收起</span>
+  </button>
 
   <!-- Search — only shown when expanded -->
   <div class="nav-search-wrap">

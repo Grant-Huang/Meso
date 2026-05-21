@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 UI 方案 — Meso</title>
+  <script>(function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="platform/meso-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .settings-header {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 16px 0 20px;
+      height: 52px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg-sidebar);
+      flex-shrink: 0;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-right: 24px;
+    }
+
+    /* ── Tab bar in header ── */
+    .header-tabs {
+      display: flex;
+      align-items: stretch;
+      gap: 2px;
+      height: 100%;
+    }
+    .header-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+    .header-tab:hover { color: var(--color-text); }
+    .header-tab.active {
+      color: var(--color-accent);
+      border-bottom-color: var(--color-accent);
+    }
+
+    .header-spacer { flex: 1; }
+    .btn-icon {
+      width: 32px; height: 32px;
+      border: none; background: none;
+      border-radius: 6px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, color 0.12s;
+    }
+    .btn-icon:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+
+    /* ── Body ── */
+    .settings-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: flex; flex: 1; overflow: hidden; }
+    .tab-panel.hidden { display: none; }
+
+    /* ── Sidebar (shared) ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--color-border);
+      overflow-y: auto;
+      background: var(--color-bg-sidebar);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 10px 0; }
+    .sidebar-footer {
+      flex-shrink: 0;
+      padding: 10px 12px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .group-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 12px 16px 4px;
+    }
+
+    /* Provider items */
+    .provider-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.1s;
+      user-select: none;
+    }
+    .provider-item:hover { background: var(--nav-hover-bg); }
+    .provider-item.active { background: var(--nav-active-bg); }
+    .provider-item.active .item-name { color: var(--color-accent); font-weight: 500; }
+    .provider-icon {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0; color: #fff;
+    }
+    .item-name { font-size: 13px; color: var(--color-text); flex: 1; min-width: 0; }
+    .item-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-ok { background: var(--color-success); }
+    .dot-warn { background: var(--color-warning); }
+    .dot-empty { display: none; }
+
+    /* Instance items */
+    .instance-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: background 0.1s;
+      user-select: none;
+      border-left: 2px solid transparent;
+    }
+    .instance-item:hover { background: var(--nav-hover-bg); }
+    .instance-item.active {
+      background: var(--nav-active-bg);
+      border-left-color: var(--color-accent);
+    }
+    .instance-item.active .inst-name { color: var(--color-accent); }
+    .inst-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-accent);
+      margin-top: 1px;
+    }
+    .inst-info { flex: 1; min-width: 0; }
+    .inst-name { font-size: 13px; font-weight: 500; color: var(--color-text); }
+    .inst-sub {
+      font-size: 11.5px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .inst-status {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    /* ── Detail pane (shared) ── */
+    .detail-pane {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 40px 48px;
+    }
+    .pane-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 5px;
+    }
+    .pane-desc {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      line-height: 1.55;
+      margin-bottom: 28px;
+      max-width: 500px;
+    }
+    .pane-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 10px;
+      color: var(--color-text-muted); font-size: 13.5px;
+    }
+
+    /* ── Form ── */
+    .form-section {
+      max-width: 560px;
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+    .badge {
+      font-size: 10.5px; font-weight: 400;
+      padding: 1px 6px; border-radius: 4px;
+    }
+    .badge-opt { background: var(--nav-hover-bg); color: var(--color-text-muted); }
+    .badge-req { background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    }
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.55;
+      font-size: 12.5px;
+    }
+    .form-hint {
+      font-size: 11.5px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .form-input.mono { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.02em; }
+    .form-input-wrap { position: relative; }
+    .btn-show-key {
+      position: absolute; right: 8px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--color-text-muted); cursor: pointer;
+      padding: 4px; border-radius: 4px;
+      display: flex; align-items: center;
+      transition: color 0.12s;
+    }
+    .btn-show-key:hover { color: var(--color-text); }
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      cursor: pointer;
+    }
+
+    /* Row layout for two fields side by side */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Temperature slider row */
+    .temp-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .temp-number {
+      width: 64px; flex-shrink: 0;
+      padding: 7px 10px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-size: 13px;
+      font-family: 'SF Mono', monospace;
+      text-align: center;
+      outline: none;
+    }
+    .temp-number:focus { border-color: var(--color-accent); }
+    .temp-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--color-border);
+      outline: none;
+      cursor: pointer;
+    }
+    .temp-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .temp-range-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10.5px; color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    /* Toggle switch */
+    .toggle-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+    }
+    .toggle-info .toggle-label {
+      font-size: 13px; font-weight: 500; color: var(--color-text);
+    }
+    .toggle-info .toggle-hint {
+      font-size: 11.5px; color: var(--color-text-muted); margin-top: 2px;
+    }
+    .toggle-switch {
+      position: relative; width: 36px; height: 20px; flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--color-border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      left: 2px; top: 2px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    input:checked + .toggle-track { background: var(--color-accent); }
+    input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* Section divider with label */
+    .form-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0 20px;
+    }
+    .form-divider-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+    .form-divider-line {
+      flex: 1; height: 1px; background: var(--color-border);
+    }
+
+    /* Action bar */
+    .form-actions {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 28px; padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+    .form-actions-right { margin-left: auto; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none;
+      transition: background 0.12s, filter 0.12s, opacity 0.12s;
+    }
+    .btn-primary { background: var(--color-accent); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-secondary {
+      background: var(--nav-hover-bg); color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover { background: var(--nav-active-bg); }
+    .btn-danger {
+      background: none; color: var(--color-error);
+      border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+    }
+    .btn-danger:hover { background: color-mix(in srgb, var(--color-error) 8%, transparent); }
+    .btn-ghost {
+      background: none; color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+    .btn-ghost:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+
+    /* Provider-not-configured warning in instance form */
+    .provider-warn {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+      border-radius: 7px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--color-warning);
+      margin-bottom: 20px;
+    }
+
+    /* Instance reference chip (shown in "used by" demo) */
+    .ref-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--badge-bg);
+      color: var(--color-accent);
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 5px;
+      font-weight: 500;
+    }
+
+    /* Save toast */
+    .save-toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--color-accent); color: #fff;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none; z-index: 999;
+    }
+    .save-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* "How instances are used" callout at bottom of instance pane */
+    .usage-callout {
+      max-width: 560px;
+      margin-top: 32px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+    .usage-callout-title {
+      font-size: 12px; font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .usage-demo {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12.5px; color: var(--color-text-secondary);
+    }
+    .usage-select-mock {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12.5px; color: var(--color-text);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     HEADER with Tab Bar
+═══════════════════════════════════ -->
+<header class="settings-header">
+  <div class="header-logo">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    设置
+  </div>
+
+  <nav class="header-tabs">
+    <button class="header-tab active" onclick="switchTab('connections', this)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+      连接配置
+    </button>
+    <button class="header-tab" onclick="switchTab('instances', this)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8M12 3v4"/>
+      </svg>
+      模型实例
+    </button>
+  </nav>
+
+  <div class="header-spacer"></div>
+  <button class="btn-icon" title="切换主题" onclick="toggleTheme()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
+  <button class="btn-icon" title="关闭">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+</header>
+
+<!-- ═══════════════════════════════════
+     BODY
+═══════════════════════════════════ -->
+<div class="settings-body">
+
+  <!-- ════════════════════════════
+       TAB 1: 连接配置
+  ════════════════════════════ -->
+  <div class="tab-panel" id="tab-connections">
+    <!-- Sidebar: provider list -->
+    <nav class="sidebar">
+      <div class="sidebar-scroll">
+        <div class="group-label">国内模型</div>
+        <div class="provider-item" onclick="selectProvider(this, 'deepseek')">
+          <div class="provider-icon" style="background:#0f766e;">DS</div>
+          <span class="item-name">DeepSeek</span>
+          <div class="item-dot dot-ok"></div>
+        </div>
+        <div class="provider-item active" onclick="selectProvider(this, 'zhipu')">
+          <div class="provider-icon" style="background:#2563eb;">智</div>
+          <span class="item-name">智谱 AI</span>
+          <div class="item-dot dot-empty"></div>
+        </div>
+        <div class="provider-item" onclick="selectProvider(this, 'qwen')">
+          <div class="provider-icon" style="background:#7c3aed;">千</div>
+          <span class="item-name">通义千问</span>
+          <div class="item-dot dot-empty"></div>
+        </div>
+        <div class="provider-item" onclick="selectProvider(this, 'kimi')">
+          <div class="provider-icon" style="background:#0891b2;">K</div>
+          <span class="item-name">Kimi</span>
+          <div class="item-dot dot-empty"></div>
+        </div>
+        <div class="group-label">国际模型</div>
+        <div class="provider-item" onclick="selectProvider(this, 'openai')">
+          <div class="provider-icon" style="background:#16a34a;">AI</div>
+          <span class="item-name">OpenAI</span>
+          <div class="item-dot dot-empty"></div>
+        </div>
+        <div class="provider-item" onclick="selectProvider(this, 'anthropic')">
+          <div class="provider-icon" style="background:#c2410c;">C</div>
+          <span class="item-name">Anthropic</span>
+          <div class="item-dot dot-empty"></div>
+        </div>
+        <div class="group-label">自托管</div>
+        <div class="provider-item" onclick="selectProvider(this, 'private')">
+          <div class="provider-icon" style="background:#475569;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <span class="item-name">私有部署</span>
+          <div class="item-dot dot-empty"></div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Connection detail pane -->
+    <div class="detail-pane">
+      <div class="form-section">
+        <h2 class="pane-title">智谱 AI (GLM)</h2>
+        <p class="pane-desc">国产大模型，支持 GLM-4、GLM-4-Flash 等系列。配置后可在"模型实例"中选用此连接。</p>
+
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div class="form-input-wrap">
+            <input class="form-input mono" type="password" value="" placeholder="sk-…" style="padding-right:38px;">
+            <button class="btn-show-key">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="form-hint">在智谱 AI 开放平台控制台创建 API Key。</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Base URL</label>
+          <input class="form-input" type="text" value="https://open.bigmodel.cn/api/paas/v4">
+          <div class="form-hint">修改此地址可接入兼容代理或自定义端点。</div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            测试连接
+          </button>
+          <button class="btn btn-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       TAB 2: 模型实例
+  ════════════════════════════ -->
+  <div class="tab-panel hidden" id="tab-instances">
+    <!-- Sidebar: instance list -->
+    <nav class="sidebar">
+      <div class="sidebar-scroll">
+        <div class="group-label">已配置实例</div>
+
+        <div class="instance-item active" onclick="selectInstance(this, 'fast')">
+          <div class="inst-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">快速问答</div>
+            <div class="inst-sub">DeepSeek · deepseek-chat · T=0.3</div>
+          </div>
+          <div class="inst-status dot-ok"></div>
+        </div>
+
+        <div class="instance-item" onclick="selectInstance(this, 'deep')">
+          <div class="inst-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">深度推理</div>
+            <div class="inst-sub">DeepSeek · deepseek-reasoner · T=0.7</div>
+          </div>
+          <div class="inst-status dot-ok"></div>
+        </div>
+
+        <div class="instance-item" onclick="selectInstance(this, 'industrial')">
+          <div class="inst-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="10" width="4" height="11" rx="1"/><rect x="6.5" y="6" width="4" height="15" rx="1"/><rect x="12" y="2" width="4" height="19" rx="1"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">工业分析</div>
+            <div class="inst-sub">DeepSeek · deepseek-chat · T=0.1</div>
+          </div>
+          <div class="inst-status dot-ok"></div>
+        </div>
+
+        <div class="instance-item" onclick="selectInstance(this, 'broken')">
+          <div class="inst-icon" style="color:var(--color-warning)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M6.343 6.343a8 8 0 1 0 11.314 11.314A8 8 0 0 0 6.343 6.343z"/><line x1="2" y1="2" x2="22" y2="22" /></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">GPT 对照</div>
+            <div class="inst-sub">OpenAI · gpt-4o · T=0.5</div>
+          </div>
+          <div class="inst-status dot-warn"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost" style="width:100%; justify-content:center;" onclick="newInstance()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新建实例
+        </button>
+      </div>
+    </nav>
+
+    <!-- Instance detail pane -->
+    <div class="detail-pane" id="instance-pane">
+      <div class="form-section" id="instance-form">
+        <h2 class="pane-title">快速问答</h2>
+        <p class="pane-desc">一个实例 = 一套固定参数配置。在 Demo 或应用中选择实例，而不是每次手填参数。</p>
+
+        <!-- 基础信息 -->
+        <div class="form-divider">
+          <span class="form-divider-label">基础信息</span>
+          <div class="form-divider-line"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">实例名称 <span class="badge badge-req">必填</span></label>
+          <input class="form-input" type="text" value="快速问答" placeholder="给这套配置起个名字">
+          <div class="form-hint">在 Demo 下拉框中显示的名称，建议体现用途。</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">连接服务商 <span class="badge badge-req">必填</span></label>
+            <select class="form-select">
+              <option value="">— 选择连接 —</option>
+              <option value="deepseek" selected>DeepSeek ●</option>
+              <option value="zhipu">智谱 AI（未配置）</option>
+              <option value="openai">OpenAI（未配置）</option>
+            </select>
+            <div class="form-hint">决定调用哪个 API 端点。</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">模型名称 <span class="badge badge-req">必填</span></label>
+            <input class="form-input" type="text" value="deepseek-chat" placeholder="如 deepseek-chat">
+            <div class="form-hint">可覆盖服务商默认模型。</div>
+          </div>
+        </div>
+
+        <!-- 推理参数 -->
+        <div class="form-divider">
+          <span class="form-divider-label">推理参数</span>
+          <div class="form-divider-line"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">System Prompt <span class="badge badge-opt">可选</span></label>
+          <textarea class="form-textarea" placeholder="留空则使用应用默认 Prompt，填写后此实例将使用固定提示词。"></textarea>
+          <div class="form-hint">适合需要角色固定的场景，如"工业分析专家"、"代码审查员"。</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Temperature</label>
+          <div class="temp-row">
+            <input class="temp-number" type="number" value="0.3" min="0" max="2" step="0.1"
+              oninput="document.getElementById('temp-slider').value = this.value">
+            <input class="temp-slider" type="range" id="temp-slider" min="0" max="2" step="0.1" value="0.3"
+              oninput="this.previousElementSibling.value = this.value">
+          </div>
+          <div class="temp-range-labels"><span>0.0 精确</span><span>1.0 平衡</span><span>2.0 发散</span></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Max Tokens <span class="badge badge-opt">可选</span></label>
+            <input class="form-input" type="number" placeholder="不限制" min="1" max="128000">
+            <div class="form-hint">留空表示不设上限。</div>
+          </div>
+          <div class="form-group" style="align-self:end;">
+            <!-- intentionally empty for grid balance -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">流式输出（Stream）</div>
+              <div class="toggle-hint">实时逐字显示，建议保持开启</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button class="btn btn-danger">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            删除实例
+          </button>
+          <div class="form-actions-right" style="display:flex;gap:8px;">
+            <button class="btn btn-secondary">取消</button>
+            <button class="btn btn-primary">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              保存
+            </button>
+          </div>
+        </div>
+
+        <!-- How instances are used — context callout -->
+        <div class="usage-callout">
+          <div class="usage-callout-title">实例在 Demo 中的用法</div>
+          <div class="usage-demo">
+            <span style="color:var(--color-text-muted)">流式会话 Demo 中选择：</span>
+            <div class="usage-select-mock">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              快速问答
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <span style="color:var(--color-text-muted)">→ 自动带入此实例的所有参数</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Empty state (shown when no instance selected) -->
+      <div class="pane-empty hidden" id="instance-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8M12 3v4"/></svg>
+        <span>选择左侧实例，或点击"新建实例"</span>
+      </div>
+
+      <!-- New instance empty form (hidden by default) -->
+      <div class="form-section hidden" id="new-instance-form">
+        <h2 class="pane-title">新建实例</h2>
+        <p class="pane-desc">填写名称和参数，保存后即可在 Demo 中选用。</p>
+        <!-- same form structure, values empty -->
+        <div class="form-divider"><span class="form-divider-label">基础信息</span><div class="form-divider-line"></div></div>
+        <div class="form-group">
+          <label class="form-label">实例名称 <span class="badge badge-req">必填</span></label>
+          <input class="form-input" type="text" placeholder="给这套配置起个名字，如"快速问答"">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">连接服务商 <span class="badge badge-req">必填</span></label>
+            <select class="form-select">
+              <option value="">— 选择连接 —</option>
+              <option value="deepseek">DeepSeek ●</option>
+              <option value="zhipu">智谱 AI（未配置）</option>
+              <option value="openai">OpenAI（未配置）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">模型名称 <span class="badge badge-req">必填</span></label>
+            <input class="form-input" type="text" placeholder="如 deepseek-chat">
+          </div>
+        </div>
+        <div class="form-divider"><span class="form-divider-label">推理参数</span><div class="form-divider-line"></div></div>
+        <div class="form-group">
+          <label class="form-label">System Prompt <span class="badge badge-opt">可选</span></label>
+          <textarea class="form-textarea" placeholder="留空则使用应用默认 Prompt"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temperature</label>
+          <div class="temp-row">
+            <input class="temp-number" type="number" value="0.7" min="0" max="2" step="0.1">
+            <input class="temp-slider" type="range" min="0" max="2" step="0.1" value="0.7">
+          </div>
+          <div class="temp-range-labels"><span>0.0 精确</span><span>1.0 平衡</span><span>2.0 发散</span></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Max Tokens <span class="badge badge-opt">可选</span></label>
+            <input class="form-input" type="number" placeholder="不限制" min="1">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">流式输出（Stream）</div>
+              <div class="toggle-hint">实时逐字显示，建议保持开启</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="cancelNew()">取消</button>
+          <div class="form-actions-right">
+            <button class="btn btn-primary">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              创建实例
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- end tab-instances -->
+
+</div><!-- end settings-body -->
+
+<div class="save-toast" id="save-toast">已保存</div>
+
+<script>
+/* ── Tab switching ── */
+function switchTab(name, btn) {
+  document.querySelectorAll('.header-tab').forEach(t => t.classList.remove('active'))
+  btn.classList.add('active')
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'))
+  document.getElementById('tab-' + name).classList.remove('hidden')
+}
+
+/* ── Provider selection ── */
+function selectProvider(el, id) {
+  document.querySelectorAll('#tab-connections .provider-item').forEach(i => i.classList.remove('active'))
+  el.classList.add('active')
+}
+
+/* ── Instance selection ── */
+function selectInstance(el, id) {
+  document.querySelectorAll('.instance-item').forEach(i => i.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById('instance-form').classList.remove('hidden')
+  document.getElementById('instance-empty').classList.add('hidden')
+  document.getElementById('new-instance-form').classList.add('hidden')
+
+  // Simulate loading different instances
+  const configs = {
+    fast:       { name: '快速问答',  sub: 'DeepSeek · deepseek-chat',        temp: 0.3 },
+    deep:       { name: '深度推理',  sub: 'DeepSeek · deepseek-reasoner',     temp: 0.7 },
+    industrial: { name: '工业分析',  sub: 'DeepSeek · deepseek-chat',         temp: 0.1 },
+    broken:     { name: 'GPT 对照',  sub: 'OpenAI · gpt-4o（连接未配置）',    temp: 0.5 },
+  }
+  const c = configs[id]
+  if (c) {
+    document.querySelector('#instance-form .pane-title').textContent = c.name
+    document.querySelector('#instance-form .pane-desc').textContent =
+      '一个实例 = 一套固定参数配置。在 Demo 或应用中选择实例，而不是每次手填参数。'
+    const slider = document.getElementById('temp-slider')
+    if (slider) slider.value = c.temp
+    const num = slider?.previousElementSibling
+    if (num) num.value = c.temp
+  }
+}
+
+/* ── New instance ── */
+function newInstance() {
+  document.querySelectorAll('.instance-item').forEach(i => i.classList.remove('active'))
+  document.getElementById('instance-form').classList.add('hidden')
+  document.getElementById('instance-empty').classList.add('hidden')
+  document.getElementById('new-instance-form').classList.remove('hidden')
+}
+function cancelNew() {
+  document.getElementById('new-instance-form').classList.add('hidden')
+  document.getElementById('instance-empty').classList.remove('hidden')
+}
+
+/* ── Theme ── */
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme')
+  const next = current === 'dark' ? 'light' : 'dark'
+  document.documentElement.setAttribute('data-theme', next)
+  localStorage.setItem('meso-theme', next)
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  const t = document.getElementById('save-toast')
+  t.textContent = msg
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2000)
+}
+</script>
+</body>
+</html>

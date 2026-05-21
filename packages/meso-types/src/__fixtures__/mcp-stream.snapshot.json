@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "availableCapabilities": {
+    "tools": [
+      { "name": "read_file", "provider": "builtin", "risk": "safe" },
+      { "name": "search_web", "provider": "mcp", "server": "brave-search" },
+      { "name": "delete_file", "provider": "local", "risk": "destructive" }
+    ],
+    "mcp_servers": [
+      { "name": "brave-search", "capabilities": ["tools"] },
+      { "name": "inventory-mcp", "capabilities": ["resources"] }
+    ]
+  },
+  "activeSoul": { "id": "analyst-soul", "name": "分析助手" },
+  "activeSkill": { "id": "analyst", "name": "数据分析师", "focus": ["stats"] },
+  "resourceReadOrder": ["rr1"],
+  "resourceReads": {
+    "rr1": {
+      "read": { "id": "rr1", "uri": "db://products/catalog", "server": "inventory-mcp" },
+      "status": "done"
+    }
+  },
+  "toolCallOrder": ["tc1"],
+  "toolCalls": {
+    "tc1": {
+      "call": { "id": "tc1", "name": "search_web", "provider": "mcp", "server": "brave-search" },
+      "result": { "tool_call_id": "tc1", "output": "市场需求上升 15%", "duration_ms": 350 },
+      "status": "done"
+    }
+  },
+  "textContent": "根据库存数据和市场趋势，产品A需求旺盛。",
+  "errorMessage": null
+}

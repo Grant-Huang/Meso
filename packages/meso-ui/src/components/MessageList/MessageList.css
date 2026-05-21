@@ -44,12 +44,16 @@
   color: var(--color-accent);
 }
 
-/* Soul indicator row */
-.meso-message-list__soul {
+/* Soul + Skill context row */
+.meso-message-list__context-row {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* Tool call blocks */
+/* Resource reads + tool calls */
+.meso-message-list__resources,
 .meso-message-list__tools {
   display: flex;
   flex-direction: column;

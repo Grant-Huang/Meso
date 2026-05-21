@@ -26,6 +26,12 @@ export type { ToolCallBlockProps } from './components/ToolCallBlock'
 export { SoulIndicator } from './components/SoulIndicator'
 export type { SoulIndicatorProps } from './components/SoulIndicator'
 
+export { SkillIndicator } from './components/SkillIndicator'
+export type { SkillIndicatorProps } from './components/SkillIndicator'
+
+export { ResourceReadBlock } from './components/ResourceReadBlock'
+export type { ResourceReadBlockProps } from './components/ResourceReadBlock'
+
 export { ConfirmGate } from './components/ConfirmGate'
 export type { ConfirmGateProps } from './components/ConfirmGate'
 
@@ -44,9 +50,16 @@ export {
   createInitialStreamState,
 } from './runtime'
 export type {
+  CapabilityProvider,
   SSEEvent,
   StageEvent,
   StagePayload,
+  CapabilitiesEvent,
+  CapabilitiesPayload,
+  ToolSpec,
+  SkillSpec,
+  ResourceSpec,
+  MCPServerSpec,
   MemoryEvent,
   MemorySnippet,
   MemoryPayload,
@@ -54,6 +67,8 @@ export type {
   MemorySavedPayload,
   SoulEvent,
   SoulPayload,
+  SkillActiveEvent,
+  SkillPayload,
   ThinkEvent,
   ThinkPayload,
   TextEvent,
@@ -61,10 +76,16 @@ export type {
   ArtifactEvent,
   ArtifactPayload,
   ToolRisk,
+  ToolAnnotations,
   ToolCallEvent,
   ToolCallPayload,
   ToolResultEvent,
   ToolResultPayload,
+  ResourceReadEvent,
+  ResourceReadPayload,
+  ResourceContentEvent,
+  ResourceContentPayload,
+  ResourceContentItem,
   DoneEvent,
   ErrorEvent,
   ErrorPayload,
@@ -75,4 +96,6 @@ export type {
   ArtifactState,
   ToolCallStatus,
   ToolCallState,
+  ResourceReadStatus,
+  ResourceReadState,
 } from './runtime'

@@ -18,6 +18,21 @@ type Envelope<T extends string, P> = {
   payload: P
 }
 
+// ── Shared capability metadata ───────────────────────────────────────────────
+//
+// Every callable capability in Meso belongs to a provider.
+// This type is shared across tool_call, skill_active, resource_read, and
+// the capabilities discovery event.
+
+/**
+ * Who provides this capability.
+ *   builtin — platform built-in (search_knowledge, save_memory, …)
+ *   local   — app-defined function in the same process
+ *   mcp     — served by an MCP (Model Context Protocol) server
+ *   api     — external REST/gRPC endpoint
+ */
+export type CapabilityProvider = 'builtin' | 'local' | 'mcp' | 'api'
+
 // ── Standard events ─────────────────────────────────────────────────────────
 
 export interface StagePayload {
@@ -77,6 +92,65 @@ export interface ErrorPayload {
 /** Unrecoverable error. Mutually exclusive with DoneEvent. */
 export type ErrorEvent = Envelope<'error', ErrorPayload>
 
+// ── Capabilities discovery event ─────────────────────────────────────────────
+//
+// Sent once at stream start to announce all capabilities available in this
+// session. Frontends use this to render skill selectors, tool toggles, MCP
+// server panels, etc. — without hardcoding any app-specific knowledge.
+
+export type ToolRisk = 'safe' | 'write' | 'destructive'
+
+export interface ToolSpec {
+  name: string
+  description?: string
+  provider: CapabilityProvider
+  /** MCP server name when provider = "mcp". */
+  server?: string
+  risk?: ToolRisk
+  /** JSON Schema for the tool's input parameters. */
+  input_schema?: Record<string, unknown>
+}
+
+export interface SkillSpec {
+  id: string
+  name: string
+  description?: string
+  provider?: CapabilityProvider
+  server?: string
+  focus_points?: Array<{ id: string; name: string }>
+}
+
+export interface ResourceSpec {
+  /** MCP resource URI (e.g. "file:///path/to/doc" or "db://table/id"). */
+  uri: string
+  name?: string
+  description?: string
+  /** MCP server that exposes this resource. */
+  server?: string
+  mime_type?: string
+}
+
+export interface MCPServerSpec {
+  name: string
+  version?: string
+  /** Which MCP capability groups this server exposes. */
+  capabilities: Array<'tools' | 'resources' | 'prompts' | 'sampling'>
+}
+
+export interface CapabilitiesPayload {
+  tools?: ToolSpec[]
+  skills?: SkillSpec[]
+  resources?: ResourceSpec[]
+  mcp_servers?: MCPServerSpec[]
+}
+
+/**
+ * Capability discovery — sent once at stream start.
+ * Frontend uses this to populate skill selectors, tool toggles, and MCP panels.
+ * Backend sends only what is relevant to the current session/app.
+ */
+export type CapabilitiesEvent = Envelope<'capabilities', CapabilitiesPayload>
+
 // ── Soul event ───────────────────────────────────────────────────────────────
 
 export interface SoulPayload {
@@ -94,6 +168,29 @@ export interface SoulPayload {
 /** Active soul/persona notification — sent once at stream start. */
 export type SoulEvent = Envelope<'soul', SoulPayload>
 
+// ── Skill event ──────────────────────────────────────────────────────────────
+//
+// Distinct from Soul: Soul = WHO (identity, stable), Skill = HOW (operational
+// mode, can switch within a session). MCP Prompts map to skills.
+
+export interface SkillPayload {
+  id: string
+  name: string
+  version?: string
+  provider?: CapabilityProvider
+  /** MCP server name when provider = "mcp" (MCP prompt → Meso skill). */
+  server?: string
+  /** Active focus_point ids selected for this invocation. */
+  focus?: string[]
+  description?: string
+}
+/**
+ * Skill activation — emitted when backend selects or switches operational mode.
+ * Maps MCP prompts to the same signal: backends translate get_prompt results
+ * into skill_active before injecting the prompt content into the system prompt.
+ */
+export type SkillActiveEvent = Envelope<'skill_active', SkillPayload>
+
 // ── Memory write event ───────────────────────────────────────────────────────
 
 export interface MemorySavedPayload {
@@ -108,7 +205,13 @@ export type MemorySavedEvent = Envelope<'memory_saved', MemorySavedPayload>
 
 // ── Tool events ──────────────────────────────────────────────────────────────
 
-export type ToolRisk = 'safe' | 'write' | 'destructive'
+/** MCP tool annotations mapped to platform-standard fields. */
+export interface ToolAnnotations {
+  /** Tool result is safe to retry (MCP: idempotentHint). */
+  idempotent?: boolean
+  /** Tool may make external network calls (MCP: openWorldHint). */
+  open_world?: boolean
+}
 
 export interface ToolCallPayload {
   /** Unique id scoping this invocation within the response. */
@@ -118,8 +221,15 @@ export interface ToolCallPayload {
   /**
    * Risk level hint for UI rendering and confirm gate.
    * Omit or use "safe" for read-only tools.
+   * Maps from MCP annotations: readOnlyHint → safe, destructiveHint → destructive.
    */
   risk?: ToolRisk
+  /** Who provides this tool. Omit for platform built-ins. */
+  provider?: CapabilityProvider
+  /** MCP server name when provider = "mcp". */
+  server?: string
+  /** Optional MCP-originated behaviour hints for UI rendering. */
+  annotations?: ToolAnnotations
 }
 /** LLM decided to call a tool — emitted before execution starts. */
 export type ToolCallEvent = Envelope<'tool_call', ToolCallPayload>
@@ -136,15 +246,49 @@ export interface ToolResultPayload {
 /** Tool execution completed (success or error). */
 export type ToolResultEvent = Envelope<'tool_result', ToolResultPayload>
 
+// ── MCP Resource events ──────────────────────────────────────────────────────
+//
+// Resources are distinct from tools: they are identified by URI, are read-only,
+// and return structured content (text, image, blob) rather than arbitrary output.
+// Tools = "call a function". Resources = "read a document".
+
+export interface ResourceReadPayload {
+  /** Unique id scoping this read within the response (for correlation). */
+  id: string
+  /** MCP resource URI (e.g. "file:///path/to/doc"). */
+  uri: string
+  name?: string
+  /** MCP server that serves this resource. */
+  server?: string
+}
+/** LLM or backend requested a resource read — emitted before content arrives. */
+export type ResourceReadEvent = Envelope<'resource_read', ResourceReadPayload>
+
+export interface ResourceContentItem {
+  type: 'text' | 'image' | 'blob'
+  /** Present when type = "text". */
+  text?: string
+  /** Present when type = "image" | "blob". Base64-encoded. */
+  data?: string
+  mime_type?: string
+}
+
+export interface ResourceContentPayload {
+  /** Matches the id from the corresponding resource_read event. */
+  resource_read_id: string
+  contents: ResourceContentItem[]
+  /** Present only on failure. */
+  error?: string
+  duration_ms?: number
+}
+/** Resource content arrived (or failed). */
+export type ResourceContentEvent = Envelope<'resource_content', ResourceContentPayload>
+
 // ── Extension event ─────────────────────────────────────────────────────────
 //
-// Third-party backends use this channel for domain-specific events
-// (tool progress, confirm gates, business entity references, etc.)
-// without forking the platform runtime.
-//
-// Example:
-//   data: {"type":"extension","schema_version":"1.0",
-//           "payload":{"name":"tool_progress","data":{"tool":"search","status":"running"}}}
+// Third-party backends use this channel for domain-specific events that don't
+// fit any standard type. Standard types should always be preferred when they
+// semantically match — extension is the escape hatch, not the default.
 
 export interface ExtensionPayload {
   /** Identifies the extension type (e.g. "tool_progress", "confirm_gate"). */
@@ -160,14 +304,18 @@ export type ExtensionEvent = Envelope<'extension', ExtensionPayload>
 
 export type SSEEvent =
   | StageEvent
+  | CapabilitiesEvent
   | MemoryEvent
   | MemorySavedEvent
   | SoulEvent
+  | SkillActiveEvent
   | ThinkEvent
   | TextEvent
   | ArtifactEvent
   | ToolCallEvent
   | ToolResultEvent
+  | ResourceReadEvent
+  | ResourceContentEvent
   | DoneEvent
   | ErrorEvent
   | ExtensionEvent

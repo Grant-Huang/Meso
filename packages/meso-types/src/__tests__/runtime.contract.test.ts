@@ -124,6 +124,40 @@ describe('soul-stream contract', () => {
   })
 })
 
+describe('mcp-stream contract', () => {
+  it('final state matches snapshot', () => {
+    expect(replayFixture('mcp-stream.txt')).toMatchObject(
+      loadSnapshot('mcp-stream.snapshot.json'),
+    )
+  })
+
+  it('capabilities announced at stream start', () => {
+    const state = replayFixture('mcp-stream.txt')
+    expect(state.availableCapabilities?.tools).toHaveLength(3)
+    expect(state.availableCapabilities?.mcp_servers).toHaveLength(2)
+  })
+
+  it('skill_active sets activeSkill with focus', () => {
+    const state = replayFixture('mcp-stream.txt')
+    expect(state.activeSkill?.id).toBe('analyst')
+    expect(state.activeSkill?.focus).toEqual(['stats'])
+  })
+
+  it('resource_read + resource_content correlate correctly', () => {
+    const state = replayFixture('mcp-stream.txt')
+    expect(state.resourceReadOrder).toEqual(['rr1'])
+    expect(state.resourceReads['rr1'].status).toBe('done')
+    expect(state.resourceReads['rr1'].content?.contents[0].text).toBe('产品A: 100件\n产品B: 50件')
+  })
+
+  it('mcp tool_call carries provider + server metadata', () => {
+    const state = replayFixture('mcp-stream.txt')
+    expect(state.toolCalls['tc1'].call.provider).toBe('mcp')
+    expect(state.toolCalls['tc1'].call.server).toBe('brave-search')
+    expect(state.toolCalls['tc1'].call.annotations?.open_world).toBe(true)
+  })
+})
+
 // ── parseSSELine edge cases ──────────────────────────────────────────────────
 
 describe('parseSSELine', () => {
@@ -175,12 +209,61 @@ describe('applyEvent', () => {
     expect(s2.memorySaved[1].id).toBe('m2')
   })
 
+  it('capabilities: stores availableCapabilities', () => {
+    const s = applyEvent(streaming, {
+      type: 'capabilities', schema_version: '1.0',
+      payload: { tools: [{ name: 'search', provider: 'mcp' as const }] },
+    })
+    expect(s.availableCapabilities?.tools).toHaveLength(1)
+    expect(s.availableCapabilities?.tools?.[0].provider).toBe('mcp')
+  })
+
   it('soul: sets activeSoul', () => {
     const s = applyEvent(streaming, {
       type: 'soul', schema_version: '1.0',
       payload: { id: 'bot', name: 'Bot', version: '1.0.0' },
     })
     expect(s.activeSoul?.id).toBe('bot')
+  })
+
+  it('skill_active: sets activeSkill with focus', () => {
+    const s = applyEvent(streaming, {
+      type: 'skill_active', schema_version: '1.0',
+      payload: { id: 'analyst', name: '分析师', focus: ['stats'] },
+    })
+    expect(s.activeSkill?.id).toBe('analyst')
+    expect(s.activeSkill?.focus).toEqual(['stats'])
+  })
+
+  it('resource_read: appends to order list, status pending', () => {
+    const s = applyEvent(streaming, {
+      type: 'resource_read', schema_version: '1.0',
+      payload: { id: 'rr1', uri: 'db://products', server: 'inv' },
+    })
+    expect(s.resourceReadOrder).toEqual(['rr1'])
+    expect(s.resourceReads['rr1'].status).toBe('pending')
+  })
+
+  it('resource_read: order list deduplicates by id', () => {
+    const s1 = applyEvent(streaming, { type: 'resource_read', schema_version: '1.0', payload: { id: 'rr1', uri: 'x' } })
+    const s2 = applyEvent(s1,       { type: 'resource_read', schema_version: '1.0', payload: { id: 'rr1', uri: 'x' } })
+    expect(s2.resourceReadOrder).toHaveLength(1)
+  })
+
+  it('resource_content: correlates and sets done status', () => {
+    const s1 = applyEvent(streaming, { type: 'resource_read', schema_version: '1.0', payload: { id: 'rr1', uri: 'db://x' } })
+    const s2 = applyEvent(s1, {
+      type: 'resource_content', schema_version: '1.0',
+      payload: { resource_read_id: 'rr1', contents: [{ type: 'text', text: 'hello' }] },
+    })
+    expect(s2.resourceReads['rr1'].status).toBe('done')
+    expect(s2.resourceReads['rr1'].content?.contents[0].text).toBe('hello')
+  })
+
+  it('resource_content with error: status=error', () => {
+    const s1 = applyEvent(streaming, { type: 'resource_read', schema_version: '1.0', payload: { id: 'rr1', uri: 'db://x' } })
+    const s2 = applyEvent(s1, { type: 'resource_content', schema_version: '1.0', payload: { resource_read_id: 'rr1', contents: [], error: '访问拒绝' } })
+    expect(s2.resourceReads['rr1'].status).toBe('error')
   })
 
   it('tool_call: appends to order list, status pending', () => {

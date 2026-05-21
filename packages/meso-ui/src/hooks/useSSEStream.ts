@@ -1,6 +1,20 @@
 import { useCallback, useRef, useState } from 'react'
 import { parseSSELine, applyEvent, createInitialStreamState } from '../runtime'
-import type { StreamState, StreamStatus } from '../runtime'
+import type {
+  StreamState,
+  StreamStatus,
+  StagePayload,
+  MemorySnippet,
+  MemorySavedPayload,
+  CapabilitiesPayload,
+  SoulPayload,
+  SkillPayload,
+  ToolCallPayload,
+  ToolResultPayload,
+  ResourceReadPayload,
+  ResourceContentPayload,
+  ArtifactState,
+} from '../runtime'
 
 // Re-export runtime types so existing imports from useSSEStream continue to work
 export type {
@@ -9,39 +23,46 @@ export type {
   ArtifactState,
   ToolCallStatus,
   ToolCallState,
+  ResourceReadStatus,
+  ResourceReadState,
   SSEEvent,
   StageEvent,
   StagePayload,
+  CapabilitiesEvent,
+  CapabilitiesPayload,
+  ToolSpec,
+  SkillSpec,
+  ResourceSpec,
+  MCPServerSpec,
   MemoryEvent,
   MemorySnippet,
   MemorySavedEvent,
   MemorySavedPayload,
   SoulEvent,
   SoulPayload,
+  SkillActiveEvent,
+  SkillPayload,
   ThinkEvent,
   ThinkPayload,
   TextEvent,
   TextPayload,
   ArtifactEvent,
+  CapabilityProvider,
   ToolRisk,
+  ToolAnnotations,
   ToolCallEvent,
   ToolCallPayload,
   ToolResultEvent,
   ToolResultPayload,
+  ResourceReadEvent,
+  ResourceReadPayload,
+  ResourceContentEvent,
+  ResourceContentPayload,
+  ResourceContentItem,
   DoneEvent,
   ErrorEvent,
   ExtensionEvent,
   ExtensionPayload,
-} from '../runtime'
-
-import type {
-  StagePayload,
-  MemorySnippet,
-  MemorySavedPayload,
-  SoulPayload,
-  ToolCallPayload,
-  ToolResultPayload,
-  ArtifactState,
 } from '../runtime'
 
 export interface StreamOptions {
@@ -52,12 +73,16 @@ export interface StreamOptions {
 
 /** Lifecycle callbacks fired after each matching SSE event is applied to state. */
 export interface StreamCallbacks {
+  onCapabilities?: (capabilities: CapabilitiesPayload) => void
   onStageChange?: (stage: StagePayload) => void
   onMemoryRecalled?: (snippets: MemorySnippet[]) => void
   onMemorySaved?: (saved: MemorySavedPayload) => void
   onSoulActivated?: (soul: SoulPayload) => void
+  onSkillActivated?: (skill: SkillPayload) => void
   onToolCall?: (call: ToolCallPayload) => void
   onToolResult?: (result: ToolResultPayload) => void
+  onResourceRead?: (read: ResourceReadPayload) => void
+  onResourceContent?: (content: ResourceContentPayload) => void
   onArtifact?: (artifact: ArtifactState) => void
   onError?: (message: string, code?: string) => void
   onDone?: (finalState: StreamState) => void
@@ -131,12 +156,16 @@ export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
           const cb = callbacksRef.current
           if (cb) {
             switch (event.type) {
-              case 'stage':       cb.onStageChange?.(event.payload); break
-              case 'memory':      cb.onMemoryRecalled?.(event.payload.snippets); break
-              case 'memory_saved':cb.onMemorySaved?.(event.payload); break
-              case 'soul':        cb.onSoulActivated?.(event.payload); break
-              case 'tool_call':   cb.onToolCall?.(event.payload); break
-              case 'tool_result': cb.onToolResult?.(event.payload); break
+              case 'capabilities':    cb.onCapabilities?.(event.payload); break
+              case 'stage':           cb.onStageChange?.(event.payload); break
+              case 'memory':          cb.onMemoryRecalled?.(event.payload.snippets); break
+              case 'memory_saved':    cb.onMemorySaved?.(event.payload); break
+              case 'soul':            cb.onSoulActivated?.(event.payload); break
+              case 'skill_active':    cb.onSkillActivated?.(event.payload); break
+              case 'tool_call':       cb.onToolCall?.(event.payload); break
+              case 'tool_result':     cb.onToolResult?.(event.payload); break
+              case 'resource_read':   cb.onResourceRead?.(event.payload); break
+              case 'resource_content':cb.onResourceContent?.(event.payload); break
               case 'artifact': {
                 const art = next.artifacts[event.payload.id]
                 if (art) cb.onArtifact?.(art)

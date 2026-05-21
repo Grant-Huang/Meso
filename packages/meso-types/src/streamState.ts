@@ -3,8 +3,12 @@ import type {
   MemorySnippet,
   MemorySavedPayload,
   SoulPayload,
+  SkillPayload,
+  CapabilitiesPayload,
   ToolCallPayload,
   ToolResultPayload,
+  ResourceReadPayload,
+  ResourceContentPayload,
   ExtensionEvent,
 } from './protocol'
 
@@ -30,16 +34,46 @@ export interface ToolCallState {
   status: ToolCallStatus
 }
 
+export type ResourceReadStatus = 'pending' | 'done' | 'error'
+
+export interface ResourceReadState {
+  read: ResourceReadPayload
+  content?: ResourceContentPayload
+  status: ResourceReadStatus
+}
+
 export interface StreamState {
   status: StreamStatus
+
+  // ── Capability context (set before LLM generates) ──────────────────────────
+  /** All capabilities available in this session — from the capabilities event. */
+  availableCapabilities: CapabilitiesPayload | null
+  /** Active soul/persona; null until soul event received. */
+  activeSoul: SoulPayload | null
+  /** Active skill/operational mode; null until skill_active event received. */
+  activeSkill: SkillPayload | null
+
+  // ── Pipeline progress ──────────────────────────────────────────────────────
   /** Pipeline stages in arrival order; deduped by name. */
   stages: StagePayload[]
+
+  // ── Memory ─────────────────────────────────────────────────────────────────
   /** Memory snippets recalled before generation. */
   memorySnippets: MemorySnippet[]
   /** Memory entries persisted during this session (backend confirmations). */
   memorySaved: MemorySavedPayload[]
-  /** Active soul/persona for this response; null until soul event received. */
-  activeSoul: SoulPayload | null
+
+  // ── Capability invocations ─────────────────────────────────────────────────
+  /** Tool calls keyed by id for O(1) lookup and result correlation. */
+  toolCalls: Record<string, ToolCallState>
+  /** Tool call ids in first-seen order — use for deterministic rendering. */
+  toolCallOrder: string[]
+  /** MCP resource reads keyed by id for O(1) lookup and content correlation. */
+  resourceReads: Record<string, ResourceReadState>
+  /** Resource read ids in first-seen order — use for deterministic rendering. */
+  resourceReadOrder: string[]
+
+  // ── LLM output ─────────────────────────────────────────────────────────────
   thinkContent: string
   thinkDone: boolean
   textContent: string
@@ -47,10 +81,8 @@ export interface StreamState {
   artifacts: Record<string, ArtifactState>
   /** Artifact ids in first-seen order — use for deterministic rendering. */
   artifactOrder: string[]
-  /** Tool calls keyed by id for O(1) lookup and result correlation. */
-  toolCalls: Record<string, ToolCallState>
-  /** Tool call ids in first-seen order — use for deterministic rendering. */
-  toolCallOrder: string[]
+
+  // ── Extension escape hatch ─────────────────────────────────────────────────
   /**
    * Extension events keyed by name for lookup (e.g. extensions["tool_progress"]).
    * For time-ordered rendering, use extensionLog instead.
@@ -58,23 +90,28 @@ export interface StreamState {
   extensions: Record<string, ExtensionEvent[]>
   /** All extension events in arrival order — use when sequential rendering matters. */
   extensionLog: ExtensionEvent[]
+
   errorMessage: string | null
 }
 
 export function createInitialStreamState(): StreamState {
   return {
     status: 'idle',
+    availableCapabilities: null,
+    activeSoul: null,
+    activeSkill: null,
     stages: [],
     memorySnippets: [],
     memorySaved: [],
-    activeSoul: null,
+    toolCalls: {},
+    toolCallOrder: [],
+    resourceReads: {},
+    resourceReadOrder: [],
     thinkContent: '',
     thinkDone: false,
     textContent: '',
     artifacts: {},
     artifactOrder: [],
-    toolCalls: {},
-    toolCallOrder: [],
     extensions: {},
     extensionLog: [],
     errorMessage: null,

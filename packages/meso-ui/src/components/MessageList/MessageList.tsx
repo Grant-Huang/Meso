@@ -5,6 +5,8 @@ import { StageTimeline } from '../StageTimeline'
 import { ArtifactPanel } from '../ArtifactPanel'
 import { ToolCallBlock } from '../ToolCallBlock'
 import { SoulIndicator } from '../SoulIndicator'
+import { SkillIndicator } from '../SkillIndicator'
+import { ResourceReadBlock } from '../ResourceReadBlock'
 import type { StreamState, ExtensionEvent } from '../../runtime'
 import type { ArtifactType } from '../ArtifactPanel'
 import type { Stage } from '../StageTimeline'
@@ -92,10 +94,11 @@ export function MessageList({
 
         {streaming && streaming.status !== 'idle' && (
           <div className="meso-message-list__live">
-            {/* Soul indicator — shown when a soul event has been received */}
-            {streaming.activeSoul && (
-              <div className="meso-message-list__soul">
-                <SoulIndicator soul={streaming.activeSoul} />
+            {/* Soul + Skill context row */}
+            {(streaming.activeSoul || streaming.activeSkill) && (
+              <div className="meso-message-list__context-row">
+                {streaming.activeSoul && <SoulIndicator soul={streaming.activeSoul} />}
+                {streaming.activeSkill && <SkillIndicator skill={streaming.activeSkill} />}
               </div>
             )}
 
@@ -121,7 +124,18 @@ export function MessageList({
               </div>
             )}
 
-            {/* Tool calls (in arrival order) */}
+            {/* Resource reads (MCP) */}
+            {streaming.resourceReadOrder.length > 0 && (
+              <div className="meso-message-list__resources">
+                {streaming.resourceReadOrder.map(id => {
+                  const rr = streaming.resourceReads[id]
+                  if (!rr) return null
+                  return <ResourceReadBlock key={id} resourceRead={rr} />
+                })}
+              </div>
+            )}
+
+            {/* Tool calls (local / MCP / API) */}
             {streaming.toolCallOrder.length > 0 && (
               <div className="meso-message-list__tools">
                 {streaming.toolCallOrder.map(id => {

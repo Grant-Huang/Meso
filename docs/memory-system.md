@@ -21,9 +21,52 @@
 
 ---
 
-## 二、存储结构
+## 二、SSE 协议中的记忆事件
 
-### 2.1 短期记忆（本地 .md 文件）
+记忆系统通过两个 SSE 事件与前端交互：
+
+### 2.1 `memory` — 召回结果
+
+召回完成后、生成开始前发送。前端渲染为一行 chip。
+
+```json
+{
+  "type": "memory",
+  "schema_version": "1.0",
+  "payload": {
+    "snippets": [
+      { "category": "preference", "content": "偏好简洁回答" },
+      { "category": "project",    "content": "使用 PostgreSQL 15" }
+    ]
+  }
+}
+```
+
+此事件**替换**（不追加）前端 `memorySnippets` 状态。典型位置：stage("召回记忆") done 之后。
+
+### 2.2 `memory_saved` — 写入确认
+
+后端成功持久化一条记忆后发送。前端渲染"已记忆"chip（含书签图标和类别）。
+
+```json
+{
+  "type": "memory_saved",
+  "schema_version": "1.0",
+  "payload": {
+    "id": "mem_abc123",
+    "category": "decision",
+    "preview": "决定使用 B-tree 索引而非 Hash 索引"
+  }
+}
+```
+
+此事件**追加**（不替换）前端 `memorySaved` 数组。多条写入产生多个 chip。
+
+---
+
+## 三、存储结构
+
+### 3.1 短期记忆（本地 .md 文件）
 
 位置：`~/.llm-platform/memory/short-term/`
 
@@ -65,7 +108,7 @@ tags: [数据库, 性能优化, PostgreSQL]
 - 主要慢查询：按用户 ID + 时间范围过滤订单列表
 ```
 
-### 2.2 长期记忆（Obsidian Vault）
+### 3.2 长期记忆（Obsidian Vault）
 
 Obsidian vault 路径由用户在 `~/.llm-platform/config.json` 中配置。
 
@@ -94,7 +137,7 @@ Obsidian vault 路径由用户在 `~/.llm-platform/config.json` 中配置。
 
 ---
 
-## 三、记忆分类
+## 四、记忆分类
 
 | 类别 | 存储位置 | 示例内容 |
 |------|----------|----------|
@@ -106,17 +149,18 @@ Obsidian vault 路径由用户在 `~/.llm-platform/config.json` 中配置。
 
 ---
 
-## 四、召回引擎
+## 五、召回引擎
 
-### 4.1 触发时机
+### 5.1 触发时机
 
 每次发送消息时，系统自动执行召回：
 1. 取用户当前消息作为查询
 2. 从短期记忆（.md 文件）召回最相关片段
 3. 从长期记忆（Obsidian）召回最相关片段
 4. 去重、截断，注入 system prompt
+5. 发送 `memory` SSE 事件供前端可视化
 
-### 4.2 召回算法
+### 5.2 召回算法
 
 ```python
 score = 0.35 * keyword_score + 0.65 * semantic_score
@@ -131,7 +175,7 @@ score = 0.35 * keyword_score + 0.65 * semantic_score
 - 长期记忆：最多 `2` 条
 - 语义相似度阈值：`0.50`（低于此值的向量匹配结果丢弃）
 
-### 4.3 注入格式
+### 5.3 注入格式
 
 注入到 system prompt 的末尾：
 
@@ -144,30 +188,34 @@ score = 0.35 * keyword_score + 0.65 * semantic_score
 
 ---
 
-## 五、内容提取与写入记忆
+## 六、内容提取与写入记忆
 
-### 5.1 手动提取（用户触发）
+### 6.1 手动提取（用户触发）
 
 在对话中，用户可以：
 1. **选中文字** → 右键菜单 → "存入记忆" → 选择类别
 2. **点击 Artifact 操作栏** → "存入记忆" → Artifact 全文写入
 
-### 5.2 自动提炼（对话结束后）
+写入成功后后端发送 `memory_saved` 事件，前端显示"已记忆"chip。
+
+### 6.2 自动提炼（对话结束后）
 
 对话结束后（用户停止输入超过 5 分钟，或手动关闭会话），后台触发：
 - 调用 LLM 对本次会话生成结构化摘要
 - 按上述格式写入 `{session_id}.md`
 - 识别新的 `fact` / `decision` 类型内容，追加到对应 Obsidian 文件
+- 对每条写入的记忆发送 `memory_saved` 事件（若会话仍活跃）
 
 此功能默认**关闭**，用户可在设置中开启。
 
-### 5.3 记忆审批（可选）
+### 6.3 记忆审批（可选）
 
 自动提炼的内容默认进入"待审批"队列，用户在侧栏的记忆管理页面确认后才真正写入。
+`memory_saved` 事件仅在用户审批通过、记忆实际写入后才发送。
 
 ---
 
-## 六、配置文件格式
+## 七、配置文件格式
 
 `~/.llm-platform/config.json`
 

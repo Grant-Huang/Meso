@@ -6,13 +6,21 @@
 
 ## 为什么需要扩展事件
 
-平台内置 7 个标准事件（`stage` / `memory` / `think` / `text` / `artifact` / `done` / `error`）。
-第三方后端几乎必然有平台无法预见的语义，例如：
+平台内置 16 个标准事件，涵盖：
+`capabilities` / `soul` / `skill_active` / `stage` / `memory` / `memory_saved` /
+`tool_call` / `tool_result` / `resource_read` / `resource_content` /
+`think` / `text` / `artifact` / `done` / `error` / `extension`
 
-- 工具调用进度（`tool_progress`）
-- 需要用户确认才能继续的操作（`confirm_gate`）
+**选择标准事件还是扩展事件**：语义上匹配标准事件时，始终优先使用标准事件。
+例如，工具调用应使用 `tool_call` + `tool_result`，而不是 `extension`（`tool_progress`）——
+标准事件有完整的平台 UI 支持（ToolCallBlock、确认门、风险徽章等）。
+
+扩展事件适用于平台无法预见的业务语义，例如：
+
+- 视频生成进度（`video_progress`）
 - 业务实体引用（`entity_reference`）
 - 会话元数据更新（`session_meta`）
+- 自定义确认对话框（和 `tool_call` 不兼容的业务确认）
 
 **扩展事件机制允许第三方传递任意业务事件，而无需 fork 或修改平台源码。**
 

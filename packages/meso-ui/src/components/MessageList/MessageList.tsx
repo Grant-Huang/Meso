@@ -3,7 +3,8 @@ import { ChatBubble } from '../ChatBubble'
 import { ThinkBlock } from '../ThinkBlock'
 import { StageTimeline } from '../StageTimeline'
 import { ArtifactPanel } from '../ArtifactPanel'
-import type { StreamState } from '../../hooks/useSSEStream'
+import type { StreamState } from '../../runtime/streamState'
+import type { ExtensionEvent } from '../../runtime/protocol'
 import type { ArtifactType } from '../ArtifactPanel'
 import type { Stage } from '../StageTimeline'
 import './MessageList.css'
@@ -11,23 +12,43 @@ import './MessageList.css'
 export interface Message {
   id: string
   role: 'user' | 'assistant'
-  /** Final text content (for completed turns) */
+  /** Final text content for completed turns. */
   content: string
   timestamp?: string
 }
 
 export interface MessageListProps {
-  /** Completed conversation turns */
+  /** Completed conversation turns. */
   messages: Message[]
-  /** Live streaming state from useSSEStream (omit when idle) */
+  /** Live streaming state from useSSEStream; omit when idle. */
   streaming?: StreamState
-  /** Called when artifact copy button is clicked */
+  /** Called when artifact copy button is clicked. */
   onArtifactCopy?: (content: string) => void
-  /** Called when artifact download button is clicked */
+  /** Called when artifact download button is clicked. */
   onArtifactDownload?: (content: string) => void
-  /** Rendered when messages is empty and no streaming */
+  /** Rendered when messages is empty and no streaming is active. */
   emptyState?: React.ReactNode
   className?: string
+  /**
+   * Render custom UI for extension events in arrival order.
+   * Use this for tool progress, confirm gates, business entity cards, etc.
+   * Third parties should not need to fork the platform runtime to use this.
+   *
+   * @example
+   * renderExtension={(event) => {
+   *   if (event.payload.name === 'tool_progress') {
+   *     return <ToolProgressCard data={event.payload.data} />
+   *   }
+   * }}
+   */
+  renderExtension?: (event: ExtensionEvent) => React.ReactNode
+}
+
+/** Map protocol lang string to ArtifactPanel type + language prop. */
+function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
+  if (lang === 'html preview') return { type: 'html' }
+  if (lang === 'mermaid') return { type: 'mermaid' }
+  return { type: 'code', language: lang }
 }
 
 export function MessageList({
@@ -37,6 +58,7 @@ export function MessageList({
   onArtifactDownload,
   emptyState,
   className,
+  renderExtension,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -45,6 +67,10 @@ export function MessageList({
   }, [messages, streaming])
 
   const hasContent = messages.length > 0 || (streaming && streaming.status !== 'idle')
+
+  const allStagesDone = streaming
+    ? streaming.stages.every(s => s.state === 'done' || s.state === 'error')
+    : true
 
   return (
     <div className={`meso-message-list${className ? ` ${className}` : ''}`}>
@@ -64,46 +90,72 @@ export function MessageList({
 
         {streaming && streaming.status !== 'idle' && (
           <div className="meso-message-list__live">
-            {streaming.stages.length > 0 && !streaming.stages.every(s => s.status === 'done') && (
+            {streaming.stages.length > 0 && !allStagesDone && (
               <StageTimeline
                 stages={streaming.stages.map((s): Stage => ({
-                  id: s.label,
-                  label: s.label,
-                  status: s.status === 'done' ? 'done' : 'active',
+                  id: s.name,
+                  label: s.name,
+                  status: s.state === 'done' || s.state === 'error' ? 'done' : 'active',
                 }))}
               />
             )}
 
-            {streaming.memoryItems.length > 0 && (
+            {streaming.memorySnippets.length > 0 && (
               <div className="meso-memory-chips">
-                {streaming.memoryItems.map((item, i) => (
-                  <span key={i} className="meso-memory-chip">{item}</span>
+                {streaming.memorySnippets.map((snippet, i) => (
+                  <span
+                    key={i}
+                    className="meso-memory-chip"
+                    title={snippet.content}
+                  >
+                    [{snippet.category}] {snippet.content}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {renderExtension && streaming.extensionLog.length > 0 && (
+              <div className="meso-message-list__extensions">
+                {streaming.extensionLog.map((ext, i) => (
+                  <React.Fragment key={i}>{renderExtension(ext)}</React.Fragment>
                 ))}
               </div>
             )}
 
             {streaming.thinkContent && (
-              <ThinkBlock content={streaming.thinkContent} streaming={!streaming.thinkDone} />
+              <ThinkBlock
+                content={streaming.thinkContent}
+                streaming={!streaming.thinkDone}
+              />
             )}
 
             {(streaming.textContent || streaming.status === 'streaming') && (
               <ChatBubble
                 role="assistant"
                 content={streaming.textContent}
-                streaming={streaming.status === 'streaming' && !streaming.artifact}
+                streaming={
+                  streaming.status === 'streaming' &&
+                  streaming.artifactOrder.length === 0
+                }
               />
             )}
 
-            {streaming.artifact && (
-              <ArtifactPanel
-                type={streaming.artifact.type as ArtifactType}
-                content={streaming.artifact.content}
-                language={streaming.artifact.language}
-                streaming={!streaming.artifact_done}
-                onCopy={onArtifactCopy}
-                onDownload={onArtifactDownload}
-              />
-            )}
+            {streaming.artifactOrder.map(id => {
+              const art = streaming.artifacts[id]
+              if (!art) return null
+              const { type, language } = langToArtifactType(art.lang)
+              return (
+                <ArtifactPanel
+                  key={id}
+                  type={type}
+                  content={art.content}
+                  language={language}
+                  streaming={!art.done}
+                  onCopy={onArtifactCopy}
+                  onDownload={onArtifactDownload}
+                />
+              )
+            })}
           </div>
         )}
 

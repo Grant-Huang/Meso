@@ -9,12 +9,11 @@ export default defineConfig({
     react(),
     dts({
       include: ['src'],
-      exclude: ['src/**/*.css'],
+      exclude: ['src/**/*.css', 'src/**/__tests__/**', 'src/__fixtures__/**'],
       insertTypesEntry: true,
-      rollupTypes: true,
+      rollupTypes: false,
     }),
     {
-      // Copy tokens.css to dist after build
       name: 'copy-tokens',
       closeBundle() {
         copyFileSync(
@@ -26,10 +25,13 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'MesoUI',
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        runtime: resolve(__dirname, 'src/runtime/index.ts'),
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`,
+      fileName: (format, entryName) =>
+        `${entryName}.${format === 'es' ? 'js' : 'cjs'}`,
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],

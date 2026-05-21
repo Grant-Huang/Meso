@@ -96,7 +96,12 @@ AppSidebar
 
 ---
 
-## 三、后端模块划分
+## 三、后端模块划分（参考实现，非规范）
+
+> ⚠️ **Non-normative / Demo only**
+> §3 至 §6 描述的是一种参考后端实现，不属于 `@meso/ui` 平台契约。
+> 第三方可使用任意后端技术栈（Node.js、Go、Java 等），
+> 只需遵守 [`docs/streaming-protocol.md`](./streaming-protocol.md) 定义的 SSE 事件协议。
 
 ### 3.1 目录结构（目标）
 
@@ -172,12 +177,14 @@ POST /api/v1/chat/stream
 
 ---
 
-## 四、SSE 事件协议
+## 四、SSE 事件协议（见规范文档）
+
+> **规范性文档**：完整协议定义见 [`docs/streaming-protocol.md`](./streaming-protocol.md)，本节为概览。
 
 所有流式事件格式统一为：
 
 ```
-data: {"type": "<event_type>", "payload": {...}}\n\n
+data: {"type": "<event_type>", "schema_version": "1.0", "payload": {...}}\n\n
 ```
 
 | event_type | payload | 说明 |

@@ -1,0 +1,15 @@
+data: {"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"active"}}
+
+data: {"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"done"}}
+
+data: {"type":"memory","schema_version":"1.0","payload":{"snippets":[{"category":"preference","content":"偏好简洁"}]}}
+
+data: {"type":"think","schema_version":"1.0","payload":{"delta":"用户想要","done":false}}
+
+data: {"type":"think","schema_version":"1.0","payload":{"delta":"简洁答案","done":true}}
+
+data: {"type":"text","schema_version":"1.0","payload":{"delta":"你好"}}
+
+data: {"type":"text","schema_version":"1.0","payload":{"delta":"世界"}}
+
+data: {"type":"done","schema_version":"1.0","payload":{}}

@@ -19,10 +19,14 @@
 
 ## 二、SSE 事件协议
 
+> **规范性文档**：完整协议定义（含 schema_version、字段类型、扩展事件机制、迁移指南）见
+> [`docs/streaming-protocol.md`](./streaming-protocol.md)。
+> 本节为概览，以规范文档为准。
+
 所有流式事件格式：
 
 ```
-data: {"type": "<event_type>", "payload": {...}}\n\n
+data: {"type": "<event_type>", "schema_version": "1.0", "payload": {...}}\n\n
 ```
 
 ### 事件类型总览
@@ -157,9 +161,11 @@ Think block 容器默认**展开**，流式追加内容（`done: false`）。
 
 ---
 
-## 五、后端流式生成
+## 五、后端流式生成（参考实现，非规范）
 
-参见 `architecture.md` §3.3 流式对话数据流 和 §4 SSE 事件协议。
+> ⚠️ **Non-normative / Demo only**
+> 以下后端结构为参考实现，不属于 `@meso/ui` 平台契约。
+> 第三方可使用任意后端技术栈，只需遵守 `docs/streaming-protocol.md` 定义的 SSE 协议。
 
 核心实现在 `backend/core/streaming.py`，提供：
 

@@ -1,4 +1,3 @@
-import './StageTimeline.css';
 export type StageStatus = 'pending' | 'active' | 'done';
 export interface Stage {
     id: string;

@@ -1,60 +1,28 @@
-/** Event types emitted by the Meso SSE backend */
-export type SSEEventType = 'stage' | 'memory' | 'think' | 'text' | 'artifact' | 'done' | 'error';
-export interface StageEvent {
-    type: 'stage';
-    label: string;
-    status: 'active' | 'done';
-}
-export interface MemoryEvent {
-    type: 'memory';
-    items: string[];
-}
-export interface ThinkEvent {
-    type: 'think';
-    delta: string;
-    done?: boolean;
-}
-export interface TextEvent {
-    type: 'text';
-    delta: string;
-}
-export interface ArtifactEvent {
-    type: 'artifact';
-    artifactType: 'code' | 'html' | 'mermaid';
-    language?: string;
-    delta: string;
-    done?: boolean;
-}
-export interface DoneEvent {
-    type: 'done';
-}
-export interface ErrorEvent {
-    type: 'error';
-    message: string;
-}
-export type SSEEvent = StageEvent | MemoryEvent | ThinkEvent | TextEvent | ArtifactEvent | DoneEvent | ErrorEvent;
-export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error';
-export interface StreamState {
-    status: StreamStatus;
-    stages: StageEvent[];
-    memoryItems: string[];
-    thinkContent: string;
-    thinkDone: boolean;
-    textContent: string;
-    artifact: {
-        type: ArtifactEvent['artifactType'];
-        language?: string;
-        content: string;
-    } | null;
-    artifact_done?: boolean;
-    errorMessage: string | null;
-}
+import { StreamState, StagePayload, MemorySnippet, MemorySavedPayload, SoulPayload, ToolCallPayload, ToolResultPayload, ArtifactState } from '../runtime';
+export type { StreamState, StreamStatus, ArtifactState, ToolCallStatus, ToolCallState, SSEEvent, StageEvent, StagePayload, MemoryEvent, MemorySnippet, MemorySavedEvent, MemorySavedPayload, SoulEvent, SoulPayload, ThinkEvent, ThinkPayload, TextEvent, TextPayload, ArtifactEvent, ToolRisk, ToolCallEvent, ToolCallPayload, ToolResultEvent, ToolResultPayload, DoneEvent, ErrorEvent, ExtensionEvent, ExtensionPayload, } from '../runtime';
 export interface StreamOptions {
     method?: 'GET' | 'POST';
     headers?: Record<string, string>;
     body?: Record<string, unknown>;
 }
-export declare function useSSEStream(url: string): {
+/** Lifecycle callbacks fired after each matching SSE event is applied to state. */
+export interface StreamCallbacks {
+    onStageChange?: (stage: StagePayload) => void;
+    onMemoryRecalled?: (snippets: MemorySnippet[]) => void;
+    onMemorySaved?: (saved: MemorySavedPayload) => void;
+    onSoulActivated?: (soul: SoulPayload) => void;
+    onToolCall?: (call: ToolCallPayload) => void;
+    onToolResult?: (result: ToolResultPayload) => void;
+    onArtifact?: (artifact: ArtifactState) => void;
+    onError?: (message: string, code?: string) => void;
+    onDone?: (finalState: StreamState) => void;
+}
+/**
+ * React hook wrapping the Meso SSE runtime.
+ * For fetch-free usage (custom transports, Node.js), import directly from
+ * @meso/ui/runtime: { parseSSELine, applyEvent, createInitialStreamState }
+ */
+export declare function useSSEStream(url: string, callbacks?: StreamCallbacks): {
     state: StreamState;
     start: (options?: StreamOptions) => Promise<void>;
     abort: () => void;

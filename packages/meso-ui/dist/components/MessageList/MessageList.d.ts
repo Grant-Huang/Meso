@@ -1,7 +1,5 @@
-import React from 'react';
-import type { StreamState } from '../../runtime/streamState';
-import type { ExtensionEvent } from '../../runtime/protocol';
-import './MessageList.css';
+import { default as React } from 'react';
+import { StreamState, ExtensionEvent } from '../../runtime';
 export interface Message {
     id: string;
     role: 'user' | 'assistant';
@@ -18,21 +16,20 @@ export interface MessageListProps {
     onArtifactCopy?: (content: string) => void;
     /** Called when artifact download button is clicked. */
     onArtifactDownload?: (content: string) => void;
+    /**
+     * Called when user confirms a tool awaiting confirmation.
+     * The app should send the approval to the backend via its own channel.
+     */
+    onToolConfirm?: (toolCallId: string) => void;
+    /** Called when user cancels a tool awaiting confirmation. */
+    onToolCancel?: (toolCallId: string) => void;
     /** Rendered when messages is empty and no streaming is active. */
     emptyState?: React.ReactNode;
     className?: string;
     /**
      * Render custom UI for extension events in arrival order.
-     * Use this for tool progress, confirm gates, business entity cards, etc.
-     * Third parties should not need to fork the platform runtime to use this.
-     *
-     * @example
-     * renderExtension={(event) => {
-     *   if (event.payload.name === 'tool_progress') {
-     *     return <ToolProgressCard data={event.payload.data} />
-     *   }
-     * }}
+     * Use this for domain-specific events that don't fit standard types.
      */
     renderExtension?: (event: ExtensionEvent) => React.ReactNode;
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, emptyState, className, renderExtension, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, className, renderExtension, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

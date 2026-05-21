@@ -1,0 +1,107 @@
+.meso-confirm-gate {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+}
+
+.meso-confirm-gate--write {
+  border-color: color-mix(in srgb, var(--color-warning) 40%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 5%, var(--color-bg-elevated));
+}
+
+.meso-confirm-gate--destructive {
+  border-color: color-mix(in srgb, var(--color-error) 40%, transparent);
+  background: color-mix(in srgb, var(--color-error) 5%, var(--color-bg-elevated));
+}
+
+.meso-confirm-gate__icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.meso-confirm-gate--write .meso-confirm-gate__icon { color: var(--color-warning); }
+.meso-confirm-gate--destructive .meso-confirm-gate__icon { color: var(--color-error); }
+.meso-confirm-gate--safe .meso-confirm-gate__icon { color: var(--color-text-secondary); }
+
+.meso-confirm-gate__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meso-confirm-gate__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meso-confirm-gate__risk-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+}
+.meso-confirm-gate__risk-badge--safe        { background: color-mix(in srgb, var(--color-info) 15%, transparent); color: var(--color-info); }
+.meso-confirm-gate__risk-badge--write       { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
+.meso-confirm-gate__risk-badge--destructive { background: color-mix(in srgb, var(--color-error) 15%, transparent); color: var(--color-error); }
+
+.meso-confirm-gate__tool-name {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.meso-confirm-gate__args {
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.meso-confirm-gate__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.meso-confirm-gate__btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s;
+}
+.meso-confirm-gate__btn:hover { opacity: 0.85; }
+
+.meso-confirm-gate__btn--cancel {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.meso-confirm-gate__btn--confirm {
+  background: var(--color-accent);
+  color: #fff;
+}
+.meso-confirm-gate__btn--confirm.meso-confirm-gate__btn--destructive {
+  background: var(--color-error);
+}
+.meso-confirm-gate__btn--confirm.meso-confirm-gate__btn--write {
+  background: var(--color-warning);
+  color: var(--color-bg);
+}

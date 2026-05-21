@@ -65,6 +65,54 @@ export interface ErrorPayload {
 }
 /** Unrecoverable error. Mutually exclusive with DoneEvent. */
 export type ErrorEvent = Envelope<'error', ErrorPayload>;
+export interface SoulPayload {
+    /** Stable identifier for this soul definition. */
+    id: string;
+    /** Display name shown in UI. */
+    name: string;
+    /** Semver of the soul definition — bumped when personality changes. */
+    version: string;
+    /** Optional avatar URL or data URI. */
+    avatar?: string;
+    /** Optional trait tags for UI display (e.g. ["严谨", "好奇"]). */
+    traits?: string[];
+}
+/** Active soul/persona notification — sent once at stream start. */
+export type SoulEvent = Envelope<'soul', SoulPayload>;
+export interface MemorySavedPayload {
+    /** Unique id of the saved memory entry. */
+    id: string;
+    category: string;
+    /** Short excerpt for toast display (≤ 80 chars). */
+    preview: string;
+}
+/** Backend confirmation that a memory was persisted during this session. */
+export type MemorySavedEvent = Envelope<'memory_saved', MemorySavedPayload>;
+export type ToolRisk = 'safe' | 'write' | 'destructive';
+export interface ToolCallPayload {
+    /** Unique id scoping this invocation within the response. */
+    id: string;
+    name: string;
+    args: Record<string, unknown>;
+    /**
+     * Risk level hint for UI rendering and confirm gate.
+     * Omit or use "safe" for read-only tools.
+     */
+    risk?: ToolRisk;
+}
+/** LLM decided to call a tool — emitted before execution starts. */
+export type ToolCallEvent = Envelope<'tool_call', ToolCallPayload>;
+export interface ToolResultPayload {
+    /** Matches the id from the corresponding tool_call event. */
+    tool_call_id: string;
+    /** Serialised output (stringified JSON, plain text, etc.). */
+    output: string;
+    /** Present only on failure. */
+    error?: string;
+    duration_ms?: number;
+}
+/** Tool execution completed (success or error). */
+export type ToolResultEvent = Envelope<'tool_result', ToolResultPayload>;
 export interface ExtensionPayload {
     /** Identifies the extension type (e.g. "tool_progress", "confirm_gate"). */
     name: string;
@@ -74,5 +122,5 @@ export interface ExtensionPayload {
 }
 /** Third-party extension event — consumed via MessageList's renderExtension prop. */
 export type ExtensionEvent = Envelope<'extension', ExtensionPayload>;
-export type SSEEvent = StageEvent | MemoryEvent | ThinkEvent | TextEvent | ArtifactEvent | DoneEvent | ErrorEvent | ExtensionEvent;
+export type SSEEvent = StageEvent | MemoryEvent | MemorySavedEvent | SoulEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | DoneEvent | ErrorEvent | ExtensionEvent;
 export {};

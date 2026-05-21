@@ -1,0 +1,5 @@
+data: {"type":"soul","schema_version":"1.0","payload":{"id":"research-assistant","name":"研究助手","version":"2.1.0","traits":["严谨","好奇","简洁"]}}
+
+data: {"type":"text","schema_version":"1.0","payload":{"delta":"你好，我是研究助手"}}
+
+data: {"type":"done","schema_version":"1.0","payload":{}}

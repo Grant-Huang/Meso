@@ -7,12 +7,21 @@ export type {
   MemoryEvent,
   MemorySnippet,
   MemoryPayload,
+  MemorySavedEvent,
+  MemorySavedPayload,
+  SoulEvent,
+  SoulPayload,
   ThinkEvent,
   ThinkPayload,
   TextEvent,
   TextPayload,
   ArtifactEvent,
   ArtifactPayload,
+  ToolRisk,
+  ToolCallEvent,
+  ToolCallPayload,
+  ToolResultEvent,
+  ToolResultPayload,
   DoneEvent,
   ErrorEvent,
   ErrorPayload,
@@ -20,7 +29,13 @@ export type {
   ExtensionPayload,
 } from './protocol'
 
-export type { StreamState, StreamStatus, ArtifactState } from './streamState'
+export type {
+  StreamState,
+  StreamStatus,
+  ArtifactState,
+  ToolCallStatus,
+  ToolCallState,
+} from './streamState'
 export { createInitialStreamState } from './streamState'
 
 export { applyEvent } from './applyEvent'

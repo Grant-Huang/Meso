@@ -7,4 +7,4 @@
  * `@meso/ui/runtime` continues to work as a convenience path.
  */
 export { PROTOCOL_VERSION, createInitialStreamState, applyEvent, parseSSELine, } from '@meso/types';
-export type { ProtocolVersion, SSEEvent, StageEvent, StagePayload, MemoryEvent, MemorySnippet, MemoryPayload, ThinkEvent, ThinkPayload, TextEvent, TextPayload, ArtifactEvent, ArtifactPayload, DoneEvent, ErrorEvent, ErrorPayload, ExtensionEvent, ExtensionPayload, StreamState, StreamStatus, ArtifactState, } from '@meso/types';
+export type { ProtocolVersion, SSEEvent, StageEvent, StagePayload, MemoryEvent, MemorySnippet, MemoryPayload, MemorySavedEvent, MemorySavedPayload, SoulEvent, SoulPayload, ThinkEvent, ThinkPayload, TextEvent, TextPayload, ArtifactEvent, ArtifactPayload, ToolRisk, ToolCallEvent, ToolCallPayload, ToolResultEvent, ToolResultPayload, DoneEvent, ErrorEvent, ErrorPayload, ExtensionEvent, ExtensionPayload, StreamState, StreamStatus, ArtifactState, ToolCallStatus, ToolCallState, } from '@meso/types';

@@ -13,6 +13,8 @@ export type { StageTimelineProps, Stage, StageStatus } from './components/StageT
 export { MessageList } from './components/MessageList';
 export type { MessageListProps, Message } from './components/MessageList';
 export { useSSEStream } from './hooks/useSSEStream';
-export type { SSEEvent, SSEEventType, StreamState, StreamStatus, StreamOptions, StageEvent, MemoryEvent, ThinkEvent, TextEvent, ArtifactEvent, DoneEvent, ErrorEvent, } from './hooks/useSSEStream';
+export type { StreamOptions } from './hooks/useSSEStream';
 export { useTheme } from './hooks/useTheme';
 export type { Theme } from './hooks/useTheme';
+export { PROTOCOL_VERSION, parseSSELine, applyEvent, createInitialStreamState, } from './runtime';
+export type { SSEEvent, StageEvent, StagePayload, MemoryEvent, MemorySnippet, MemoryPayload, ThinkEvent, ThinkPayload, TextEvent, TextPayload, ArtifactEvent, ArtifactPayload, DoneEvent, ErrorEvent, ErrorPayload, ExtensionEvent, ExtensionPayload, StreamState, StreamStatus, ArtifactState, } from './runtime';

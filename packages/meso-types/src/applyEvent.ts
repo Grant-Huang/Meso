@@ -127,6 +127,31 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       }
     }
 
+    case 'workflow_node': {
+      const { run_id, node_id, parent_id, name, state: nodeState, started_at, duration_ms, metadata } = event.payload
+      const existingRun = state.workflowRuns[run_id] ?? { run_id, nodes: {}, nodeOrder: [] }
+      const nodeOrder = existingRun.nodeOrder.includes(node_id)
+        ? existingRun.nodeOrder
+        : [...existingRun.nodeOrder, node_id]
+      return {
+        ...state,
+        workflowRunOrder: state.workflowRunOrder.includes(run_id)
+          ? state.workflowRunOrder
+          : [...state.workflowRunOrder, run_id],
+        workflowRuns: {
+          ...state.workflowRuns,
+          [run_id]: {
+            run_id,
+            nodes: {
+              ...existingRun.nodes,
+              [node_id]: { node_id, run_id, parent_id, name, state: nodeState, started_at, duration_ms, metadata },
+            },
+            nodeOrder,
+          },
+        },
+      }
+    }
+
     case 'done':
       return { ...state, status: 'done' }
 

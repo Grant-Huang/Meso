@@ -62,6 +62,7 @@ function ChatArea() {
 | `text` | `textContent` 追加 | ChatBubble 出现，光标闪烁 |
 | `artifact` | `artifacts[id]` 追加 | ArtifactPanel 弹出（首次出现时） |
 | `artifact` done:true | `artifacts[id].done = true` | 触发最终语法高亮 / 图表渲染 |
+| `workflow_node` | `workflowRuns[run_id].nodes[node_id]` 更新 | WorkflowTimeline 树形更新 |
 | `extension` | `extensionLog` + `extensions[name]` | `renderExtension` 调用 |
 | `done` | `status = 'done'` | 光标消失 |
 | `error` | `status = 'error'`, `errorMessage` | 错误提示显示 |
@@ -92,6 +93,10 @@ interface StreamState {
   // Artifacts（多个，按顺序）
   artifacts:      Record<string, { id: string; lang: string; content: string; done: boolean }>
   artifactOrder:  string[]   // id 按首次出现顺序
+
+  // 工作流节点（workflow_node 事件，开发者可观测性）
+  workflowRunOrder: string[]                        // run_id 按首次出现顺序
+  workflowRuns:     Record<string, WorkflowRunState>
 
   // 扩展事件
   extensionLog:   ExtensionEvent[]                  // 按到达顺序

@@ -457,7 +457,88 @@ Mutually exclusive with `done`.
 
 ---
 
-## 4. Extension Events
+## 4. Workflow Node Events
+
+`workflow_node` provides **developer-facing, fine-grained observability** for DAG and
+workflow execution. It is the per-step signal that backend orchestrators emit through
+the existing SSE exit — Meso observes and renders it; the execution engine stays in
+the backend.
+
+### Division of responsibility
+
+| Signal | Event | Audience | Granularity examples |
+|--------|-------|----------|----------------------|
+| Coarse pipeline | `stage` | **Users** | "召回记忆", "搜索网络", "生成回复" |
+| Fine steps | `workflow_node` | **Developers** | `intent_router`, `web_search`, `fetch_batch_3` |
+
+The two signals are independent. A backend may emit both, either, or neither.
+
+### Wire format
+
+```json
+{
+  "type": "workflow_node",
+  "schema_version": "1.0",
+  "payload": {
+    "run_id":     "run-abc123",
+    "node_id":    "n_web_search",
+    "parent_id":  "n_router",
+    "name":       "web_search",
+    "state":      "done",
+    "started_at": 1700000000000,
+    "duration_ms": 312,
+    "metadata": {
+      "url":   "https://example.com",
+      "chars": 4200
+    }
+  }
+}
+```
+
+| Payload field | Required | Notes |
+|---------------|----------|-------|
+| `run_id` | ✅ | Groups all nodes in the same workflow execution |
+| `node_id` | ✅ | Unique within the run |
+| `parent_id` | ❌ | Parent node id; null or absent = root node |
+| `name` | ✅ | Developer-readable node name (e.g. `"web_search"`) |
+| `state` | ✅ | `"active"` \| `"done"` \| `"error"` \| `"skipped"` |
+| `started_at` | ❌ | Unix ms timestamp when the node started |
+| `duration_ms` | ❌ | Wall-clock duration (present on `done`/`error`) |
+| `metadata` | ❌ | Arbitrary domain-specific data (input/output summaries, URLs, …) |
+
+### State machine
+
+```
+active ──► done
+active ──► error
+active ──► skipped   (conditional branch bypassed this node)
+```
+
+The same `node_id` may arrive multiple times (`active` → `done`). Each event
+**upserts** the node; `nodeOrder` does not duplicate.
+
+### State machine behavior
+
+- `workflowRunOrder` accumulates `run_id` values in first-seen order
+- `workflowRuns[run_id].nodeOrder` accumulates `node_id` values in first-seen order
+- `workflowRuns[run_id].nodes[node_id]` holds the latest state for that node
+- A single stream may contain multiple runs (e.g. parallel sub-graphs)
+
+### Rendering
+
+```tsx
+import { WorkflowTimeline } from '@meso/ui'
+
+const runs = state.workflowRunOrder.map(id => state.workflowRuns[id])
+<WorkflowTimeline runs={runs} />
+```
+
+`WorkflowTimeline` is a read-only component. It renders a tree using `nodeOrder`
+(arrival order) and `parent_id` depth — no YAML or topology description needed.
+
+---
+
+## 5. Extension Events
 
 Third-party backends use this channel for domain-specific events without forking
 the platform runtime. Platform UI surfaces them via `MessageList.renderExtension`.
@@ -501,7 +582,7 @@ match. Use `extension` only for domain-specific events that have no standard equ
 
 ---
 
-## 5. Complete Event Type Reference
+## 6. Complete Event Type Reference
 
 | Type | When sent | Frontend effect |
 |------|-----------|-----------------|
@@ -518,13 +599,14 @@ match. Use `extension` only for domain-specific events that have no standard equ
 | `think` | Reasoning token (incremental) | Appends to ThinkBlock |
 | `text` | Response token (incremental) | Appends to ChatBubble |
 | `artifact` | Code/chart/HTML token (incremental) | Appends to ArtifactPanel |
+| `workflow_node` | DAG/workflow node status change | Updates WorkflowTimeline tree |
 | `done` | Stream ended successfully | Finalizes state, removes streaming cursor |
 | `error` | Unrecoverable error | Shows error state |
 | `extension` | Domain-specific event | Passed to `renderExtension` callback |
 
 ---
 
-## 6. Typical Event Sequences
+## 7. Typical Event Sequences
 
 ### Basic session (no tools/MCP)
 

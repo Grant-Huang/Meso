@@ -10,6 +10,7 @@ import type {
   ResourceReadPayload,
   ResourceContentPayload,
   ExtensionEvent,
+  WorkflowNodeState,
 } from './protocol'
 
 export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error'
@@ -40,6 +41,25 @@ export interface ResourceReadState {
   read: ResourceReadPayload
   content?: ResourceContentPayload
   status: ResourceReadStatus
+}
+
+export interface WorkflowNodeRecord {
+  node_id: string
+  run_id: string
+  parent_id?: string | null
+  name: string
+  state: WorkflowNodeState
+  started_at?: number
+  duration_ms?: number
+  metadata?: Record<string, unknown>
+}
+
+export interface WorkflowRunState {
+  run_id: string
+  /** All nodes keyed by node_id for O(1) lookup and state updates. */
+  nodes: Record<string, WorkflowNodeRecord>
+  /** Node ids in first-seen order — use for deterministic rendering. */
+  nodeOrder: string[]
 }
 
 export interface StreamState {
@@ -82,6 +102,16 @@ export interface StreamState {
   /** Artifact ids in first-seen order — use for deterministic rendering. */
   artifactOrder: string[]
 
+  // ── Workflow observability ─────────────────────────────────────────────────
+  /**
+   * Workflow runs keyed by run_id. One stream may contain multiple runs
+   * (e.g. parallel sub-graphs from LangGraph or Temporal).
+   * Stage = user-readable coarse progress; workflow_node = developer-facing fine steps.
+   */
+  workflowRuns: Record<string, WorkflowRunState>
+  /** Run ids in first-seen order — use for deterministic rendering. */
+  workflowRunOrder: string[]
+
   // ── Extension escape hatch ─────────────────────────────────────────────────
   /**
    * Extension events keyed by name for lookup (e.g. extensions["tool_progress"]).
@@ -112,6 +142,8 @@ export function createInitialStreamState(): StreamState {
     textContent: '',
     artifacts: {},
     artifactOrder: [],
+    workflowRuns: {},
+    workflowRunOrder: [],
     extensions: {},
     extensionLog: [],
     errorMessage: null,

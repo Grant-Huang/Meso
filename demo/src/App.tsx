@@ -56,27 +56,36 @@ function getPageFromHash(): Page {
 
 export default function App() {
   const [page, setPage] = useState<Page>(getPageFromHash)
-  const [sessions, setSessions] = useState<Session[]>(PAGE_SESSIONS[page])
-  const [activeSessionId, setActiveSessionId] = useState<string | undefined>(PAGE_SESSIONS[page][0]?.id)
+
+  // Track sessions and active session per page independently so switching pages
+  // doesn't reset the other page's state.
+  const [pageSessions, setPageSessions] = useState<Record<Page, Session[]>>(PAGE_SESSIONS)
+  const [pageActiveSession, setPageActiveSession] = useState<Record<Page, string | undefined>>(
+    () => Object.fromEntries(
+      (Object.keys(PAGE_SESSIONS) as Page[]).map(p => [p, PAGE_SESSIONS[p][0]?.id])
+    ) as Record<Page, string | undefined>
+  )
+
+  const sessions = pageSessions[page]
+  const activeSessionId = pageActiveSession[page]
 
   useEffect(() => {
-    const onHash = () => {
-      const p = getPageFromHash()
-      setPage(p)
-      setSessions(PAGE_SESSIONS[p])
-      setActiveSessionId(PAGE_SESSIONS[p][0]?.id)
-    }
+    const onHash = () => setPage(getPageFromHash())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
   const navigate = (p: Page) => { location.hash = p }
 
+  const handleSelectSession = (id: string) => {
+    setPageActiveSession(prev => ({ ...prev, [page]: id }))
+  }
+
   const createSession = () => {
     const id = crypto.randomUUID()
     const now = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-    setSessions(prev => [{ id, title: '新对话', lastTime: now }, ...prev])
-    setActiveSessionId(id)
+    setPageSessions(prev => ({ ...prev, [page]: [{ id, title: '新对话', lastTime: now }, ...prev[page]] }))
+    setPageActiveSession(prev => ({ ...prev, [page]: id }))
   }
 
   const navItems = [
@@ -105,7 +114,7 @@ export default function App() {
           <SessionList
             sessions={sessions}
             activeId={activeSessionId}
-            onSelect={setActiveSessionId}
+            onSelect={handleSelectSession}
             onNew={isStaticPage ? () => {} : createSession}
           />
         }
@@ -115,8 +124,18 @@ export default function App() {
           </div>
         }
       >
-        {page === 'streaming'  && <StreamingPage  key={activeSessionId} />}
-        {page === 'live-chat'  && <LiveChatPage   key={activeSessionId} />}
+        {/*
+         * Chat pages are always mounted so streaming continues in the background
+         * when the user switches pages or sessions. CSS display:none hides them
+         * without destroying their state; display:contents makes the active one
+         * transparent to the parent flex layout.
+         */}
+        <div style={{ display: page === 'streaming' ? 'contents' : 'none' }}>
+          <StreamingPage sessionId={pageActiveSession.streaming ?? ''} />
+        </div>
+        <div style={{ display: page === 'live-chat' ? 'contents' : 'none' }}>
+          <LiveChatPage sessionId={pageActiveSession['live-chat'] ?? ''} />
+        </div>
         {page === 'typography' && <TypographyPage />}
         {page === 'components' && <ComponentsPage />}
         {page === 'memory'     && <MemoryPage />}

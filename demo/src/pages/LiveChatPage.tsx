@@ -1,28 +1,59 @@
 import { MessageList } from '@meso/ui'
 import type { Message } from '@meso/ui'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Composer } from '../components/Composer'
 import { useLlmStream } from '../hooks/useLlmStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
 
-export function LiveChatPage() {
+interface LiveChatPageProps {
+  /** The currently active session. Changes when the user picks a different session
+   *  from the sidebar, but the component stays mounted so streaming continues. */
+  sessionId: string
+}
+
+export function LiveChatPage({ sessionId }: LiveChatPageProps) {
   const { state, send, abort, reset } = useLlmStream()
-  const [messages, setMessages] = useState<Message[]>([])
+
+  // Per-session message storage (same pattern as StreamingPage).
+  const messagesMapRef = useRef<Record<string, Message[]>>({})
+  const [displayMessages, setDisplayMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
 
-  // Update API key when provider changes (use env if available)
+  // Always-current sessionId reference for use inside stable callbacks.
+  const sessionIdRef = useRef(sessionId)
+  sessionIdRef.current = sessionId
+
+  // Track which session triggered the current streaming request.
+  const streamingForRef = useRef<string>(sessionId)
+
+  // When the active session changes, show that session's messages.
+  useEffect(() => {
+    setDisplayMessages(messagesMapRef.current[sessionId] ?? [])
+  }, [sessionId])
+
+  // Stable helper: persist and optionally display messages for a session.
+  const updateMessages = useCallback((sid: string, msgs: Message[]) => {
+    messagesMapRef.current[sid] = msgs
+    if (sid === sessionIdRef.current) {
+      setDisplayMessages(msgs)
+    }
+  }, [])
+
   const handleProviderChange = (p: LlmProvider) => {
     setProvider(p)
     setApiKey(ENV_KEYS[p.id] ?? '')
   }
 
+  // When streaming finishes, append the assistant reply to the correct session.
   useEffect(() => {
     if (state.status === 'done' && state.textContent) {
-      setMessages(prev => [
+      const sid = streamingForRef.current
+      const prev = messagesMapRef.current[sid] ?? []
+      updateMessages(sid, [
         ...prev,
         {
           id: crypto.randomUUID(),
@@ -33,7 +64,7 @@ export function LiveChatPage() {
       ])
       reset()
     }
-  }, [state.status, state.textContent, reset])
+  }, [state.status, state.textContent, reset, updateMessages])
 
   const handleSend = (text: string) => {
     if (!apiKey.trim()) {
@@ -41,15 +72,18 @@ export function LiveChatPage() {
       return
     }
 
+    streamingForRef.current = sessionId
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
       timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
     }
-    setMessages(prev => [...prev, userMsg])
+    const prev = messagesMapRef.current[sessionId] ?? []
+    const next = [...prev, userMsg]
+    updateMessages(sessionId, next)
 
-    const history = [...messages, userMsg].map(m => ({
+    const history = next.map(m => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
     }))
@@ -192,7 +226,7 @@ export function LiveChatPage() {
 
       <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         <MessageList
-          messages={messages}
+          messages={displayMessages}
           streaming={state.status !== 'idle' ? state : undefined}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>

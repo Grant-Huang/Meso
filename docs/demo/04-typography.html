@@ -111,9 +111,12 @@
       font-size:12px; background:rgba(61,107,82,0.10); color:var(--color-accent-dark);
       border-radius:4px; padding:2px 7px;
     }
+    .doc-btn { position:fixed; top:10px; right:12px; text-decoration:none; font-size:16px; opacity:.5; z-index:100; transition:opacity .15s; line-height:1; }
+    .doc-btn:hover { opacity:1; }
   </style>
 </head>
 <body>
+<a class="doc-btn" href="../help.html#tokens" target="_blank" title="查看文档">📖</a>
 <div class="page">
 
   <div class="page-title">
@@ -233,7 +236,7 @@
   </div>
 
   <!-- Color hierarchy -->
-  <div class="section-header">
+  <div id="hierarchy" class="section-header">
     <div class="section-line"></div>
     <span class="section-label">颜色层级</span>
     <div class="section-line"></div>
@@ -277,7 +280,7 @@
   </div>
 
   <!-- Markdown demo -->
-  <div class="section-header">
+  <div id="markdown" class="section-header">
     <div class="section-line"></div>
     <span class="section-label">Markdown 渲染示例</span>
     <div class="section-line"></div>
@@ -300,5 +303,10 @@
   </div>
 
 </div>
+<script>
+  const _h = location.hash.slice(1);
+  if (_h) { const _el = document.getElementById(_h); if (_el) setTimeout(() => _el.scrollIntoView({behavior:'smooth'}), 100); }
+  window.addEventListener('hashchange', () => { const _h2 = location.hash.slice(1); const _el2 = document.getElementById(_h2); if (_el2) _el2.scrollIntoView({behavior:'smooth'}); });
+</script>
 </body>
 </html>

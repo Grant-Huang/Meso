@@ -56,6 +56,9 @@ export type {
   ErrorPayload,
   ExtensionEvent,
   ExtensionPayload,
+  WorkflowNodeState,
+  WorkflowNodePayload,
+  WorkflowNodeEvent,
   StreamState,
   StreamStatus,
   ArtifactState,
@@ -63,4 +66,6 @@ export type {
   ToolCallState,
   ResourceReadStatus,
   ResourceReadState,
+  WorkflowNodeRecord,
+  WorkflowRunState,
 } from '@meso/types'

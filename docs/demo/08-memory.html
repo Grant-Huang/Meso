@@ -106,9 +106,12 @@
     .prompt-text    { color:#cdd8ca; }
     .prompt-score   { color:#6a8872; }
     .prompt-rule    { color:#b8c9b4; }
+    .doc-btn { position:fixed; top:10px; right:12px; text-decoration:none; font-size:16px; opacity:.5; z-index:100; transition:opacity .15s; line-height:1; }
+    .doc-btn:hover { opacity:1; }
   </style>
 </head>
 <body>
+<a class="doc-btn" href="../help.html#memory" target="_blank" title="查看文档">📖</a>
 <div class="page">
 
   <div class="page-title">
@@ -210,7 +213,7 @@
     </div>
   </div>
 
-  <div class="section-header">
+  <div id="recall" class="section-header">
     <div class="section-line"></div>
     <span class="section-label">3 · 模拟召回</span>
     <div class="section-line"></div>
@@ -233,7 +236,7 @@
     </div>
   </div>
 
-  <div class="section-header">
+  <div id="inject" class="section-header">
     <div class="section-line"></div>
     <span class="section-label">4 · 注入系统提示</span>
     <div class="section-line"></div>
@@ -299,6 +302,10 @@
 
   document.getElementById('search-btn').addEventListener('click', runSearch);
   document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+
+  const _h = location.hash.slice(1);
+  if (_h) { const _el = document.getElementById(_h); if (_el) setTimeout(() => _el.scrollIntoView({behavior:'smooth'}), 100); }
+  window.addEventListener('hashchange', () => { const _h2 = location.hash.slice(1); const _el2 = document.getElementById(_h2); if (_el2) _el2.scrollIntoView({behavior:'smooth'}); });
 </script>
 </body>
 </html>

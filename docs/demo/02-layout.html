@@ -185,9 +185,12 @@
     .section-line { flex:1; height:1px; background:var(--color-border); }
     .section-label { font-size:11px; font-weight:600; text-transform:uppercase;
       letter-spacing:.07em; color:var(--color-text-muted); }
+    .doc-btn { position:fixed; top:10px; right:12px; text-decoration:none; font-size:16px; opacity:.5; z-index:100; transition:opacity .15s; line-height:1; }
+    .doc-btn:hover { opacity:1; }
   </style>
 </head>
 <body>
+<a class="doc-btn" href="../help.html#layout" target="_blank" title="查看文档">📖</a>
 <div class="page">
   <div class="page-title">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="4" height="14" rx="1" fill="var(--color-accent)" opacity=".4"/><rect x="6" y="1" width="3.5" height="14" rx="1" fill="var(--color-accent)" opacity=".6"/><rect x="10.5" y="1" width="4.5" height="14" rx="1" fill="var(--color-accent)"/></svg>
@@ -196,7 +199,7 @@
   <div class="page-subtitle">三栏布局结构 · 交互演示 · CSS 参考值</div>
 
   <!-- Controls -->
-  <div class="controls">
+  <div id="collapse" class="controls">
     <div class="ctrl-group">
       <span class="ctrl-label">左栏</span>
       <button class="icon-btn active" id="btn-sidebar" title="折叠/展开侧栏">
@@ -279,6 +282,7 @@
         </div>
 
         <!-- Draggable splitter -->
+        <span id="splitter" style="position:absolute;top:0;"></span>
         <div class="splitter" id="splitter-artifact"></div>
 
         <!-- Artifact -->
@@ -399,6 +403,10 @@
     splitter.classList.remove('dragging');
     document.body.style.userSelect = '';
   });
+
+  const _h = location.hash.slice(1);
+  if (_h) { const _el = document.getElementById(_h); if (_el) setTimeout(() => _el.scrollIntoView({behavior:'smooth'}), 100); }
+  window.addEventListener('hashchange', () => { const _h2 = location.hash.slice(1); const _el2 = document.getElementById(_h2); if (_el2) _el2.scrollIntoView({behavior:'smooth'}); });
 </script>
 </body>
 </html>

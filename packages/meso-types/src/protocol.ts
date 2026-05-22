@@ -284,6 +284,41 @@ export interface ResourceContentPayload {
 /** Resource content arrived (or failed). */
 export type ResourceContentEvent = Envelope<'resource_content', ResourceContentPayload>
 
+// ── Workflow node event ──────────────────────────────────────────────────────
+//
+// Developer-facing fine-grained observability for DAG/workflow execution.
+// Complements stage (user-readable coarse progress) with per-node telemetry.
+//
+// Division of labour:
+//   stage         — user-visible pipeline label ("召回记忆", "生成回复")
+//   workflow_node — developer step inside a backend workflow (web_search, fetch_batch_3)
+//
+// A single stream may contain multiple workflow runs (e.g., parallel sub-graphs).
+// The DAG executor lives in the backend (LangGraph, Temporal, custom code) —
+// this event is the read-only signal it emits; Meso only observes and renders.
+
+export type WorkflowNodeState = 'active' | 'done' | 'error' | 'skipped'
+
+export interface WorkflowNodePayload {
+  /** Groups all nodes belonging to the same workflow execution. */
+  run_id: string
+  /** Unique node identifier within the run. */
+  node_id: string
+  /** Parent node id for tree/sub-graph structure. Null or absent = root node. */
+  parent_id?: string | null
+  /** Developer-facing node name (e.g. "web_search", "fetch_batch_3"). */
+  name: string
+  state: WorkflowNodeState
+  /** Unix ms timestamp when this node started. */
+  started_at?: number
+  /** Wall-clock duration in milliseconds (present on done/error). */
+  duration_ms?: number
+  /** Arbitrary domain-specific metadata (e.g. input/output summaries). */
+  metadata?: Record<string, unknown>
+}
+/** Fine-grained workflow node progress — developer-facing, not shown to end users. */
+export type WorkflowNodeEvent = Envelope<'workflow_node', WorkflowNodePayload>
+
 // ── Extension event ─────────────────────────────────────────────────────────
 //
 // Third-party backends use this channel for domain-specific events that don't
@@ -316,6 +351,7 @@ export type SSEEvent =
   | ToolResultEvent
   | ResourceReadEvent
   | ResourceContentEvent
+  | WorkflowNodeEvent
   | DoneEvent
   | ErrorEvent
   | ExtensionEvent

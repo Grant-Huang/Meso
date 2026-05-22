@@ -42,6 +42,9 @@ export type {
   ErrorPayload,
   ExtensionEvent,
   ExtensionPayload,
+  WorkflowNodeState,
+  WorkflowNodePayload,
+  WorkflowNodeEvent,
 } from './protocol'
 
 export type {
@@ -52,6 +55,8 @@ export type {
   ToolCallState,
   ResourceReadStatus,
   ResourceReadState,
+  WorkflowNodeRecord,
+  WorkflowRunState,
 } from './streamState'
 export { createInitialStreamState } from './streamState'
 

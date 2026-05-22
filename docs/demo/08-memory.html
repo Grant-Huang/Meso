@@ -124,6 +124,12 @@
   </div>
   <div class="page-subtitle">短期记忆 · 长期记忆 · 召回算法 · 系统提示注入</div>
 
+  <div style="margin:12px 0 20px;padding:10px 14px;background:rgba(224,108,108,0.08);border:1px solid rgba(224,108,108,0.25);border-radius:8px;font-size:12px;color:var(--color-text-secondary);line-height:1.6;">
+    ⚠️ <strong>架构参考页</strong> — 以下内容展示后端记忆系统的存储结构与召回算法，属于平台基础设施层，
+    不代表可直接使用的 UI 组件。平台 UI 层仅通过 <code>memory</code> / <code>memory_saved</code> SSE
+    事件与记忆系统交互，对应渲染见 <a href="01-streaming.html#memory" style="color:var(--color-accent)">流式组件 → 记忆召回流</a>。
+  </div>
+
   <div class="section-header">
     <div class="section-line"></div>
     <span class="section-label">1 · 记忆存储结构</span>

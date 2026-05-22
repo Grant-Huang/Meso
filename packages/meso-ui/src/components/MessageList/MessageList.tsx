@@ -44,6 +44,12 @@ export interface MessageListProps {
    * Use this for domain-specific events that don't fit standard types.
    */
   renderExtension?: (event: ExtensionEvent) => React.ReactNode
+  /**
+   * Sanitized HTML factory for Markdown rendering in assistant bubbles.
+   * When provided, assistant bubbles render content as Markdown.
+   * Must return sanitized HTML (e.g. marked + DOMPurify output).
+   */
+  renderMarkdown?: (source: string) => string
 }
 
 /** Map protocol lang string to ArtifactPanel type + language prop. */
@@ -63,6 +69,7 @@ export function MessageList({
   emptyState,
   className,
   renderExtension,
+  renderMarkdown,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -89,6 +96,8 @@ export function MessageList({
             role={m.role}
             content={m.content}
             timestamp={m.timestamp}
+            markdown={m.role === 'assistant'}
+            renderMarkdown={renderMarkdown}
           />
         ))}
 
@@ -177,6 +186,8 @@ export function MessageList({
                   streaming.status === 'streaming' &&
                   streaming.artifactOrder.length === 0
                 }
+                markdown={true}
+                renderMarkdown={renderMarkdown}
               />
             )}
 

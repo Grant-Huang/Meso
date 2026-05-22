@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文档生成器</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+  <link rel="stylesheet" href="../platform/meso-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      background: var(--color-bg); color: var(--color-text);
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* ── Controls bar ── */
+    .ctrl-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: var(--color-bg-elevated);
+      border-bottom: 1px solid var(--color-border); flex-shrink: 0;
+    }
+    .icon-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 6px;
+      border: 1px solid var(--color-border); background: var(--color-bg-white);
+      cursor: pointer; color: var(--color-text-secondary);
+      transition: background 0.12s, color 0.12s;
+    }
+    .icon-btn:hover { background: rgba(61,107,82,0.09); color: var(--color-text); }
+    .icon-btn.primary { background: var(--color-accent); border-color: transparent; color: #fff; }
+    .icon-btn.primary:hover { filter: brightness(0.92); }
+    .ctrl-label { font-size: 12px; color: var(--color-text-secondary); }
+    .ctrl-sep { flex: 1; }
+    .preset-select {
+      padding: 4px 8px; border-radius: 6px;
+      border: 1px solid var(--color-border); font-size: 12px;
+      font-family: inherit; color: var(--color-text); background: var(--color-bg-white);
+      cursor: pointer;
+    }
+    .step-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--color-text-muted);
+      padding: 3px 8px; border-radius: 20px;
+      background: var(--color-bg-elevated); border: 1px solid var(--color-border);
+    }
+    .step-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--color-border);
+      transition: background 0.3s;
+    }
+    .step-dot.active { background: var(--color-accent); animation: pulse 0.8s ease-in-out infinite alternate; }
+    .step-dot.done { background: var(--color-success, #22c55e); animation: none; }
+
+    /* ── Workspace ── */
+    .workspace { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── Left: chat pane ── */
+    .chat-pane {
+      display: flex; flex-direction: column;
+      width: 420px; min-width: 320px; max-width: 520px;
+      border-right: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .chat-thread { flex: 1; overflow-y: auto; padding: 20px 0; }
+    .message-row { max-width: 100%; padding: 0 16px 14px; }
+
+    /* User bubble */
+    .bubble-user { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+    .bubble-user-content {
+      max-width: 80%; background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: 14px 14px 4px 14px;
+      padding: 9px 13px; font-size: 14px; line-height: 1.6;
+    }
+
+    /* AI reply container */
+    .bubble-ai { display: flex; flex-direction: column; gap: 8px; }
+
+    /* Stage bar */
+    .stage-bar { display: flex; flex-direction: column; gap: 2px; }
+    .stage-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 2px 0; }
+    .stage-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .stage-dot.done    { background: var(--color-success, #22c55e); }
+    .stage-dot.active  { background: var(--color-accent); animation: pulse 0.8s ease-in-out infinite alternate; }
+    .stage-dot.pending { background: transparent; border: 1.5px solid var(--color-border); }
+    @keyframes pulse { from { opacity:1; transform:scale(1); } to { opacity:.4; transform:scale(.75); } }
+    .stage-item.done   .stage-label { color: var(--color-text-muted); }
+    .stage-item.active .stage-label { color: var(--color-accent-dark, #3d6b52); font-weight: 600; }
+    .stage-item.pending .stage-label { color: var(--color-text-muted); }
+
+    /* Think block */
+    .think-block {
+      background: var(--color-bg-elevated); border-radius: 8px;
+      border: 1px solid var(--color-border); overflow: hidden;
+    }
+    .think-header {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 12px; cursor: pointer; font-size: 12px;
+      color: var(--color-text-secondary); user-select: none;
+    }
+    .think-header:hover { color: var(--color-text); }
+    .think-chevron { transition: transform 0.2s; font-size: 10px; color: var(--color-text-muted); }
+    .think-block.collapsed .think-chevron { transform: rotate(-90deg); }
+    .think-body {
+      padding: 0 12px 10px;
+      font-size: 12px; color: var(--color-text-secondary);
+      line-height: 1.7; font-style: italic;
+      white-space: pre-wrap;
+      border-top: 1px solid var(--color-border-light, var(--color-border));
+      max-height: 200px; overflow-y: auto;
+    }
+    .think-block.collapsed .think-body { display: none; }
+
+    /* Artifact card */
+    .artifact-card {
+      border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .artifact-card.visible { opacity: 1; transform: none; }
+    .artifact-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; background: var(--color-bg-elevated);
+      border-bottom: 1px solid var(--color-border);
+      font-size: 12px; color: var(--color-text-secondary);
+    }
+    .artifact-lang {
+      font-size: 10px; padding: 1px 6px; border-radius: 4px;
+      background: var(--badge-bg, rgba(82,124,94,0.1)); color: var(--color-accent);
+      font-weight: 600; font-family: monospace; text-transform: uppercase;
+    }
+    .artifact-body {
+      font-family: "SF Mono", "Fira Code", monospace; font-size: 12px;
+      line-height: 1.6; padding: 12px 14px;
+      background: var(--color-bg); color: var(--color-text);
+      overflow-x: auto; max-height: 200px; overflow-y: auto;
+      white-space: pre;
+    }
+
+    /* Text output */
+    .text-content {
+      font-size: 14px; color: var(--color-text);
+      line-height: 1.7; padding: 2px 0;
+    }
+
+    /* Cursor */
+    .cursor {
+      display: inline-block; width: 2px; height: 1em;
+      background: var(--color-accent); margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s steps(2) infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Right: preview pane ── */
+    .preview-pane {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .preview-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: var(--color-bg-elevated);
+      border-bottom: 1px solid var(--color-border);
+      font-size: 12px; color: var(--color-text-secondary); flex-shrink: 0;
+    }
+    .preview-header-title { font-weight: 600; color: var(--color-text); }
+    .preview-placeholder {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: var(--color-text-muted); gap: 10px; padding: 40px;
+      text-align: center;
+    }
+    .preview-placeholder svg { opacity: 0.3; }
+    .preview-frame { flex: 1; border: none; background: #fff; display: none; }
+
+    /* Download button */
+    .dl-btn {
+      margin-left: auto; padding: 4px 10px; border-radius: 5px;
+      border: 1px solid var(--color-border); background: var(--color-bg-white);
+      font-size: 12px; color: var(--color-text-secondary);
+      cursor: pointer; display: none;
+      transition: background 0.12s, color 0.12s;
+    }
+    .dl-btn:hover { background: rgba(61,107,82,0.09); color: var(--color-accent); }
+    .dl-btn.visible { display: flex; align-items: center; gap: 5px; }
+
+    /* Composer */
+    .composer {
+      padding: 10px 12px; border-top: 1px solid var(--color-border);
+      background: var(--color-bg); flex-shrink: 0;
+      display: flex; gap: 8px; align-items: flex-end;
+    }
+    .composer-input {
+      flex: 1; resize: none; padding: 8px 12px;
+      border-radius: 8px; border: 1px solid var(--color-border);
+      background: var(--color-bg-white); font-family: inherit;
+      font-size: 13px; line-height: 1.5; color: var(--color-text);
+      outline: none; min-height: 38px; max-height: 100px;
+      transition: border-color 0.15s;
+    }
+    .composer-input:focus { border-color: var(--color-accent); }
+    .send-btn {
+      flex-shrink: 0; width: 36px; height: 36px;
+      border-radius: 8px; border: none;
+      background: var(--color-accent); color: #fff;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: filter 0.12s;
+    }
+    .send-btn:hover { filter: brightness(0.9); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+  </style>
+</head>
+<body>
+
+<!-- Controls bar -->
+<div class="ctrl-bar">
+  <button class="icon-btn primary" onclick="runDemo()" id="run-btn" title="运行演示">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+      <path d="M3 2l9 5-9 5V2z"/>
+    </svg>
+  </button>
+  <button class="icon-btn" onclick="resetDemo()" title="重置">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 7a5 5 0 1 0 1-3M2 2v3h3"/>
+    </svg>
+  </button>
+  <span class="ctrl-label">文档生成演示</span>
+  <span class="ctrl-sep"></span>
+
+  <div class="step-badge">
+    <div class="step-dot" id="dot-1"></div>
+    <span>分析</span>
+    <div class="step-dot" id="dot-2"></div>
+    <span>模板</span>
+    <div class="step-dot" id="dot-3"></div>
+    <span>渲染</span>
+  </div>
+
+  <select class="preset-select" id="preset-select" onchange="applyPreset(this.value)">
+    <option value="report">市场分析报告</option>
+    <option value="brief">产品发布简报</option>
+    <option value="memo">团队周会纪要</option>
+  </select>
+</div>
+
+<!-- Workspace -->
+<div class="workspace">
+
+  <!-- Left: chat pane -->
+  <div class="chat-pane">
+    <div class="chat-thread" id="chat-thread"></div>
+    <div class="composer">
+      <textarea class="composer-input" id="composer-input" rows="1"
+        placeholder="描述你想生成的文档内容…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runDemo()}"
+      >生成一份2026年Q2市场分析报告，包含核心营收、用户留存率等关键指标，以及业务亮点和风险挑战分析</textarea>
+      <button class="send-btn" id="send-btn" onclick="runDemo()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="13" x2="8" y2="3"/>
+          <polyline points="4,7 8,3 12,7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Right: preview pane -->
+  <div class="preview-pane">
+    <div class="preview-header">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <rect x="1" y="1" width="12" height="12" rx="2"/>
+        <line x1="3.5" y1="4.5" x2="10.5" y2="4.5"/>
+        <line x1="3.5" y1="7" x2="8" y2="7"/>
+        <line x1="3.5" y1="9.5" x2="9" y2="9.5"/>
+      </svg>
+      <span class="preview-header-title">文档预览</span>
+      <button class="dl-btn" id="dl-btn" onclick="downloadDoc()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M6 2v6M3 6l3 3 3-3M1 10h10"/>
+        </svg>
+        下载 HTML
+      </button>
+    </div>
+    <div class="preview-placeholder" id="preview-placeholder">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="8" y="4" width="32" height="40" rx="3"/>
+        <line x1="14" y1="14" x2="34" y2="14"/>
+        <line x1="14" y1="20" x2="28" y2="20"/>
+        <line x1="14" y1="26" x2="30" y2="26"/>
+        <line x1="14" y1="32" x2="26" y2="32"/>
+      </svg>
+      <div style="font-size:13px">点击运行，查看生成的文档</div>
+      <div style="font-size:12px">LLM 1 → 结构化 JSON → LLM 2 → Jinja2 模板 → 渲染引擎 → HTML</div>
+    </div>
+    <iframe class="preview-frame" id="preview-frame" sandbox="allow-same-origin" title="文档预览"></iframe>
+  </div>
+
+</div>
+
+<script>
+// ── Mock data ─────────────────────────────────────────────────────────────────
+
+const PRESETS = {
+  report: {
+    input: '生成一份2026年Q2市场分析报告，包含核心营收、用户留存率等关键指标，以及业务亮点和风险挑战分析',
+    content: {
+      title: '2026 年第二季度市场分析报告',
+      subtitle: '核心业务指标与增长策略',
+      author: '数据分析组',
+      date: '2026-04-01',
+      doc_type: 'report',
+      summary: '本季度整体营收同比增长 23%，用户留存率有所下滑，建议重点关注用户激活环节的优化。',
+      sections: [
+        {
+          heading: '核心指标概览',
+          content: '以下为本季度关键业务数据汇总：',
+          metrics: [
+            { name: '核心营收', value: '1,200 万', status: 'up' },
+            { name: '用户留存率', value: '68%', status: 'down' },
+            { name: '新增用户', value: '45,320', status: 'up' },
+            { name: '月活用户', value: '128,000', status: 'neutral' },
+          ],
+          items: [], key_values: [], subsections: [],
+        },
+        {
+          heading: '业务亮点',
+          content: '本季度在以下方向取得显著进展：',
+          items: [
+            '企业客户签约数量同比增长 41%，大客户收入贡献提升至 58%',
+            'AI 辅助功能上线，用户平均使用时长增加 18 分钟/天',
+            '移动端 DAU 突破 8 万，环比增长 12%',
+            '客服满意度评分达 4.7/5，创历史新高',
+          ],
+          metrics: [], key_values: [], subsections: [],
+        },
+        {
+          heading: '风险与挑战',
+          content: '以下问题需要在下季度重点关注：',
+          items: [
+            '用户留存率下滑 4 个百分点，激活漏斗需要优化',
+            '竞品在价格策略上持续施压，需差异化定位',
+            '基础设施成本上升 15%，需评估云资源优化方案',
+          ],
+          metrics: [], key_values: [], subsections: [],
+        },
+        {
+          heading: '下季度目标',
+          content: '',
+          key_values: [
+            { key: '营收目标', value: '1,500 万（同比 +25%）' },
+            { key: '用户留存率目标', value: '提升至 72%' },
+            { key: '重点新功能', value: '工作流自动化、批量导出' },
+            { key: '重点市场', value: '华南区、东南亚试点' },
+          ],
+          items: [], metrics: [], subsections: [],
+        },
+      ],
+      metadata: {},
+    },
+  },
+  brief: {
+    input: '生成一份产品发布简报，介绍Meso 2.1版本的新功能和改进',
+    content: {
+      title: 'Meso 2.1 产品发布简报',
+      subtitle: '流式文档生成与工作流增强',
+      author: '产品团队',
+      date: '2026-05-22',
+      doc_type: 'brief',
+      summary: 'Meso 2.1 正式发布，重点新增 Doc Generator 工具、WorkflowTimeline 增强以及 MCP 资源预览支持。',
+      sections: [
+        {
+          heading: '核心新功能',
+          content: '本次发布包含以下重要功能：',
+          items: [
+            'Doc Generator：基于 LLM 的数据与样式分离文档生成工具',
+            'WorkflowTimeline 支持并行子图可视化',
+            'ArtifactPanel 新增 Jinja2 语法高亮',
+            'MCP 资源内容流式预览',
+          ],
+          metrics: [], key_values: [], subsections: [],
+        },
+        {
+          heading: '性能改进',
+          content: '',
+          key_values: [
+            { key: 'SSE 首字节延迟', value: '平均降低 40ms' },
+            { key: 'MessageList 渲染', value: '大列表性能提升 30%' },
+            { key: '@meso/types 包体积', value: '减小 12%（零依赖优化）' },
+          ],
+          items: [], metrics: [], subsections: [],
+        },
+        {
+          heading: '升级指引',
+          content: '从 2.0 升级无破坏性变更，直接更新包版本即可。',
+          items: [
+            'npm install @meso/ui@2.1.0',
+            'Doc Generator 为独立 Python 工具，按需安装',
+            '详见 CHANGELOG.md 和迁移文档',
+          ],
+          metrics: [], key_values: [], subsections: [],
+        },
+      ],
+      metadata: {},
+    },
+  },
+  memo: {
+    input: '生成一份团队技术周会纪要，讨论了文档生成工具的方案选型',
+    content: {
+      title: '技术周会纪要',
+      subtitle: '文档生成工具方案选型',
+      author: '工程团队',
+      date: '2026-05-22',
+      doc_type: 'memo',
+      summary: '本次会议讨论了文档生成工具的技术方案，确定采用 Python + Jinja2 + FastAPI 方案，并明确了下一步行动项。',
+      sections: [
+        {
+          heading: '参会人员',
+          content: '',
+          key_values: [
+            { key: '主持人', value: 'Grant（产品）' },
+            { key: '参与者', value: '后端 2 人、前端 1 人、AI 1 人' },
+            { key: '会议时长', value: '45 分钟' },
+          ],
+          items: [], metrics: [], subsections: [],
+        },
+        {
+          heading: '方案讨论',
+          content: '团队对比了三种技术路线：',
+          subsections: [
+            {
+              heading: '方案 A：Python + Jinja2（最终选择）',
+              content: '数据与模板分离，LLM 生成 JSON 内容和 Jinja2 模板，渲染引擎合并输出。',
+              items: ['优点：LLM 熟悉度高，模板可读性强', '优点：Python 生态成熟，WeasyPrint 可转 PDF', '缺点：需要 Python 运行时'],
+              metrics: [], key_values: [], subsections: [],
+            },
+            {
+              heading: '方案 B：纯前端 Handlebars',
+              content: '',
+              items: ['优点：前端闭环，无需后端', '缺点：Handlebars 功能较弱，复杂逻辑困难'],
+              metrics: [], key_values: [], subsections: [],
+            },
+          ],
+          items: [], metrics: [], key_values: [],
+        },
+        {
+          heading: '行动项',
+          content: '',
+          key_values: [
+            { key: 'P0 / 本周', value: '完成 models.py + renderer.py + server.py' },
+            { key: 'P0 / 本周', value: '编写 docgen.md 帮助文档' },
+            { key: 'P1 / 下周', value: 'WeasyPrint HTML → PDF 支持' },
+            { key: 'P2 / 下双周', value: 'python-docx .docx 格式支持' },
+          ],
+          items: [], metrics: [], subsections: [],
+        },
+      ],
+      metadata: {},
+    },
+  },
+}
+
+// ── Template mock (what LLM 2 would generate) ─────────────────────────────────
+
+const MOCK_TEMPLATE = `<div class="doc-header">
+  <div class="doc-title">{{ title }}</div>
+  {% if subtitle %}<div class="doc-subtitle">{{ subtitle }}</div>{% endif %}
+  <div class="doc-meta">
+    {% if author %}<span>作者：{{ author }}</span>{% endif %}
+    {% if date %}<span>日期：{{ date }}</span>{% endif %}
+    <span>类型：{{ doc_type }}</span>
+  </div>
+</div>
+{% if summary %}
+<div class="doc-summary">{{ summary }}</div>
+{% endif %}
+{% for section in sections %}
+<div class="section">
+  <div class="section-heading">{{ section.heading }}</div>
+  {% if section.content %}<div class="section-content">{{ section.content }}</div>{% endif %}
+  {% if section.metrics %}
+  <div class="metrics-grid">
+    {% for m in section.metrics %}
+    <div class="metric-card {{ m.status }}">
+      <div class="metric-name">{{ m.name }}</div>
+      <div class="metric-value">{{ m.value }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if section.items %}
+  <ul class="item-list">
+    {% for item in section.items %}<li>{{ item }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% if section.key_values %}
+  <table class="kv-table">
+    {% for kv in section.key_values %}<tr><td>{{ kv.key }}</td><td>{{ kv.value }}</td></tr>{% endfor %}
+  </table>
+  {% endif %}
+  {% for sub in section.subsections %}
+  <div class="subsection">
+    <div class="section-heading">{{ sub.heading }}</div>
+    {% if sub.content %}<div class="section-content">{{ sub.content }}</div>{% endif %}
+    {% if sub.items %}<ul class="item-list">{% for i in sub.items %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+<div class="doc-footer">由 Meso Doc Generator 生成</div>`
+
+// ── Renderer (client-side Jinja2 interpreter — simplified) ───────────────────
+
+function renderTemplate(template, data) {
+  let out = template
+  // {% for item in list %} ... {% endfor %}
+  out = out.replace(/\{%[-\s]*for\s+(\w+)\s+in\s+([\w.]+)\s*[-\s]*%\}([\s\S]*?)\{%[-\s]*endfor\s*[-\s]*%\}/g,
+    (_, varName, listPath, body) => {
+      const list = resolvePath(data, listPath) || []
+      return list.map(item => {
+        const ctx = { ...data, [varName]: item }
+        return renderTemplate(body, ctx)
+      }).join('')
+    })
+  // {% if expr %} ... {% endif %} (simple truthy check)
+  out = out.replace(/\{%[-\s]*if\s+([\w.]+)\s*[-\s]*%\}([\s\S]*?)\{%[-\s]*endif\s*[-\s]*%\}/g,
+    (_, expr, body) => resolvePath(data, expr) ? renderTemplate(body, data) : '')
+  // {{ var }}
+  out = out.replace(/\{\{[-\s]*([\w.]+)\s*[-\s]*\}\}/g,
+    (_, path) => { const v = resolvePath(data, path); return v !== undefined ? String(v) : '' })
+  return out
+}
+
+function resolvePath(obj, path) {
+  return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj)
+}
+
+function buildHtml(content) {
+  const body = renderTemplate(MOCK_TEMPLATE, content)
+  return `<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/>
+<style>
+:root{--color-text:#1a1a1a;--color-text-secondary:#4b5563;--color-text-muted:#9ca3af;--color-bg:#fff;--color-border:#e5e7eb;--color-accent:#527c5e;--color-accent-dark:#3d6b52;--color-accent-light:#f0f4f1;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.7;color:var(--color-text);background:#fff;padding:36px 44px;max-width:860px;margin:0 auto;}
+.doc-header{border-bottom:2px solid var(--color-accent);padding-bottom:18px;margin-bottom:24px;}
+.doc-title{font-size:24px;font-weight:700;color:var(--color-accent-dark);margin-bottom:5px;line-height:1.3;}
+.doc-subtitle{font-size:14px;color:var(--color-text-secondary);margin-bottom:9px;}
+.doc-meta{display:flex;gap:18px;font-size:12px;color:var(--color-text-muted);}
+.doc-summary{background:var(--color-accent-light);border-left:3px solid var(--color-accent);padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:28px;font-size:13px;color:var(--color-text-secondary);}
+.section{margin-bottom:28px;}
+.section-heading{font-size:15px;font-weight:650;color:var(--color-text);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border);}
+.section-content{font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;}
+.metrics-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+.metric-card{flex:1;min-width:120px;background:#f9fafb;border:1px solid var(--color-border);border-radius:8px;padding:12px 14px;border-top:2px solid var(--color-border);}
+.metric-card.up{border-top-color:#22c55e;}.metric-card.down{border-top-color:#ef4444;}
+.metric-name{font-size:11px;color:var(--color-text-muted);margin-bottom:5px;}
+.metric-value{font-size:20px;font-weight:700;color:var(--color-text);}
+.metric-card.up .metric-value{color:#16a34a;}.metric-card.down .metric-value{color:#dc2626;}
+ul.item-list{padding-left:16px;margin-top:8px;}
+ul.item-list li{margin-bottom:5px;color:var(--color-text-secondary);font-size:13px;}
+table.kv-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+table.kv-table td{padding:8px 11px;border:1px solid var(--color-border);}
+table.kv-table td:first-child{font-weight:600;width:30%;background:#f9fafb;color:var(--color-text);}
+table.kv-table td:last-child{color:var(--color-text-secondary);}
+.subsection{margin-top:16px;}
+.subsection .section-heading{font-size:13px;font-weight:600;color:var(--color-text-secondary);}
+.doc-footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--color-border);font-size:11px;color:var(--color-text-muted);text-align:center;}
+</style></head><body>${body}</body></html>`
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+let running = false
+let finalHtml = ''
+let currentPreset = 'report'
+
+function applyPreset(key) {
+  currentPreset = key
+  const p = PRESETS[key]
+  if (p) document.getElementById('composer-input').value = p.input
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────────
+
+function thread() { return document.getElementById('chat-thread') }
+
+function appendUserBubble(text) {
+  const row = document.createElement('div')
+  row.className = 'message-row'
+  row.innerHTML = `<div class="bubble-user"><div class="bubble-user-content">${esc(text)}</div></div>`
+  thread().appendChild(row)
+  scrollBottom()
+}
+
+function createAiRow() {
+  const row = document.createElement('div')
+  row.className = 'message-row'
+  const inner = document.createElement('div')
+  inner.className = 'bubble-ai'
+  row.appendChild(inner)
+  thread().appendChild(row)
+  return inner
+}
+
+function appendStages(container, stages) {
+  const bar = document.createElement('div')
+  bar.className = 'stage-bar'
+  stages.forEach(s => {
+    const item = document.createElement('div')
+    item.className = `stage-item ${s.state}`
+    item.id = `stage-${s.name}`
+    item.innerHTML = `<div class="stage-dot ${s.state}"></div><span class="stage-label">${s.name}</span>`
+    bar.appendChild(item)
+  })
+  container.appendChild(bar)
+  return bar
+}
+
+function setStageState(name, state) {
+  const el = document.getElementById(`stage-${name}`)
+  if (!el) return
+  el.className = `stage-item ${state}`
+  const dot = el.querySelector('.stage-dot')
+  if (dot) dot.className = `stage-dot ${state}`
+}
+
+function appendThink(container, text) {
+  const block = document.createElement('div')
+  block.className = 'think-block'
+  block.innerHTML = `
+    <div class="think-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M1 9a5 5 0 1 0 0-6M1 3v3h3"/>
+      </svg>
+      <span>推理过程</span>
+      <span class="think-chevron">▾</span>
+    </div>
+    <div class="think-body">${esc(text)}</div>`
+  container.appendChild(block)
+  scrollBottom()
+  return block
+}
+
+function appendArtifact(container, lang, content, label) {
+  const card = document.createElement('div')
+  card.className = 'artifact-card'
+  card.innerHTML = `
+    <div class="artifact-header">
+      <span class="artifact-lang">${lang}</span>
+      <span>${label}</span>
+    </div>
+    <div class="artifact-body">${esc(content)}</div>`
+  container.appendChild(card)
+  scrollBottom()
+  requestAnimationFrame(() => card.classList.add('visible'))
+  return card
+}
+
+function appendText(container, text) {
+  const div = document.createElement('div')
+  div.className = 'text-content'
+  div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  container.appendChild(div)
+  scrollBottom()
+}
+
+function scrollBottom() {
+  const t = thread()
+  t.scrollTop = t.scrollHeight
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function setStepDot(n, state) {
+  const dot = document.getElementById(`dot-${n}`)
+  if (!dot) return
+  dot.className = `step-dot ${state}`
+}
+
+// ── Demo runner ───────────────────────────────────────────────────────────────
+
+async function runDemo() {
+  if (running) return
+  running = true
+  finalHtml = ''
+
+  const input = document.getElementById('composer-input').value.trim()
+  if (!input) { running = false; return }
+
+  document.getElementById('send-btn').disabled = true
+  document.getElementById('run-btn').disabled = true
+  document.getElementById('dl-btn').classList.remove('visible')
+  document.getElementById('preview-frame').style.display = 'none'
+  document.getElementById('preview-placeholder').style.display = 'flex'
+
+  setStepDot(1, '')
+  setStepDot(2, '')
+  setStepDot(3, '')
+
+  // User message
+  appendUserBubble(input)
+
+  const preset = PRESETS[currentPreset] || PRESETS.report
+  const content = preset.content
+  const ai = createAiRow()
+
+  await delay(300)
+
+  // ── Stage 1: Analyze ──────────────────────────────────────────────────────
+  setStepDot(1, 'active')
+  appendStages(ai, [
+    { name: '分析需求', state: 'active' },
+    { name: '生成模板', state: 'pending' },
+    { name: '渲染文档', state: 'pending' },
+  ])
+  await delay(200)
+
+  const think1Text = `正在理解文档需求，提取关键信息并映射到结构化 Schema…\n识别到文档类型：${content.doc_type}，包含 ${content.sections.length} 个章节：${content.sections.map(s => s.heading).join('、')}。`
+  const thinkBlock = appendThink(ai, think1Text)
+
+  await delay(1200)
+
+  setStageState('分析需求', 'done')
+  setStepDot(1, 'done')
+  thinkBlock.classList.add('collapsed')
+
+  // JSON artifact
+  const jsonStr = JSON.stringify(content, null, 2)
+  appendArtifact(ai, 'json', jsonStr.slice(0, 800) + (jsonStr.length > 800 ? '\n  …' : ''), '结构化内容')
+  await delay(400)
+
+  // ── Stage 2: Generate template ────────────────────────────────────────────
+  setStageState('生成模板', 'active')
+  setStepDot(2, 'active')
+  await delay(200)
+
+  const think2Text = '根据 JSON Schema 结构生成 Jinja2 渲染模板…\nJinja2 模板生成完成。'
+  appendThink(ai, think2Text).classList.add('collapsed')
+
+  await delay(1000)
+
+  setStageState('生成模板', 'done')
+  setStepDot(2, 'done')
+
+  const tplPreview = MOCK_TEMPLATE.slice(0, 500) + '\n  …（更多模板内容）'
+  appendArtifact(ai, 'jinja2', tplPreview, 'Jinja2 渲染模板')
+  await delay(400)
+
+  // ── Stage 3: Render ───────────────────────────────────────────────────────
+  setStageState('渲染文档', 'active')
+  setStepDot(3, 'active')
+  await delay(600)
+
+  finalHtml = buildHtml(content)
+  setStageState('渲染文档', 'done')
+  setStepDot(3, 'done')
+
+  // Show preview
+  const frame = document.getElementById('preview-frame')
+  const placeholder = document.getElementById('preview-placeholder')
+  frame.srcdoc = finalHtml
+  frame.style.display = 'block'
+  placeholder.style.display = 'none'
+  document.getElementById('dl-btn').classList.add('visible')
+
+  // Final text
+  await delay(200)
+  appendText(ai, `文档《**${content.title}**》已生成完成，共 ${content.sections.length} 个章节。`)
+  scrollBottom()
+
+  document.getElementById('send-btn').disabled = false
+  document.getElementById('run-btn').disabled = false
+  running = false
+}
+
+function resetDemo() {
+  if (running) return
+  document.getElementById('chat-thread').innerHTML = ''
+  document.getElementById('preview-frame').style.display = 'none'
+  document.getElementById('preview-placeholder').style.display = 'flex'
+  document.getElementById('dl-btn').classList.remove('visible')
+  finalHtml = ''
+  setStepDot(1, '')
+  setStepDot(2, '')
+  setStepDot(3, '')
+}
+
+function downloadDoc() {
+  if (!finalHtml) return
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([finalHtml], { type: 'text/html' }))
+  a.download = 'document.html'
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000)
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)) }
+</script>
+</body>
+</html>

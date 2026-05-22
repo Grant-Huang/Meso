@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings UI 方案 v2 — Meso</title>
+  <script>(function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="platform/meso-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════
+       LEFT NAV — expandable (52px ↔ 145px)
+    ══════════════════════════════════ */
+    .nav-rail {
+      width: 52px;
+      flex-shrink: 0;
+      background: var(--color-bg-sidebar);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      padding: 8px 6px;
+      gap: 2px;
+      transition: width 0.25s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+      position: relative;
+    }
+    .nav-rail.expanded { width: 145px; }
+
+    /* Brand header — logo (non-clickable) + app name */
+    .nav-header {
+      display: flex; align-items: center;
+      height: 32px; gap: 0;
+      margin-bottom: 4px; flex-shrink: 0; overflow: hidden;
+    }
+    .nav-logo {
+      width: 24px; height: 24px;
+      border-radius: 6px; background: var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .nav-app-name {
+      font-size: 13px; font-weight: 600; color: var(--color-text);
+      white-space: nowrap; overflow: hidden;
+      max-width: 0; opacity: 0; margin-left: 0;
+      transition: max-width 0.25s cubic-bezier(.4,0,.2,1), opacity 0.2s, margin-left 0.2s;
+    }
+    .nav-rail.expanded .nav-app-name { max-width: 90px; opacity: 1; margin-left: 7px; }
+
+    /* Search bar — visible only when expanded */
+    .nav-search-wrap {
+      height: 0; overflow: hidden; opacity: 0;
+      transition: height 0.2s, opacity 0.15s;
+      margin-bottom: 4px;
+    }
+    .nav-rail.expanded .nav-search-wrap { height: 30px; opacity: 1; }
+    .nav-search {
+      width: 100%; padding: 5px 8px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: 5px;
+      color: var(--color-text); font-size: 12px; outline: none;
+      font-family: inherit;
+    }
+    .nav-search:focus { border-color: var(--color-accent); }
+    .nav-search::placeholder { color: var(--color-text-muted); }
+
+    /* Nav items */
+    .nav-item {
+      height: 30px; border: none; background: none;
+      border-radius: 5px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex; align-items: center;
+      padding: 0; gap: 0;
+      transition: background 0.12s, color 0.12s;
+      text-align: left; white-space: nowrap;
+      width: 100%; flex-shrink: 0; position: relative;
+      justify-content: center;
+      font-family: inherit;
+    }
+    .nav-rail.expanded .nav-item { padding: 0 8px; gap: 8px; justify-content: flex-start; }
+    .nav-item:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+    .nav-item.active { background: var(--nav-active-bg); color: var(--color-accent); }
+    .nav-item-toggle { margin-bottom: 6px; }
+    .nav-item svg { flex-shrink: 0; }
+    .nav-item-label {
+      font-size: 13px; overflow: hidden;
+      opacity: 0; max-width: 0;
+      transition: opacity 0.2s, max-width 0.25s;
+    }
+    .nav-rail.expanded .nav-item-label { opacity: 1; max-width: 120px; }
+    .nav-item .nav-dot {
+      position: absolute; top: 4px; right: 4px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--color-success);
+      border: 1.5px solid var(--color-bg-sidebar);
+    }
+    .nav-spacer { flex: 1; }
+
+    /* User avatar + popup */
+    .nav-user {
+      flex-shrink: 0;
+      border-top: 1px solid var(--color-border-light);
+      padding-top: 6px; position: relative;
+    }
+    .nav-user-btn {
+      height: 34px; display: flex; align-items: center;
+      gap: 0; padding: 0;
+      border: none; background: none;
+      border-radius: 6px; cursor: pointer;
+      width: 100%; transition: background 0.12s;
+      justify-content: center;
+    }
+    .nav-rail.expanded .nav-user-btn { gap: 8px; padding: 0 8px; justify-content: flex-start; }
+    .nav-user-btn:hover { background: var(--nav-hover-bg); }
+    .user-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--color-accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .nav-user-name {
+      font-size: 13px; color: var(--color-text);
+      overflow: hidden; opacity: 0; max-width: 0;
+      transition: opacity 0.2s, max-width 0.25s;
+      white-space: nowrap;
+    }
+    .nav-rail.expanded .nav-user-name { opacity: 1; max-width: 80px; }
+
+    /* User popup menu */
+    .user-menu {
+      position: absolute; bottom: calc(100% + 6px); left: 0;
+      width: 192px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.13);
+      overflow: hidden; display: none; z-index: 200;
+    }
+    .user-menu.open { display: block; }
+    .user-menu-header {
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .user-menu-name { font-size: 13px; font-weight: 600; color: var(--color-text); }
+    .user-menu-email { font-size: 11.5px; color: var(--color-text-muted); margin-top: 1px; }
+    .user-menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px; cursor: pointer;
+      font-size: 13px; color: var(--color-text);
+      transition: background 0.1s; border: none;
+      background: none; width: 100%; text-align: left;
+      font-family: inherit;
+    }
+    .user-menu-item:hover { background: var(--nav-hover-bg); }
+    .user-menu-item.danger { color: var(--color-error); }
+    .user-menu-sep { height: 1px; background: var(--color-border-light); margin: 2px 0; }
+
+    /* ══════════════════════════════════
+       MIDDLE LIST COLUMN (260px)
+    ══════════════════════════════════ */
+    .list-col {
+      width: 260px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--color-border);
+      background: var(--color-bg-sidebar);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .list-col-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .list-col-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--color-text);
+    }
+    .list-col-subtitle {
+      font-size: 11.5px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Two sections in the list col */
+    .list-sections {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .list-section {
+      display: flex;
+      flex-direction: column;
+    }
+    /* Models section: fixed height, scrollable */
+    .list-section-models {
+      flex: 0 0 auto;
+      border-bottom: 1px solid var(--color-border);
+    }
+    /* Instances section: takes remaining space */
+    .list-section-instances {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .list-section-instances .section-items {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px 6px;
+      gap: 0;
+    }
+    .section-label {
+      font-size: 10.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--color-text-muted);
+      flex: 1;
+    }
+    .section-add {
+      width: 22px; height: 22px;
+      border: none; background: none;
+      border-radius: 5px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, color 0.12s;
+    }
+    .section-add:hover { background: var(--nav-hover-bg); color: var(--color-accent); }
+
+    /* Model row */
+    .model-row {
+      display: flex; align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.1s;
+      user-select: none;
+      border-left: 2px solid transparent;
+    }
+    .model-row:hover { background: var(--nav-hover-bg); }
+    .model-row.active {
+      background: var(--nav-active-bg);
+      border-left-color: var(--color-accent);
+    }
+    .model-row.active .model-name { color: var(--color-accent); font-weight: 500; }
+    .model-icon {
+      width: 26px; height: 26px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10.5px; font-weight: 700;
+      flex-shrink: 0; color: #fff;
+    }
+    .model-info { flex: 1; min-width: 0; }
+    .model-name { font-size: 13px; color: var(--color-text); }
+    .model-url {
+      font-size: 11px; color: var(--color-text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-ok   { background: var(--color-success); }
+    .dot-warn { background: var(--color-warning); }
+    .dot-off  { background: var(--color-border); }
+
+    /* Instance row */
+    .instance-row {
+      display: flex; align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.1s;
+      user-select: none;
+      border-left: 2px solid transparent;
+    }
+    .instance-row:hover { background: var(--nav-hover-bg); }
+    .instance-row.active {
+      background: var(--nav-active-bg);
+      border-left-color: var(--color-accent);
+    }
+    .instance-row.active .inst-name { color: var(--color-accent); }
+    .inst-avatar {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-text-muted);
+    }
+    .instance-row.active .inst-avatar { color: var(--color-accent); }
+    .inst-info { flex: 1; min-width: 0; }
+    .inst-name { font-size: 13px; font-weight: 500; color: var(--color-text); }
+    .inst-meta {
+      font-size: 11px; color: var(--color-text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    /* ══════════════════════════════════
+       RIGHT MAIN PANE
+    ══════════════════════════════════ */
+    .main-pane {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;          /* horizontal center */
+      padding: 48px 24px 64px;
+    }
+    .form-card {
+      width: 100%;
+      max-width: 520px;             /* centered content block */
+    }
+    .form-card-title {
+      font-size: 20px; font-weight: 650;
+      color: var(--color-text);
+      margin-bottom: 4px;
+      letter-spacing: -0.015em;
+    }
+    .form-card-desc {
+      font-size: 13px; color: var(--color-text-muted);
+      line-height: 1.55; margin-bottom: 32px;
+      max-width: 420px;
+    }
+
+    /* Empty / splash state */
+    .pane-splash {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; height: 100%;
+      color: var(--color-text-muted); font-size: 13.5px;
+      text-align: center;
+    }
+    .pane-splash p { max-width: 260px; line-height: 1.5; }
+
+    /* ── Form elements ── */
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500;
+      color: var(--color-text); margin-bottom: 6px;
+    }
+    .badge {
+      font-size: 10.5px; font-weight: 400;
+      padding: 1px 6px; border-radius: 4px;
+    }
+    .badge-opt { background: var(--nav-hover-bg); color: var(--color-text-muted); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 8px 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-size: 13px; font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    }
+    .form-input.mono { font-family: 'SF Mono','Fira Code',monospace; letter-spacing: 0.02em; }
+    .form-textarea { resize: vertical; min-height: 80px; line-height: 1.55; font-size: 12.5px; }
+    .form-hint { font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px; line-height: 1.4; }
+    .form-input-wrap { position: relative; }
+    .btn-eye {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--color-text-muted);
+      cursor: pointer; padding: 4px; border-radius: 4px;
+      display: flex; align-items: center; transition: color 0.12s;
+    }
+    .btn-eye:hover { color: var(--color-text); }
+    .form-select {
+      appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Temperature */
+    .temp-row { display: flex; align-items: center; gap: 12px; }
+    .temp-num {
+      width: 64px; flex-shrink: 0; padding: 7px 10px;
+      background: var(--color-bg); border: 1px solid var(--color-border);
+      border-radius: 6px; color: var(--color-text);
+      font-size: 13px; font-family: 'SF Mono',monospace;
+      text-align: center; outline: none;
+      transition: border-color 0.15s;
+    }
+    .temp-num:focus { border-color: var(--color-accent); }
+    .temp-slider {
+      flex: 1; -webkit-appearance: none; height: 4px;
+      border-radius: 2px; background: var(--color-border); outline: none; cursor: pointer;
+    }
+    .temp-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--color-accent); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .temp-range-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10.5px; color: var(--color-text-muted); margin-top: 4px;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border); border-radius: 8px;
+    }
+    .toggle-label { font-size: 13px; font-weight: 500; color: var(--color-text); }
+    .toggle-hint { font-size: 11.5px; color: var(--color-text-muted); margin-top: 2px; }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0; background: var(--color-border);
+      border-radius: 10px; cursor: pointer; transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: ''; position: absolute; left: 2px; top: 2px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    input:checked + .toggle-track { background: var(--color-accent); }
+    input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* Divider */
+    .form-divider {
+      display: flex; align-items: center; gap: 12px; margin: 24px 0 20px;
+    }
+    .form-divider-label {
+      font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--color-text-muted); white-space: nowrap;
+    }
+    .form-divider-line { flex: 1; height: 1px; background: var(--color-border); }
+
+    /* Actions */
+    .form-actions {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 28px; padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+    .ml-auto { margin-left: auto; display: flex; gap: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none;
+      transition: background 0.12s, filter 0.12s;
+    }
+    .btn-primary { background: var(--color-accent); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-secondary {
+      background: var(--nav-hover-bg); color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover { background: var(--nav-active-bg); }
+    .btn-danger {
+      background: none; color: var(--color-error);
+      border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+    }
+    .btn-danger:hover { background: color-mix(in srgb, var(--color-error) 8%, transparent); }
+    .btn-ghost {
+      background: none; color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+    .btn-ghost:hover { background: var(--nav-hover-bg); color: var(--color-text); }
+
+    /* Test result inline */
+    .test-result {
+      font-size: 12px; padding: 5px 10px; border-radius: 5px;
+      display: none;
+    }
+    .test-result.ok {
+      display: inline;
+      background: color-mix(in srgb, var(--color-success) 12%, transparent);
+      color: var(--color-success);
+    }
+    .test-result.err {
+      display: inline;
+      background: color-mix(in srgb, var(--color-error) 12%, transparent);
+      color: var(--color-error);
+    }
+
+    /* Warning banner */
+    .warn-banner {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+      border-radius: 7px; padding: 10px 14px;
+      font-size: 12.5px; color: var(--color-warning);
+      margin-bottom: 20px;
+    }
+
+    /* Toast */
+    .save-toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--color-accent); color: #fff;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none; z-index: 999;
+    }
+    .save-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* hidden util */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ LEFT NAV RAIL ══════════════════ -->
+<nav class="nav-rail" id="nav-rail">
+
+  <!-- Brand header: logo (non-clickable) + app name -->
+  <div class="nav-header">
+    <div class="nav-logo">M</div>
+    <span class="nav-app-name">Meso</span>
+  </div>
+
+  <!-- ≡ 折叠/展开 — 作为第一个导航项，是唯一的触发方式 -->
+  <button class="nav-item nav-item-toggle" onclick="toggleNav()" title="展开/折叠侧栏">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <span class="nav-item-label">收起</span>
+  </button>
+
+  <!-- Search — only shown when expanded -->
+  <div class="nav-search-wrap">
+    <input class="nav-search" type="text" placeholder="搜索…" oninput="filterNav(this.value)">
+  </div>
+
+  <!-- Nav items -->
+  <button class="nav-item" title="流式会话">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="nav-item-label">流式会话</span>
+  </button>
+  <button class="nav-item" title="任务">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
+    <span class="nav-item-label">任务</span>
+  </button>
+  <button class="nav-item" title="记忆系统">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+    <span class="nav-item-label">记忆系统</span>
+  </button>
+  <button class="nav-item" title="应用插件">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+    <span class="nav-item-label">应用插件</span>
+  </button>
+
+  <div class="nav-spacer"></div>
+
+  <!-- ★ 模型配置 — active -->
+  <button class="nav-item active" title="模型配置">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="nav-item-label">模型配置</span>
+    <div class="nav-dot"></div>
+  </button>
+
+  <!-- User avatar + popup menu -->
+  <div class="nav-user">
+    <button class="nav-user-btn" onclick="toggleUserMenu(event)" title="账号">
+      <div class="user-avatar">G</div>
+      <span class="nav-user-name">Grant</span>
+    </button>
+    <div class="user-menu" id="user-menu">
+      <div class="user-menu-header">
+        <div class="user-menu-name">Grant Huang</div>
+        <div class="user-menu-email">jacer.huang@gmail.com</div>
+      </div>
+      <button class="user-menu-item" onclick="toggleTheme(); closeUserMenu()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        切换主题
+      </button>
+      <button class="user-menu-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        关于 Meso
+      </button>
+      <div class="user-menu-sep"></div>
+      <button class="user-menu-item danger">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        退出登录
+      </button>
+    </div>
+  </div>
+
+</nav>
+
+<!-- ══════════════════ MIDDLE LIST COLUMN ══════════════════ -->
+<div class="list-col">
+  <div class="list-col-header">
+    <div class="list-col-title">模型与实例</div>
+    <div class="list-col-subtitle">管理 API 连接和推理参数</div>
+  </div>
+
+  <div class="list-sections">
+
+    <!-- ── 上半：模型连接 ── -->
+    <div class="list-section list-section-models">
+      <div class="section-head">
+        <span class="section-label">模型连接</span>
+        <button class="section-add" title="添加模型" onclick="showNewModel()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+
+      <div class="model-row active" onclick="selectModel(this,'deepseek')">
+        <div class="model-icon" style="background:#0f766e;">DS</div>
+        <div class="model-info">
+          <div class="model-name">DeepSeek</div>
+          <div class="model-url">api.deepseek.com</div>
+        </div>
+        <div class="status-dot dot-ok"></div>
+      </div>
+      <div class="model-row" onclick="selectModel(this,'zhipu')">
+        <div class="model-icon" style="background:#2563eb;">智</div>
+        <div class="model-info">
+          <div class="model-name">智谱 AI</div>
+          <div class="model-url">未配置</div>
+        </div>
+        <div class="status-dot dot-off"></div>
+      </div>
+      <div class="model-row" onclick="selectModel(this,'openai')">
+        <div class="model-icon" style="background:#16a34a;">AI</div>
+        <div class="model-info">
+          <div class="model-name">OpenAI</div>
+          <div class="model-url">未配置</div>
+        </div>
+        <div class="status-dot dot-off"></div>
+      </div>
+      <div class="model-row" onclick="selectModel(this,'private')">
+        <div class="model-icon" style="background:#475569;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="model-info">
+          <div class="model-name">私有部署</div>
+          <div class="model-url">localhost:11434</div>
+        </div>
+        <div class="status-dot dot-warn"></div>
+      </div>
+    </div>
+
+    <!-- ── 下半：实例 ── -->
+    <div class="list-section list-section-instances">
+      <div class="section-head">
+        <span class="section-label">实例</span>
+        <button class="section-add" title="新建实例" onclick="showNewInstance()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+
+      <div class="section-items">
+        <div class="instance-row" onclick="selectInstance(this,'fast')">
+          <div class="inst-avatar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">快速问答</div>
+            <div class="inst-meta">DeepSeek · chat · T=0.3</div>
+          </div>
+          <div class="status-dot dot-ok"></div>
+        </div>
+
+        <div class="instance-row" onclick="selectInstance(this,'deep')">
+          <div class="inst-avatar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">深度推理</div>
+            <div class="inst-meta">DeepSeek · reasoner · T=0.7</div>
+          </div>
+          <div class="status-dot dot-ok"></div>
+        </div>
+
+        <div class="instance-row" onclick="selectInstance(this,'industrial')">
+          <div class="inst-avatar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="10" width="4" height="11" rx="1"/><rect x="6.5" y="6" width="4" height="15" rx="1"/><rect x="12" y="2" width="4" height="19" rx="1"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">工业分析</div>
+            <div class="inst-meta">DeepSeek · chat · T=0.1</div>
+          </div>
+          <div class="status-dot dot-ok"></div>
+        </div>
+
+        <div class="instance-row" onclick="selectInstance(this,'broken')">
+          <div class="inst-avatar" style="color:var(--color-warning)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">GPT 对照</div>
+            <div class="inst-meta">OpenAI · gpt-4o · T=0.5</div>
+          </div>
+          <div class="status-dot dot-warn"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ RIGHT MAIN PANE ══════════════════ -->
+<main class="main-pane" id="main-pane">
+
+  <!-- 默认 splash -->
+  <div class="pane-splash" id="splash">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <p>从左侧选择模型连接或实例<br>开始配置</p>
+  </div>
+
+  <!-- 模型配置表单 -->
+  <div class="form-card hidden" id="model-form">
+    <div class="form-card-title" id="mf-title">DeepSeek</div>
+    <p class="form-card-desc" id="mf-desc">配置 API 连接信息。保存后可在实例中选用此模型。</p>
+
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <div class="form-input-wrap">
+        <input class="form-input mono" type="password" id="mf-apikey" placeholder="sk-…" style="padding-right:38px;">
+        <button class="btn-eye" onclick="toggleEye('mf-apikey',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="form-hint" id="mf-key-hint">在服务商控制台创建 API Key。</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Base URL</label>
+      <input class="form-input" type="text" id="mf-baseurl">
+      <div class="form-hint">兼容 OpenAI 格式的端点地址，接入代理时修改。</div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" id="btn-test" onclick="testConn()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        测试连接
+      </button>
+      <span class="test-result" id="test-result"></span>
+      <div class="ml-auto">
+        <button class="btn btn-danger" onclick="deleteModel()">删除</button>
+        <button class="btn btn-primary" onclick="saveModel()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 实例配置表单 -->
+  <div class="form-card hidden" id="instance-form">
+    <div class="form-card-title" id="if-title">快速问答</div>
+    <p class="form-card-desc">一套固定的推理参数配置。在流式 Demo 或应用中选择实例名，自动带入所有参数。</p>
+
+    <div class="form-divider"><span class="form-divider-label">基础信息</span><div class="form-divider-line"></div></div>
+
+    <div class="form-group">
+      <label class="form-label">实例名称</label>
+      <input class="form-input" type="text" id="if-name" placeholder="如：快速问答、工业分析…">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">模型连接</label>
+        <!-- 只显示已配置（有 API Key）的模型 -->
+        <select class="form-select" id="if-model-select">
+          <option value="">— 选择已配置的模型 —</option>
+          <option value="deepseek" selected>DeepSeek</option>
+          <!-- 智谱/OpenAI 未配置，不出现在列表中 -->
+        </select>
+        <div class="form-hint">仅显示已保存 API Key 的模型连接。</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">模型名称</label>
+        <input class="form-input" type="text" id="if-modelname" placeholder="如 deepseek-chat">
+        <div class="form-hint">可覆盖连接默认模型。</div>
+      </div>
+    </div>
+
+    <div class="form-divider"><span class="form-divider-label">推理参数</span><div class="form-divider-line"></div></div>
+
+    <div class="form-group">
+      <label class="form-label">System Prompt <span class="badge badge-opt">可选</span></label>
+      <textarea class="form-textarea" id="if-sysprompt" placeholder="留空则由应用 Manifest 提供 Prompt"></textarea>
+      <div class="form-hint">固定角色场景下使用，如"工业设备专家"。</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Temperature</label>
+      <div class="temp-row">
+        <input class="temp-num" type="number" id="if-temp-num" value="0.3" min="0" max="2" step="0.1"
+          oninput="document.getElementById('if-temp-slider').value=this.value">
+        <input class="temp-slider" type="range" id="if-temp-slider" min="0" max="2" step="0.1" value="0.3"
+          oninput="document.getElementById('if-temp-num').value=this.value">
+      </div>
+      <div class="temp-range-labels"><span>0.0 精确</span><span>1.0 平衡</span><span>2.0 发散</span></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Max Tokens <span class="badge badge-opt">可选</span></label>
+        <input class="form-input" type="number" id="if-maxtokens" placeholder="不限制">
+        <div class="form-hint">留空表示不设上限。</div>
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;justify-content:flex-end;">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">流式输出</div>
+            <div class="toggle-hint">Stream</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-danger" onclick="deleteInstance()">删除实例</button>
+      <div class="ml-auto">
+        <button class="btn btn-secondary">取消</button>
+        <button class="btn btn-primary" onclick="saveInstance()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建模型表单 -->
+  <div class="form-card hidden" id="new-model-form">
+    <div class="form-card-title">添加模型连接</div>
+    <p class="form-card-desc">填写 API Key 和端点地址，保存后即可在实例中选用。</p>
+    <div class="form-group">
+      <label class="form-label">服务商名称</label>
+      <input class="form-input" type="text" placeholder="如：通义千问、私有 Llama…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input class="form-input mono" type="password" placeholder="sk-…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Base URL</label>
+      <input class="form-input" type="text" placeholder="https://…/v1">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="cancelNew()">取消</button>
+      <div class="ml-auto">
+        <button class="btn btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建实例表单 -->
+  <div class="form-card hidden" id="new-instance-form">
+    <div class="form-card-title">新建实例</div>
+    <p class="form-card-desc">创建一套命名参数配置，在 Demo 中选用。</p>
+    <div class="form-divider"><span class="form-divider-label">基础信息</span><div class="form-divider-line"></div></div>
+    <div class="form-group">
+      <label class="form-label">实例名称</label>
+      <input class="form-input" type="text" placeholder="如：快速问答、代码审查…">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">模型连接</label>
+        <select class="form-select">
+          <option value="">— 选择已配置的模型 —</option>
+          <option value="deepseek">DeepSeek</option>
+        </select>
+        <div class="form-hint">仅显示已保存 API Key 的模型。</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">模型名称</label>
+        <input class="form-input" type="text" placeholder="如 deepseek-chat">
+      </div>
+    </div>
+    <div class="form-divider"><span class="form-divider-label">推理参数</span><div class="form-divider-line"></div></div>
+    <div class="form-group">
+      <label class="form-label">System Prompt <span class="badge badge-opt">可选</span></label>
+      <textarea class="form-textarea" placeholder="留空则由应用提供"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Temperature</label>
+      <div class="temp-row">
+        <input class="temp-num" type="number" value="0.7" min="0" max="2" step="0.1"
+          oninput="this.nextElementSibling.value=this.value">
+        <input class="temp-slider" type="range" min="0" max="2" step="0.1" value="0.7"
+          oninput="this.previousElementSibling.value=this.value">
+      </div>
+      <div class="temp-range-labels"><span>0.0 精确</span><span>1.0 平衡</span><span>2.0 发散</span></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="cancelNew()">取消</button>
+      <div class="ml-auto">
+        <button class="btn btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          创建
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="save-toast" id="save-toast">已保存</div>
+
+<script>
+const MODELS = {
+  deepseek: { name: 'DeepSeek',    desc: '幻方量化推出的高性价比大模型，支持推理模式。', baseUrl: 'https://api.deepseek.com/v1',          keyHint: '在 DeepSeek 开放平台创建 API Key。',    apiKey: 'sk-demo••••••••' },
+  zhipu:    { name: '智谱 AI',      desc: '国产大模型，支持 GLM-4 系列。',                baseUrl: 'https://open.bigmodel.cn/api/paas/v4', keyHint: '在智谱 AI 开放平台创建 API Key。',      apiKey: '' },
+  openai:   { name: 'OpenAI',       desc: 'GPT-4、o 系列模型。',                          baseUrl: 'https://api.openai.com/v1',             keyHint: '在 OpenAI Platform 创建 API Key。',    apiKey: '' },
+  private:  { name: '私有部署',     desc: '兼容 OpenAI 格式的自托管模型（Ollama 等）。',  baseUrl: 'http://localhost:11434/v1',             keyHint: '不需要鉴权时留空即可。',               apiKey: 'ollama' },
+}
+const INSTANCES = {
+  fast:       { name: '快速问答', model: 'deepseek', modelName: 'deepseek-chat',    temp: 0.3, stream: true },
+  deep:       { name: '深度推理', model: 'deepseek', modelName: 'deepseek-reasoner',temp: 0.7, stream: true },
+  industrial: { name: '工业分析', model: 'deepseek', modelName: 'deepseek-chat',    temp: 0.1, stream: true },
+  broken:     { name: 'GPT 对照', model: 'openai',   modelName: 'gpt-4o',           temp: 0.5, stream: true },
+}
+
+function showPane(id) {
+  ['splash','model-form','instance-form','new-model-form','new-instance-form']
+    .forEach(p => document.getElementById(p).classList.add('hidden'))
+  document.getElementById(id).classList.remove('hidden')
+}
+
+function selectModel(el, id) {
+  document.querySelectorAll('.model-row').forEach(r => r.classList.remove('active'))
+  document.querySelectorAll('.instance-row').forEach(r => r.classList.remove('active'))
+  el.classList.add('active')
+  const m = MODELS[id]
+  document.getElementById('mf-title').textContent = m.name
+  document.getElementById('mf-desc').textContent = m.desc + ' 配置后可在实例中选用此连接。'
+  document.getElementById('mf-apikey').value = m.apiKey
+  document.getElementById('mf-baseurl').value = m.baseUrl
+  document.getElementById('mf-key-hint').textContent = m.keyHint
+  document.getElementById('test-result').className = 'test-result'
+  showPane('model-form')
+}
+
+function selectInstance(el, id) {
+  document.querySelectorAll('.model-row').forEach(r => r.classList.remove('active'))
+  document.querySelectorAll('.instance-row').forEach(r => r.classList.remove('active'))
+  el.classList.add('active')
+  const inst = INSTANCES[id]
+  document.getElementById('if-title').textContent = inst.name
+  document.getElementById('if-name').value = inst.name
+  document.getElementById('if-modelname').value = inst.modelName
+  document.getElementById('if-temp-num').value = inst.temp
+  document.getElementById('if-temp-slider').value = inst.temp
+  // Rebuild select — only configured models
+  rebuildModelSelect('if-model-select', inst.model)
+  showPane('instance-form')
+}
+
+function rebuildModelSelect(selectId, selected) {
+  const sel = document.getElementById(selectId)
+  sel.innerHTML = '<option value="">— 选择已配置的模型 —</option>'
+  Object.entries(MODELS).forEach(([id, m]) => {
+    if (!m.apiKey) return          // 只显示已配置
+    const opt = document.createElement('option')
+    opt.value = id
+    opt.textContent = m.name
+    if (id === selected) opt.selected = true
+    sel.appendChild(opt)
+  })
+}
+
+function showNewModel() {
+  document.querySelectorAll('.model-row,.instance-row').forEach(r => r.classList.remove('active'))
+  showPane('new-model-form')
+}
+function showNewInstance() {
+  document.querySelectorAll('.model-row,.instance-row').forEach(r => r.classList.remove('active'))
+  rebuildModelSelect('new-instance-form select', '')
+  showPane('new-instance-form')
+}
+function cancelNew() { showPane('splash') }
+
+function toggleEye(inputId, btn) {
+  const inp = document.getElementById(inputId)
+  inp.type = inp.type === 'password' ? 'text' : 'password'
+}
+
+function testConn() {
+  const btn = document.getElementById('btn-test')
+  const res = document.getElementById('test-result')
+  btn.disabled = true
+  res.className = 'test-result'; res.textContent = '测试中…'; res.style.display = 'inline'
+  setTimeout(() => {
+    btn.disabled = false
+    const key = document.getElementById('mf-apikey').value.trim()
+    if (!key) { res.className = 'test-result err'; res.textContent = '请先填写 API Key'; return }
+    res.className = 'test-result ok'; res.textContent = '连接成功'
+  }, 1000)
+}
+
+function saveModel()    { showToast('模型连接已保存') }
+function deleteModel()  { showToast('已删除'); showPane('splash') }
+function saveInstance() { showToast('实例已保存') }
+function deleteInstance(){ showToast('已删除'); showPane('splash') }
+
+function showToast(msg) {
+  const t = document.getElementById('save-toast')
+  t.textContent = msg; t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2000)
+}
+
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+  document.documentElement.setAttribute('data-theme', next)
+  localStorage.setItem('meso-theme', next)
+}
+
+function toggleNav() {
+  document.getElementById('nav-rail').classList.toggle('expanded')
+}
+
+function toggleUserMenu(e) {
+  e.stopPropagation()
+  document.getElementById('user-menu').classList.toggle('open')
+}
+function closeUserMenu() {
+  document.getElementById('user-menu').classList.remove('open')
+}
+document.addEventListener('click', () => closeUserMenu())
+
+function filterNav(q) {
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    const label = btn.querySelector('.nav-item-label')
+    if (!label) return
+    const match = !q || label.textContent.includes(q) || btn.title.includes(q)
+    btn.style.display = match ? '' : 'none'
+  })
+}
+
+// Default: select DeepSeek on load
+selectModel(document.querySelector('.model-row.active'), 'deepseek')
+</script>
+</body>
+</html>

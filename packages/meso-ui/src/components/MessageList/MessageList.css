@@ -43,3 +43,39 @@
   font-size: 11px;
   color: var(--color-accent);
 }
+
+/* Soul + Skill context row */
+.meso-message-list__context-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Resource reads + tool calls */
+.meso-message-list__resources,
+.meso-message-list__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Memory saved notifications */
+.meso-memory-saved {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.meso-memory-saved__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+  border-radius: 20px;
+  font-size: 10px;
+  color: var(--color-success);
+}

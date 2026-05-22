@@ -1,0 +1,178 @@
+.meso-tool {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.meso-tool--risk-destructive {
+  border-color: color-mix(in srgb, var(--color-error) 40%, transparent);
+}
+
+.meso-tool__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--color-bg-elevated);
+}
+
+/* Spinner */
+.meso-tool__spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  animation: meso-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes meso-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status icons */
+.meso-tool__icon {
+  flex-shrink: 0;
+}
+.meso-tool__icon--done  { color: var(--color-success); }
+.meso-tool__icon--error { color: var(--color-error); }
+.meso-tool__icon--warn  { color: var(--color-warning); }
+
+.meso-tool__name {
+  font-family: var(--font-mono, monospace);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.meso-tool__provider {
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  color: var(--color-info);
+  border: 1px solid color-mix(in srgb, var(--color-info) 20%, transparent);
+}
+
+.meso-tool__annotation {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.meso-tool__risk {
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.meso-tool__risk--write {
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.meso-tool__risk--destructive {
+  background: color-mix(in srgb, var(--color-error) 15%, transparent);
+  color: var(--color-error);
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+}
+
+.meso-tool__duration {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+
+.meso-tool__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.meso-tool__toggle:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Args / output pre blocks */
+.meso-tool__args,
+.meso-tool__output {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-top: 1px solid var(--color-border-light);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.meso-tool__output--error {
+  color: var(--color-error);
+}
+
+/* Result row */
+.meso-tool__result {
+  border-top: 1px solid var(--color-border-light);
+  padding: 4px 8px;
+  background: var(--color-bg-elevated);
+}
+
+/* Confirm gate */
+.meso-tool__confirm {
+  border-top: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 6%, transparent);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.meso-tool__confirm-msg {
+  flex: 1;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.meso-tool__confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.meso-tool__btn {
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s;
+}
+.meso-tool__btn:hover { opacity: 0.85; }
+
+.meso-tool__btn--cancel {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.meso-tool__btn--confirm {
+  background: var(--color-accent);
+  color: #fff;
+}
+.meso-tool__btn--confirm.meso-tool__btn--destructive {
+  background: var(--color-error);
+}

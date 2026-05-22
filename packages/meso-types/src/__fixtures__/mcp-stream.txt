@@ -1,0 +1,25 @@
+data: {"type":"capabilities","schema_version":"1.0","payload":{"tools":[{"name":"read_file","description":"读取文件内容","provider":"builtin","risk":"safe"},{"name":"search_web","description":"搜索互联网","provider":"mcp","server":"brave-search","risk":"safe","annotations":{"open_world":true}},{"name":"delete_file","description":"删除文件","provider":"local","risk":"destructive"}],"skills":[{"id":"analyst","name":"数据分析师","provider":"local","focus_points":[{"id":"stats","name":"统计分析"},{"id":"viz","name":"可视化"}]}],"resources":[{"uri":"db://products/catalog","name":"产品目录","server":"inventory-mcp"}],"mcp_servers":[{"name":"brave-search","version":"1.2.0","capabilities":["tools"]},{"name":"inventory-mcp","version":"2.0.0","capabilities":["resources"]}]}}
+
+data: {"type":"soul","schema_version":"1.0","payload":{"id":"analyst-soul","name":"分析助手","version":"1.0.0"}}
+
+data: {"type":"skill_active","schema_version":"1.0","payload":{"id":"analyst","name":"数据分析师","provider":"local","focus":["stats"]}}
+
+data: {"type":"stage","schema_version":"1.0","payload":{"name":"读取资源","state":"active"}}
+
+data: {"type":"resource_read","schema_version":"1.0","payload":{"id":"rr1","uri":"db://products/catalog","name":"产品目录","server":"inventory-mcp"}}
+
+data: {"type":"resource_content","schema_version":"1.0","payload":{"resource_read_id":"rr1","contents":[{"type":"text","text":"产品A: 100件\n产品B: 50件"}],"duration_ms":80}}
+
+data: {"type":"stage","schema_version":"1.0","payload":{"name":"读取资源","state":"done"}}
+
+data: {"type":"stage","schema_version":"1.0","payload":{"name":"搜索网络","state":"active"}}
+
+data: {"type":"tool_call","schema_version":"1.0","payload":{"id":"tc1","name":"search_web","args":{"query":"产品A 市场趋势"},"risk":"safe","provider":"mcp","server":"brave-search","annotations":{"open_world":true}}}
+
+data: {"type":"tool_result","schema_version":"1.0","payload":{"tool_call_id":"tc1","output":"市场需求上升 15%","duration_ms":350}}
+
+data: {"type":"stage","schema_version":"1.0","payload":{"name":"搜索网络","state":"done"}}
+
+data: {"type":"text","schema_version":"1.0","payload":{"delta":"根据库存数据和市场趋势，产品A需求旺盛。"}}
+
+data: {"type":"done","schema_version":"1.0","payload":{}}

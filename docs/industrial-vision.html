@@ -498,6 +498,9 @@
       font-size: 13px;
       font-weight: 600;
       color: var(--color-warning);
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
 
     .approval-body { padding: 14px 16px; font-size: 13.5px; }
@@ -616,9 +619,12 @@
     }
 
     .role-icon {
-      font-size: 24px;
+      width: 32px;
+      height: 32px;
       margin-bottom: 10px;
+      color: var(--color-accent);
     }
+    .role-icon svg { display: block; width: 100%; height: 100%; }
 
     .role-name {
       font-size: 14px;
@@ -740,8 +746,8 @@
     <h1 class="doc-title">流式会话：<br>下一代工业协作软件的核心入口</h1>
     <p class="doc-subtitle">从菜单-表单-图表的操作范式，到意图驱动的流式对话工作台——探讨 MES、ERP、MOM 等工业软件的下一代交互入口，及其在 Meso 架构下的具体实现路径。</p>
     <div class="doc-meta">
-      <span>📅 2026 年 5 月</span>
-      <span>🏭 工业软件 · AI 交互</span>
+      <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>2026 年 5 月</span>
+      <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 21V9l5-3v3l5-3v3l5-3v12"/><path d="M9 21v-5h6v5"/></svg>工业软件 · AI 交互</span>
       <span>Meso 架构参考</span>
     </div>
   </div>
@@ -930,7 +936,7 @@
 
       <div class="role-grid">
         <div class="role-card">
-          <div class="role-icon">👷</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M4 15.5A8 8 0 0 1 12 8a8 8 0 0 1 8 7.5"/><path d="M12 3v5"/><path d="M4 13.5h16"/></svg></div>
           <div class="role-name">一线操作员</div>
           <div class="role-desc">在产线现场使用系统，时间压力高，不熟悉系统内部逻辑，需要快速、明确的操作指引。</div>
           <ul class="role-modes">
@@ -941,7 +947,7 @@
           </ul>
         </div>
         <div class="role-card">
-          <div class="role-icon">📊</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>
           <div class="role-name">车间主任 / 生产经理</div>
           <div class="role-desc">关注产线整体状态、产量达成、异常处置进度，需要跨产线的汇总视图和快速决策通道。</div>
           <ul class="role-modes">
@@ -952,7 +958,7 @@
           </ul>
         </div>
         <div class="role-card">
-          <div class="role-icon">🔬</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
           <div class="role-name">工艺 / 设备工程师</div>
           <div class="role-desc">深度用户，需要详细的参数数据、历史趋势、Agent 推理过程。会对 AI 输出进行专业评估。</div>
           <ul class="role-modes">
@@ -963,7 +969,7 @@
           </ul>
         </div>
         <div class="role-card">
-          <div class="role-icon">🏢</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20"/><path d="M9 22V13h6v9"/><rect x="8" y="5" width="2" height="2"/><rect x="14" y="5" width="2" height="2"/><rect x="8" y="9" width="2" height="2"/><rect x="14" y="9" width="2" height="2"/></svg></div>
           <div class="role-name">管理层 / 决策者</div>
           <div class="role-desc">低频使用，需要高度概括的 KPI 摘要和趋势判断，对操作细节不感兴趣。</div>
           <ul class="role-modes">
@@ -1052,7 +1058,7 @@
           评估停机影响 · 生成确认节点
         </div>
         <div class="approval-card">
-          <div class="approval-header">⚠ 高风险操作确认 · 产线紧急停机</div>
+          <div class="approval-header"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>高风险操作确认 · 产线紧急停机</div>
           <div class="approval-body">
             <p style="margin-bottom:10px;">执行此操作将：</p>
             <ul style="padding-left:18px; font-size:13px; color:var(--color-text-secondary); line-height:1.8;">
@@ -1123,19 +1129,19 @@
 
       <div class="entry-grid">
         <div class="entry-card">
-          <div class="entry-card-title">🖥 桌面原生 Shell</div>
+          <div class="entry-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>桌面原生 Shell</div>
           <div class="entry-card-desc">Meso 三栏布局作为独立工作站应用部署。左栏是功能模块导航（MES / 质量 / 维保），中栏是工单/任务历史，右栏是流式对话工作台。适合需要深度分析的桌面场景。</div>
         </div>
         <div class="entry-card">
-          <div class="entry-card-title">🔌 嵌入式组件</div>
+          <div class="entry-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>嵌入式组件</div>
           <div class="entry-card-desc">将流式对话面板嵌入现有 MES/ERP 界面，以侧边栏或浮层形式出现。用户无需离开原有系统，即可在当前上下文中发起 AI 查询。改造成本低，阻力最小。</div>
         </div>
         <div class="entry-card">
-          <div class="entry-card-title">📱 移动 / 现场终端</div>
+          <div class="entry-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>移动 / 现场终端</div>
           <div class="entry-card-desc">产线现场的移动设备上，以语音输入 + 拍照上传为主要交互方式。操作员拍下设备异常，Agent 识别图像并完成初步诊断，结合设备档案给出处置建议。</div>
         </div>
         <div class="entry-card">
-          <div class="entry-card-title">💬 企业聊天平台机器人</div>
+          <div class="entry-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>企业聊天平台机器人</div>
           <div class="entry-card-desc">接入企业微信、飞书等平台，以 Bot 形式提供会话能力。适合管理层的低频查询和异常推送通知。SSE 流式事件映射为消息更新，Artifact 卡片映射为富文本消息。</div>
         </div>
       </div>
@@ -1462,7 +1468,7 @@
 <span class="c-cmt">// 流式过程中 state 的演变：</span>
 <span class="c-cmt">//</span>
 <span class="c-cmt">// state.stages      → StageTimeline 组件实时更新：</span>
-<span class="c-cmt">//   ["召回设备档案 ✓", "查询MES数据 ✓", "异常分析 ⟳", "生成报告 ○"]</span>
+<span class="c-cmt">//   ["召回设备档案 [done]", "查询MES数据 [done]", "异常分析 [running]", "生成报告 [pending]"]</span>
 <span class="c-cmt">//</span>
 <span class="c-cmt">// state.memoryItems → MemoryChips 展示（收到 MemoryEvent 后）：</span>
 <span class="c-cmt">//   ["L2产线SOP v3.2", "上次维保记录 2026-04-12", "历史同类告警 ×3"]</span>
@@ -1514,7 +1520,7 @@
 
         <div class="artifact-card">
           <div class="artifact-card-header">
-            <span class="artifact-icon">📊</span>
+            <span class="artifact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>
             产量对比报表 · L2 产线 · 2026-05-19
           </div>
           <div class="artifact-card-body">

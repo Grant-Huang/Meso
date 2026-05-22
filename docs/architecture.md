@@ -2,28 +2,28 @@
 
 ## 一、系统分层
 
-**流式对话是平台的主干。** 记忆系统、插件引擎、内容提取都是流式对话的前置输入或后置解析，而不是独立并行的功能模块。每次用户发送，都沿着这条主干流动一遍。
+**流式对话是平台的主干。** 记忆系统、能力系统（Soul/Skill/Tools/MCP）都是流式对话的前置配置或运行时组件，而不是独立并行的功能模块。每次用户发送，都沿着这条主干流动一遍。
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        业务应用层                            │
-│   App Manifest（知识库 + Tools + Skill + 提示词模板）        │
+│   App Manifest（知识库 + Tools + Skill + Soul + 提示词模板） │
 ├─────────────────────────────────────────────────────────────┤
 │                       平台服务层                             │
 │                                                             │
 │   ┌─────────────────────────────────────────────────────┐   │
 │   │               流式对话 Core（主干）                   │   │
 │   │   SSE 生成器 / 事件协议 / 多轮状态机 / 上下文管理     │   │
-│   └──────┬──────────────┬──────────────────┬────────────┘   │
-│          │  前置注入     │  后置解析         │                │
-│   ┌──────┴──────┐  ┌────┴────────┐  ┌──────┴──────────┐    │
-│   │  记忆系统    │  │  插件引擎    │  │   内容提取       │    │
-│   │  Memory     │  │  Plugin     │  │   Extraction    │    │
-│   └─────────────┘  └─────────────┘  └─────────────────┘    │
-│                                                             │
+│   └──────┬──────────┬──────────┬──────────┬─────────────┘   │
+│          │          │          │          │                  │
+│   ┌──────┴──────┐ ┌─┴───────┐ ┌┴────────┐ ┌┴────────────┐  │
+│   │  记忆系统    │ │ Soul/   │ │  Tools  │ │  MCP 集成    │  │
+│   │  Memory     │ │ Skill   │ │  引擎   │ │  (工具/资源  │  │
+│   └─────────────┘ └─────────┘ └─────────┘ │  /提示词)   │  │
+│                                            └─────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
 │                        UI 框架层                             │
-│   三栏布局 / 流式渲染状态机 / Artifact面板 / 会话历史         │
+│   三栏布局 / 流式渲染状态机 / Artifact面板 / 能力组件         │
 ├─────────────────────────────────────────────────────────────┤
 │                      基础设施层                              │
 │   LLM Provider 抽象 / SQLite / SSE / 文件系统               │
@@ -51,16 +51,41 @@ AppLayout
 
 ```
 ChatPane
-├── ChatThread          # 消息列表（滚动区）
-│   ├── ChatBubble      # 用户消息气泡
-│   └── AssistantBubble # AI 回复（含 Markdown / Think block / 流式光标）
-├── StatusBar           # 思考状态 / 阶段进度
+├── MessageList         # 消息列表（滚动区）
+│   ├── ChatBubble      # 用户/助手消息气泡（Markdown 渲染）
+│   ├── ThinkBlock      # 流式推理过程，done 后自动折叠
+│   ├── StageTimeline   # 阶段进度条（stage 事件驱动）
+│   ├── SoulIndicator   # Soul 头像 chip（soul 事件驱动）
+│   ├── SkillIndicator  # Skill 徽章（skill_active 事件驱动）
+│   ├── ToolCallBlock   # 工具调用卡片（tool_call/result 事件）
+│   ├── ResourceReadBlock # MCP 资源读取卡片（resource_read/content 事件）
+│   ├── ArtifactPanel   # 代码/图表/HTML 内容面板
+│   └── ConfirmGate     # 危险工具确认门（risk=destructive）
 └── Composer            # 输入区
     ├── ComposerTextarea
-    └── ComposerToolbar # 工具栏（知识库选择 / Tools 开关 / 发送）
+    └── ComposerToolbar # 工具栏（知识库选择 / 技能选择 / 发送）
 ```
 
-### 2.3 Artifact 面板
+### 2.3 UI 组件库（@meso/ui）
+
+所有组件均从 `@meso/ui` 导出：
+
+| 组件 | 说明 | 驱动事件 |
+|------|------|----------|
+| `ThreeColumnLayout` | 三栏布局框架 | — |
+| `ChatBubble` | 用户/助手气泡 | `text` |
+| `ThinkBlock` | 推理过程块，支持流式+折叠 | `think` |
+| `StreamingCursor` | 流式光标动画 | — |
+| `StageTimeline` | 阶段进度条 | `stage` |
+| `ArtifactPanel` | 代码/HTML/图表面板 | `artifact` |
+| `SoulIndicator` | Soul 头像 + 特质标签 | `soul` |
+| `SkillIndicator` | Skill 徽章 + 焦点 | `skill_active` |
+| `ToolCallBlock` | 工具卡片（风险+确认） | `tool_call`, `tool_result` |
+| `ResourceReadBlock` | MCP 资源读取卡片 | `resource_read`, `resource_content` |
+| `ConfirmGate` | 独立确认对话框 | — |
+| `MessageList` | 组合所有流式组件的列表 | 所有事件 |
+
+### 2.4 Artifact 面板
 
 ```
 ArtifactPane
@@ -82,7 +107,7 @@ Artifact 的识别：LLM 输出中约定特定 fence 标记，流式解析时实
 ```artifact:table   → TableArtifact
 ```
 
-### 2.4 应用切换
+### 2.5 应用切换
 
 ```
 AppSidebar
@@ -96,9 +121,96 @@ AppSidebar
 
 ---
 
-## 三、后端模块划分
+## 三、能力系统（Soul / Skill / Tools / MCP）
 
-### 3.1 目录结构（目标）
+Meso 的能力模型基于三个维度：**提供方 × 类型 × 生命周期**。
+
+### 3.1 能力提供方（CapabilityProvider）
+
+| 值 | 含义 |
+|----|------|
+| `builtin` | 平台内置（search_knowledge, save_memory, …） |
+| `local` | App 定义的同进程函数 |
+| `mcp` | MCP（Model Context Protocol）服务器提供 |
+| `api` | 外部 REST/gRPC 端点 |
+
+### 3.2 能力类型
+
+| 类型 | 协议事件 | 语义 |
+|------|----------|------|
+| **Soul** | `soul` | WHO——身份/人格，会话内稳定 |
+| **Skill** | `skill_active` | HOW——运作模式，可切换；MCP Prompts 映射到此 |
+| **Tool** | `tool_call` + `tool_result` | DO——执行有结果的外部操作 |
+| **Resource** | `resource_read` + `resource_content` | READ——读取 MCP 文档/资源（只读，URI 寻址） |
+
+### 3.3 MCP 能力映射
+
+```
+MCP Tools     → tool_call / tool_result  （执行操作）
+MCP Resources → resource_read / resource_content  （读取文档）
+MCP Prompts   → skill_active  （注入提示词后发信号）
+MCP Sampling  → 后端处理，不透传到前端
+```
+
+### 3.4 能力发现
+
+`capabilities` 事件在流式开始时发送一次，宣告本次会话所有可用能力：
+
+```json
+{
+  "type": "capabilities",
+  "payload": {
+    "tools": [...],
+    "skills": [...],
+    "resources": [...],
+    "mcp_servers": [...]
+  }
+}
+```
+
+---
+
+## 四、SSE 事件协议（见规范文档）
+
+> **规范性文档**：完整协议定义见 [`docs/streaming-protocol.md`](./streaming-protocol.md)，本节为概览。
+
+所有流式事件格式统一为：
+
+```
+data: {"type": "<event_type>", "schema_version": "1.0", "payload": {...}}\n\n
+```
+
+完整事件类型（16 种）：
+
+| event_type | payload | 说明 |
+|------------|---------|------|
+| `capabilities` | `{ tools, skills, resources, mcp_servers }` | 会话能力发现 |
+| `soul` | `{ id, name, version, avatar?, traits? }` | 激活 Soul 人格 |
+| `skill_active` | `{ id, name, provider?, server?, focus? }` | 激活 Skill 模式 |
+| `stage` | `{ name, state }` | 阶段进度 |
+| `memory` | `{ snippets: [{category, content}] }` | 记忆召回结果 |
+| `memory_saved` | `{ id, category, preview }` | 记忆写入确认 |
+| `tool_call` | `{ id, name, args, risk?, provider?, server?, annotations? }` | 工具调用开始 |
+| `tool_result` | `{ tool_call_id, output, error?, duration_ms? }` | 工具执行完成 |
+| `resource_read` | `{ id, uri, name?, server? }` | MCP 资源读取请求 |
+| `resource_content` | `{ resource_read_id, contents, error?, duration_ms? }` | MCP 资源内容 |
+| `think` | `{ delta, done? }` | 推理文本增量 |
+| `text` | `{ delta }` | 普通文本增量 |
+| `artifact` | `{ id, lang, delta, done? }` | Artifact 内容增量 |
+| `done` | `{}` | 流正常结束 |
+| `error` | `{ message, code? }` | 不可恢复错误 |
+| `extension` | `{ name, version?, data }` | 自定义域事件 |
+
+---
+
+## 五、后端模块划分（参考实现，非规范）
+
+> ⚠️ **Non-normative / Demo only**
+> §5 至 §7 描述的是一种参考后端实现，不属于 `@meso/ui` 平台契约。
+> 第三方可使用任意后端技术栈（Node.js、Go、Java 等），
+> 只需遵守 [`docs/streaming-protocol.md`](./streaming-protocol.md) 定义的 SSE 事件协议。
+
+### 5.1 目录结构（目标）
 
 ```
 backend/
@@ -115,15 +227,18 @@ backend/
 │   ├── conversation_fsm.py  # 多轮对话状态机
 │   ├── prompt_builder.py    # 系统提示词构建（注入记忆 + 知识 + tools）
 │   └── context_builder.py   # 滚动上下文窗口管理
+├── capabilities/
+│   ├── soul.py              # Soul 定义加载
+│   ├── skill.py             # Skill（提示词模板）加载
+│   ├── tools_registry.py    # Tools 注册与执行
+│   └── mcp_client.py        # MCP 服务器连接与能力代理
 ├── memory/
 │   ├── short_term.py        # 本地 .md 快照读写
 │   ├── long_term.py         # Obsidian vault 文件读写
 │   └── recall.py            # 混合召回（关键词 + 向量）
 ├── plugins/
 │   ├── manifest.py          # App Manifest 解析与校验
-│   ├── knowledge.py         # 知识库索引与检索
-│   ├── tools_registry.py    # Tools 注册与执行
-│   └── skill.py             # Skill（提示词模板）加载
+│   └── knowledge.py         # 知识库索引与检索
 ├── extraction/
 │   ├── detector.py          # 从流式输出中识别可提取内容
 │   └── router.py            # 提取内容路由（存记忆 / 传功能模块）
@@ -132,7 +247,7 @@ backend/
     └── queries.py            # 常用查询封装
 ```
 
-### 3.2 核心 API 端点
+### 5.2 核心 API 端点
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -145,54 +260,44 @@ backend/
 | GET  | `/api/v1/apps` | 已注册的 App 列表 |
 | GET  | `/api/v1/apps/{appId}/manifest` | App Manifest 详情 |
 
-### 3.3 流式对话数据流
+### 5.3 流式对话数据流
 
 ```
 POST /api/v1/chat/stream
     │
     ├─ 1. 解析 appId → 加载 App Manifest
     │
-    ├─ 2. 召回记忆（短期 .md + 长期 Obsidian）
+    ├─ 2. 发送 capabilities 事件（宣告本次会话可用能力）
     │
-    ├─ 3. 检索知识库（App 挂载的知识索引）
+    ├─ 3. 发送 soul 事件（若配置了 Soul 定义）
     │
-    ├─ 4. 构建提示词
-    │       system = platform_base + skill_prompt + memory_snippets + knowledge_snippets
-    │       user   = 当前消息
+    ├─ 4. 若有活跃 Skill / MCP Prompt：
+    │       get_prompt → 注入 system prompt → 发送 skill_active 事件
     │
-    ├─ 5. 调用 LLM Provider，流式迭代 chunks
+    ├─ 5. 召回记忆（短期 .md + 长期 Obsidian）
+    │       → stage("召回记忆") → memory(snippets)
+    │
+    ├─ 6. 检索知识库
+    │       → stage("检索知识")
+    │
+    ├─ 7. 若需要 MCP 资源：
+    │       resource_read → (MCP call) → resource_content
+    │
+    ├─ 8. 构建提示词 → 调用 LLM Provider，流式迭代 chunks
     │       ├─ 实时解析 Artifact fence → yield artifact_event
     │       ├─ 实时解析 Think block   → yield think_event
+    │       ├─ LLM tool_use 决策      → yield tool_call_event → execute → yield tool_result_event
     │       └─ 普通文本               → yield text_event
     │
-    ├─ 6. 完成后：保存消息到 SQLite
+    ├─ 9. 完成后：保存消息到 SQLite
     │
-    └─ 7. 异步：触发内容提取器，识别可存入记忆的内容
+    └─ 10. 异步：触发内容提取器，识别可存入记忆的内容
+             → 若写入记忆 → yield memory_saved_event
 ```
 
 ---
 
-## 四、SSE 事件协议
-
-所有流式事件格式统一为：
-
-```
-data: {"type": "<event_type>", "payload": {...}}\n\n
-```
-
-| event_type | payload | 说明 |
-|------------|---------|------|
-| `text` | `{"delta": "..."}` | 普通文本增量 |
-| `think` | `{"delta": "...", "done": bool}` | 思考过程文本 |
-| `artifact` | `{"id": "...", "lang": "...", "delta": "...", "done": bool}` | Artifact 内容增量 |
-| `stage` | `{"name": "...", "state": "active\|done\|error"}` | 阶段进度 |
-| `memory` | `{"snippets": [...]}` | 本次召回的记忆摘要（展示用） |
-| `error` | `{"message": "..."}` | 错误 |
-| `done` | `{}` | 流结束 |
-
----
-
-## 五、数据库 Schema（SQLite）
+## 六、数据库 Schema（SQLite）
 
 ```sql
 -- 会话
@@ -210,7 +315,7 @@ CREATE TABLE messages (
     session_id  TEXT NOT NULL,
     role        TEXT NOT NULL,   -- user | assistant | system
     content     TEXT NOT NULL,
-    metadata    TEXT,            -- JSON: artifacts, stage_log, etc.
+    metadata    TEXT,            -- JSON: artifacts, stage_log, tool_calls, etc.
     created_at  INTEGER
 );
 
@@ -229,7 +334,7 @@ CREATE TABLE knowledge_chunks (
 CREATE TABLE memory_items (
     id          TEXT PRIMARY KEY,
     app_id      TEXT,            -- NULL 表示全局
-    category    TEXT,            -- preference | fact | project | feedback
+    category    TEXT,            -- preference | fact | project | feedback | decision
     content     TEXT NOT NULL,
     source      TEXT,            -- session_id / manual
     embedding   BLOB,
@@ -239,7 +344,7 @@ CREATE TABLE memory_items (
 
 ---
 
-## 六、环境变量
+## 七、环境变量
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|

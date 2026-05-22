@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "textContent": "正在调用工具，结果如下",
+  "stages": [],
+  "memorySnippets": [],
+  "thinkContent": "",
+  "thinkDone": false,
+  "artifacts": {},
+  "artifactOrder": [],
+  "errorMessage": null,
+  "extensionLog": [
+    { "type": "extension", "payload": { "name": "tool_progress" } },
+    { "type": "extension", "payload": { "name": "tool_progress" } }
+  ],
+  "extensions": {
+    "tool_progress": [
+      { "type": "extension", "payload": { "name": "tool_progress" } },
+      { "type": "extension", "payload": { "name": "tool_progress" } }
+    ]
+  }
+}

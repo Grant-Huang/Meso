@@ -1,69 +1,69 @@
 import { useCallback, useRef, useState } from 'react'
+import { parseSSELine, applyEvent, createInitialStreamState } from '../runtime'
+import type {
+  StreamState,
+  StreamStatus,
+  StagePayload,
+  MemorySnippet,
+  MemorySavedPayload,
+  CapabilitiesPayload,
+  SoulPayload,
+  SkillPayload,
+  ToolCallPayload,
+  ToolResultPayload,
+  ResourceReadPayload,
+  ResourceContentPayload,
+  ArtifactState,
+} from '../runtime'
 
-/** Event types emitted by the Meso SSE backend */
-export type SSEEventType = 'stage' | 'memory' | 'think' | 'text' | 'artifact' | 'done' | 'error'
-
-export interface StageEvent {
-  type: 'stage'
-  label: string
-  status: 'active' | 'done'
-}
-
-export interface MemoryEvent {
-  type: 'memory'
-  items: string[]
-}
-
-export interface ThinkEvent {
-  type: 'think'
-  delta: string
-  done?: boolean
-}
-
-export interface TextEvent {
-  type: 'text'
-  delta: string
-}
-
-export interface ArtifactEvent {
-  type: 'artifact'
-  artifactType: 'code' | 'html' | 'mermaid'
-  language?: string
-  delta: string
-  done?: boolean
-}
-
-export interface DoneEvent {
-  type: 'done'
-}
-
-export interface ErrorEvent {
-  type: 'error'
-  message: string
-}
-
-export type SSEEvent =
-  | StageEvent
-  | MemoryEvent
-  | ThinkEvent
-  | TextEvent
-  | ArtifactEvent
-  | DoneEvent
-  | ErrorEvent
-
-export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error'
-
-export interface StreamState {
-  status: StreamStatus
-  stages: StageEvent[]
-  memoryItems: string[]
-  thinkContent: string
-  thinkDone: boolean
-  textContent: string
-  artifact: { type: ArtifactEvent['artifactType']; language?: string; content: string } | null
-  artifact_done?: boolean
-  errorMessage: string | null
-}
+// Re-export runtime types so existing imports from useSSEStream continue to work
+export type {
+  StreamState,
+  StreamStatus,
+  ArtifactState,
+  ToolCallStatus,
+  ToolCallState,
+  ResourceReadStatus,
+  ResourceReadState,
+  SSEEvent,
+  StageEvent,
+  StagePayload,
+  CapabilitiesEvent,
+  CapabilitiesPayload,
+  ToolSpec,
+  SkillSpec,
+  ResourceSpec,
+  MCPServerSpec,
+  MemoryEvent,
+  MemorySnippet,
+  MemorySavedEvent,
+  MemorySavedPayload,
+  SoulEvent,
+  SoulPayload,
+  SkillActiveEvent,
+  SkillPayload,
+  ThinkEvent,
+  ThinkPayload,
+  TextEvent,
+  TextPayload,
+  ArtifactEvent,
+  CapabilityProvider,
+  ToolRisk,
+  ToolAnnotations,
+  ToolCallEvent,
+  ToolCallPayload,
+  ToolResultEvent,
+  ToolResultPayload,
+  ResourceReadEvent,
+  ResourceReadPayload,
+  ResourceContentEvent,
+  ResourceContentPayload,
+  ResourceContentItem,
+  DoneEvent,
+  ErrorEvent,
+  ExtensionEvent,
+  ExtensionPayload,
+} from '../runtime'
 
 export interface StreamOptions {
   method?: 'GET' | 'POST'
@@ -71,37 +71,53 @@ export interface StreamOptions {
   body?: Record<string, unknown>
 }
 
-const initialState: StreamState = {
-  status: 'idle',
-  stages: [],
-  memoryItems: [],
-  thinkContent: '',
-  thinkDone: false,
-  textContent: '',
-  artifact: null,
-  artifact_done: false,
-  errorMessage: null,
+/** Lifecycle callbacks fired after each matching SSE event is applied to state. */
+export interface StreamCallbacks {
+  onCapabilities?: (capabilities: CapabilitiesPayload) => void
+  onStageChange?: (stage: StagePayload) => void
+  onMemoryRecalled?: (snippets: MemorySnippet[]) => void
+  onMemorySaved?: (saved: MemorySavedPayload) => void
+  onSoulActivated?: (soul: SoulPayload) => void
+  onSkillActivated?: (skill: SkillPayload) => void
+  onToolCall?: (call: ToolCallPayload) => void
+  onToolResult?: (result: ToolResultPayload) => void
+  onResourceRead?: (read: ResourceReadPayload) => void
+  onResourceContent?: (content: ResourceContentPayload) => void
+  onArtifact?: (artifact: ArtifactState) => void
+  onError?: (message: string, code?: string) => void
+  onDone?: (finalState: StreamState) => void
 }
 
-export function useSSEStream(url: string) {
-  const [state, setState] = useState<StreamState>(initialState)
+/**
+ * React hook wrapping the Meso SSE runtime.
+ * For fetch-free usage (custom transports, Node.js), import directly from
+ * @meso/ui/runtime: { parseSSELine, applyEvent, createInitialStreamState }
+ */
+export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
+  const [state, setState] = useState<StreamState>(createInitialStreamState)
   const abortRef = useRef<AbortController | null>(null)
+  // Always read the latest callbacks without putting them in dependency arrays
+  const callbacksRef = useRef<StreamCallbacks | undefined>(callbacks)
+  callbacksRef.current = callbacks
 
   const abort = useCallback(() => {
     abortRef.current?.abort()
-    setState(prev => ({ ...prev, status: 'idle' }))
+    setState(prev => ({ ...prev, status: 'idle' as StreamStatus }))
   }, [])
 
   const reset = useCallback(() => {
     abortRef.current?.abort()
-    setState(initialState)
+    setState(createInitialStreamState())
   }, [])
 
   const start = useCallback(async (options?: StreamOptions) => {
     abortRef.current?.abort()
     const ctrl = new AbortController()
     abortRef.current = ctrl
-    setState({ ...initialState, status: 'streaming' })
+
+    const initial: StreamState = { ...createInitialStreamState(), status: 'streaming' }
+    setState(initial)
+    let current = initial
 
     const method = options?.method ?? (options?.body ? 'POST' : 'GET')
 
@@ -116,9 +132,7 @@ export function useSSEStream(url: string) {
         signal: ctrl.signal,
       })
 
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`)
-      }
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
 
       const reader = resp.body!.getReader()
       const decoder = new TextDecoder()
@@ -132,63 +146,46 @@ export function useSSEStream(url: string) {
         buffer = lines.pop() ?? ''
 
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue
-          const data = line.slice(6).trim()
-          if (data === '[DONE]') return
-          let event: SSEEvent
-          try { event = JSON.parse(data) as SSEEvent } catch { continue }
-          setState(prev => applyEvent(prev, event))
+          const event = parseSSELine(line)
+          if (!event) continue
+
+          const next = applyEvent(current, event)
+          current = next
+          setState(next)
+
+          const cb = callbacksRef.current
+          if (cb) {
+            switch (event.type) {
+              case 'capabilities':    cb.onCapabilities?.(event.payload); break
+              case 'stage':           cb.onStageChange?.(event.payload); break
+              case 'memory':          cb.onMemoryRecalled?.(event.payload.snippets); break
+              case 'memory_saved':    cb.onMemorySaved?.(event.payload); break
+              case 'soul':            cb.onSoulActivated?.(event.payload); break
+              case 'skill_active':    cb.onSkillActivated?.(event.payload); break
+              case 'tool_call':       cb.onToolCall?.(event.payload); break
+              case 'tool_result':     cb.onToolResult?.(event.payload); break
+              case 'resource_read':   cb.onResourceRead?.(event.payload); break
+              case 'resource_content':cb.onResourceContent?.(event.payload); break
+              case 'artifact': {
+                const art = next.artifacts[event.payload.id]
+                if (art) cb.onArtifact?.(art)
+                break
+              }
+              case 'error': cb.onError?.(event.payload.message, event.payload.code); break
+              case 'done':  cb.onDone?.(next); break
+            }
+          }
+
           if (event.type === 'done' || event.type === 'error') return
         }
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
-      setState(prev => ({
-        ...prev,
-        status: 'error',
-        errorMessage: (err as Error).message,
-      }))
+      const msg = (err as Error).message
+      setState(prev => ({ ...prev, status: 'error', errorMessage: msg }))
+      callbacksRef.current?.onError?.(msg)
     }
   }, [url])
 
   return { state, start, abort, reset }
-}
-
-function applyEvent(prev: StreamState, event: SSEEvent): StreamState {
-  switch (event.type) {
-    case 'stage':
-      return {
-        ...prev,
-        stages: [
-          ...prev.stages.filter((s) => s.label !== event.label),
-          event,
-        ],
-      }
-    case 'memory':
-      return { ...prev, memoryItems: event.items }
-    case 'think':
-      return {
-        ...prev,
-        thinkContent: prev.thinkContent + event.delta,
-        thinkDone: event.done ?? false,
-      }
-    case 'text':
-      return { ...prev, textContent: prev.textContent + event.delta }
-    case 'artifact':
-      return {
-        ...prev,
-        artifact: {
-          type: event.artifactType,
-          language: event.language,
-          content: (prev.artifact?.content ?? '') + event.delta,
-        },
-        artifact_done: event.done ?? false,
-      }
-    case 'done':
-      return { ...prev, status: 'done' }
-    case 'error':
-      return { ...prev, status: 'error', errorMessage: event.message }
-    default:
-      return prev
-  }
 }

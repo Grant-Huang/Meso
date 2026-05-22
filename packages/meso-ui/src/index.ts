@@ -20,22 +20,82 @@ export type { StageTimelineProps, Stage, StageStatus } from './components/StageT
 export { MessageList } from './components/MessageList'
 export type { MessageListProps, Message } from './components/MessageList'
 
+export { ToolCallBlock } from './components/ToolCallBlock'
+export type { ToolCallBlockProps } from './components/ToolCallBlock'
+
+export { SoulIndicator } from './components/SoulIndicator'
+export type { SoulIndicatorProps } from './components/SoulIndicator'
+
+export { SkillIndicator } from './components/SkillIndicator'
+export type { SkillIndicatorProps } from './components/SkillIndicator'
+
+export { ResourceReadBlock } from './components/ResourceReadBlock'
+export type { ResourceReadBlockProps } from './components/ResourceReadBlock'
+
+export { ConfirmGate } from './components/ConfirmGate'
+export type { ConfirmGateProps } from './components/ConfirmGate'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
-export type {
-  SSEEvent,
-  SSEEventType,
-  StreamState,
-  StreamStatus,
-  StreamOptions,
-  StageEvent,
-  MemoryEvent,
-  ThinkEvent,
-  TextEvent,
-  ArtifactEvent,
-  DoneEvent,
-  ErrorEvent,
-} from './hooks/useSSEStream'
+export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'
 
 export { useTheme } from './hooks/useTheme'
 export type { Theme } from './hooks/useTheme'
+
+// Runtime (also available as @meso/ui/runtime for React-free usage)
+export {
+  PROTOCOL_VERSION,
+  parseSSELine,
+  applyEvent,
+  createInitialStreamState,
+} from './runtime'
+export type {
+  CapabilityProvider,
+  SSEEvent,
+  StageEvent,
+  StagePayload,
+  CapabilitiesEvent,
+  CapabilitiesPayload,
+  ToolSpec,
+  SkillSpec,
+  ResourceSpec,
+  MCPServerSpec,
+  MemoryEvent,
+  MemorySnippet,
+  MemoryPayload,
+  MemorySavedEvent,
+  MemorySavedPayload,
+  SoulEvent,
+  SoulPayload,
+  SkillActiveEvent,
+  SkillPayload,
+  ThinkEvent,
+  ThinkPayload,
+  TextEvent,
+  TextPayload,
+  ArtifactEvent,
+  ArtifactPayload,
+  ToolRisk,
+  ToolAnnotations,
+  ToolCallEvent,
+  ToolCallPayload,
+  ToolResultEvent,
+  ToolResultPayload,
+  ResourceReadEvent,
+  ResourceReadPayload,
+  ResourceContentEvent,
+  ResourceContentPayload,
+  ResourceContentItem,
+  DoneEvent,
+  ErrorEvent,
+  ErrorPayload,
+  ExtensionEvent,
+  ExtensionPayload,
+  StreamState,
+  StreamStatus,
+  ArtifactState,
+  ToolCallStatus,
+  ToolCallState,
+  ResourceReadStatus,
+  ResourceReadState,
+} from './runtime'

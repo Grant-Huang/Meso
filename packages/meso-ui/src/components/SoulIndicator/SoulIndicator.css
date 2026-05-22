@@ -1,0 +1,65 @@
+.meso-soul {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 4px;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-radius: 20px;
+  font-size: 12px;
+  user-select: none;
+}
+
+.meso-soul--compact {
+  padding: 2px;
+  background: transparent;
+  border: none;
+}
+
+.meso-soul__avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.meso-soul--compact .meso-soul__avatar {
+  width: 26px;
+  height: 26px;
+}
+
+.meso-soul__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meso-soul__initial {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.meso-soul__name {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.meso-soul__traits {
+  display: flex;
+  gap: 4px;
+}
+
+.meso-soul__trait {
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-radius: 10px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}

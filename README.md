@@ -83,6 +83,43 @@ export function App() {
 
 ---
 
+## Monorepo 外消费（file: 路径引用）
+
+stock-fe、独立项目等不在 Meso workspace 内的消费方，需要以下步骤：
+
+### 1. 构建顺序（必须先 types 再 ui）
+
+```bash
+# 在 Meso 根目录执行
+pnpm --filter @meso/types run build
+pnpm --filter @meso/ui run build
+```
+
+dist/ 目录必须存在，`file:` 引用直接读取编译产物。
+
+### 2. 消费方 package.json
+
+`@meso/ui` 将 `@meso/types` 声明为 `peerDependency`，消费方需同时引用两个包：
+
+```json
+{
+  "dependencies": {
+    "@meso/types": "file:../meso/packages/meso-types",
+    "@meso/ui":    "file:../meso/packages/meso-ui",
+    "react":       "^18.0.0",
+    "react-dom":   "^18.0.0"
+  }
+}
+```
+
+一次 `npm install` 或 `pnpm install` 即可，无需任何 patch 脚本。
+
+### 3. 版本更新后
+
+每次拉取新版 Meso 后，重新执行第 1 步的 build 命令，dist/ 刷新即生效。
+
+---
+
 ## 包结构
 
 | 导入路径 | 内容 | React 依赖 |

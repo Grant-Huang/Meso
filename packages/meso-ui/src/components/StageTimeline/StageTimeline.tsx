@@ -36,8 +36,7 @@ export function StageTimeline({ stages, compact = false }: StageTimelineProps) {
           {idx < stages.length - 1 && (
             <div className={`meso-stage__line${stage.status === 'done' ? ' meso-stage__line--done' : ''}`} />
           )}
-          {!compact && <span className="meso-stage__label">{stage.label}</span>}
-          {compact && <span className="meso-stage__label meso-stage__label--compact">{stage.label}</span>}
+          <span className={`meso-stage__label${compact ? ' meso-stage__label--compact' : ''}`}>{stage.label}</span>
         </div>
       ))}
     </div>

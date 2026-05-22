@@ -1,9 +1,0 @@
-data: {"type":"text","schema_version":"1.0","payload":{"delta":"正在调用工具"}}
-
-data: {"type":"extension","schema_version":"1.0","payload":{"name":"tool_progress","version":"1.0","data":{"tool":"search","status":"running","query":"Meso platform"}}}
-
-data: {"type":"extension","schema_version":"1.0","payload":{"name":"tool_progress","version":"1.0","data":{"tool":"search","status":"done","results":3}}}
-
-data: {"type":"text","schema_version":"1.0","payload":{"delta":"，结果如下"}}
-
-data: {"type":"done","schema_version":"1.0","payload":{}}

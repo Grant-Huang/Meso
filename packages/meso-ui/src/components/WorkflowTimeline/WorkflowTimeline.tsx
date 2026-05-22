@@ -111,7 +111,7 @@ export function WorkflowTimeline({ runs, showRunId = true }: WorkflowTimelinePro
         const rows = buildTree(run)
         return (
           <div key={run.run_id} className="meso-wf-run">
-            {(multiRun || showRunId) && multiRun && (
+            {multiRun && showRunId && (
               <div className="meso-wf-run__label">{run.run_id}</div>
             )}
             {rows.map(({ node, depth }, idx) => (

@@ -112,9 +112,12 @@
       z-index:100;
     }
     .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .doc-btn { position:fixed; top:10px; right:12px; text-decoration:none; font-size:16px; opacity:.5; z-index:200; transition:opacity .15s; line-height:1; }
+    .doc-btn:hover { opacity:1; }
   </style>
 </head>
 <body>
+<a class="doc-btn" href="../help.html#components" target="_blank" title="查看文档">📖</a>
 
 <div class="artifact-panel">
   <!-- Tab bar -->
@@ -265,6 +268,10 @@
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2000);
   }
+
+  const _initHash = location.hash.slice(1);
+  if (_initHash) { const _tab = document.querySelector('.tab[data-tab="'+_initHash+'"]'); if (_tab) _tab.click(); }
+  window.addEventListener('hashchange', () => { const _h = location.hash.slice(1); const _t = document.querySelector('.tab[data-tab="'+_h+'"]'); if (_t) _t.click(); });
 </script>
 </body>
 </html>

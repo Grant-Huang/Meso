@@ -8,6 +8,7 @@
     (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
   </script>
   <link rel="stylesheet" href="platform/meso-tokens.css">
+  <script src="platform/providers.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,107 +19,315 @@
       color: var(--color-text);
       height: 100vh;
       display: flex;
-      flex-direction: column;
-    }
-
-    /* ── Header ── */
-    .settings-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 0 20px;
-      height: 52px;
-      border-bottom: 1px solid var(--color-border);
-      background: var(--color-surface);
-      flex-shrink: 0;
-    }
-    .settings-header h1 {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--color-text);
-    }
-    .header-spacer { flex: 1; }
-    .btn-close {
-      width: 30px; height: 30px;
-      border: none; background: none;
-      border-radius: 6px;
-      color: var(--color-text-muted);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
-    }
-    .btn-close:hover { background: var(--nav-hover-bg); color: var(--color-text); }
-
-    /* ── Body ── */
-    .settings-body {
-      display: flex;
-      flex: 1;
       overflow: hidden;
     }
 
-    /* ── Left nav (categories) ── */
-    .settings-nav {
-      width: 160px;
-      flex-shrink: 0;
+    /* ── Sidebar (ThreeColumnLayout style) ── */
+    .meso-sidebar {
+      width: var(--sidebar-w, 145px);
+      min-width: var(--sidebar-w, 145px);
+      background: var(--color-bg);
       border-right: 1px solid var(--color-border);
-      overflow-y: auto;
-      padding: 12px 0;
-      background: var(--color-bg-sidebar, var(--color-surface));
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s ease, min-width 0.2s ease;
+      overflow: hidden;
+      z-index: 10;
+      flex-shrink: 0;
     }
-    .nav-item {
+    .meso-sidebar--collapsed {
+      width: var(--sidebar-w-collapsed, 52px);
+      min-width: var(--sidebar-w-collapsed, 52px);
+    }
+    .meso-sidebar__header {
+      height: 52px;
       display: flex;
       align-items: center;
-      gap: 9px;
-      padding: 9px 16px;
-      cursor: pointer;
-      border-radius: 0;
-      transition: background 0.12s;
-      user-select: none;
+      padding: 0 10px 0 12px;
+      border-bottom: 1px solid var(--color-border-light);
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .meso-sidebar__logo {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      background: var(--color-accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
       font-size: 13px;
+      font-weight: 700;
+      transition: opacity 0.15s ease, width 0.2s ease, margin 0.2s ease;
+    }
+    .meso-sidebar__title {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      color: var(--color-text);
+      opacity: 1;
+      transition: opacity 0.15s ease;
+    }
+    .meso-sidebar__toggle {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      transition: background 0.12s, color 0.12s;
+      border: none;
+      background: transparent;
+    }
+    .meso-sidebar__toggle:hover {
+      background: var(--nav-hover-bg, rgba(61,107,82,0.09));
       color: var(--color-text);
     }
-    .nav-item:hover { background: var(--nav-hover-bg); }
-    .nav-item.active {
-      background: var(--nav-active-bg);
-      color: var(--color-accent);
-      font-weight: 500;
+    /* Collapsed */
+    .meso-sidebar--collapsed .meso-sidebar__title { opacity: 0; }
+    .meso-sidebar--collapsed .meso-sidebar__logo { opacity: 0; width: 0; margin: 0; }
+    .meso-sidebar--collapsed .meso-sidebar__header { justify-content: center; padding: 0; }
+    .meso-sidebar--collapsed .meso-sidebar__toggle { width: 40px; height: 40px; }
+    /* Nav */
+    .meso-sidebar__nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
     }
-    .nav-item.disabled {
+    .meso-sidebar__nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 1px 6px;
+      transition: background 0.12s;
+      white-space: nowrap;
+      overflow: hidden;
+      color: var(--color-text-secondary);
+      user-select: none;
+    }
+    .meso-sidebar__nav-item:hover {
+      background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+      color: var(--color-text);
+    }
+    .meso-sidebar__nav-item--active {
+      background: var(--nav-active-bg, rgba(61,107,82,0.16));
+      color: var(--color-accent-dark, var(--color-accent));
+    }
+    .meso-sidebar__nav-item--disabled {
       opacity: 0.4;
       cursor: default;
       pointer-events: none;
     }
-    .nav-icon {
-      font-size: 15px;
+    .meso-sidebar__nav-icon {
       flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
       line-height: 1;
     }
+    .meso-sidebar__nav-label {
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.15s ease;
+    }
+    .meso-sidebar--collapsed .meso-sidebar__nav-label { opacity: 0; }
+    .meso-sidebar--collapsed .meso-sidebar__nav-item { justify-content: center; padding: 8px 0; margin: 1px 4px; }
 
     /* ── Main area ── */
     .settings-main {
       flex: 1;
       overflow-y: auto;
-      padding: 28px 36px;
+      padding: 32px 40px;
+      min-width: 0;
     }
-    .settings-main-title {
+
+    /* ── Main header row ── */
+    .main-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      max-width: 620px;
+    }
+    .main-title {
       font-size: 17px;
       font-weight: 600;
       color: var(--color-text);
-      margin-bottom: 20px;
     }
 
-    /* ── Provider form card ── */
-    .llm-form-card {
+    /* ── Section divider ── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 16px;
+      max-width: 620px;
+    }
+    .section-divider-label {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .section-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* ── Instance cards ── */
+    .instance-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 620px;
+      margin-bottom: 24px;
+    }
+    .instance-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface, var(--color-bg-elevated, var(--color-bg)));
+    }
+    .instance-icon {
+      width: 30px; height: 30px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .instance-info { flex: 1; min-width: 0; }
+    .instance-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .instance-meta {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .instance-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-edit {
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--color-border);
+      background: var(--nav-hover-bg);
+      color: var(--color-text);
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+    .btn-edit:hover { background: var(--nav-active-bg); }
+    .btn-delete {
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      transition: all 0.12s;
+    }
+    .btn-delete:hover {
+      background: color-mix(in srgb, #e05252 10%, transparent);
+      border-color: color-mix(in srgb, #e05252 30%, transparent);
+      color: #c0392b;
+    }
+    .instance-empty {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      padding: 20px 0;
+      text-align: center;
+      border: 1px dashed var(--color-border);
+      border-radius: 8px;
+      max-width: 620px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Add button ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s;
+      font-family: inherit;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-secondary {
+      background: var(--nav-hover-bg);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--nav-active-bg); }
+    .btn-danger {
+      background: transparent;
+      color: #c0392b;
+      border: 1px solid color-mix(in srgb, #e05252 40%, transparent);
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: color-mix(in srgb, #e05252 10%, transparent);
+    }
+
+    /* ── Form card (modal-style panel below list) ── */
+    .form-panel {
       border: 1px solid var(--color-border);
       border-radius: 10px;
       padding: 20px 24px;
-      background: var(--color-surface);
-      max-width: 580px;
-      margin-bottom: 28px;
+      background: var(--color-surface, var(--color-bg-elevated, var(--color-bg)));
+      max-width: 620px;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .form-panel.open { display: block; }
+    .form-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 16px;
     }
 
-    /* ── Form ── */
-    .form-group { margin-bottom: 16px; }
+    /* ── Form fields ── */
+    .form-group { margin-bottom: 14px; }
     .form-label {
       display: flex;
       align-items: center;
@@ -197,7 +406,7 @@
     }
     .form-select:focus { border-color: var(--color-accent); outline: none; }
 
-    /* ── Range slider row ── */
+    /* ── Range slider ── */
     .range-row {
       display: flex;
       align-items: center;
@@ -221,152 +430,14 @@
       flex-shrink: 0;
     }
 
-    /* ── Actions ── */
+    /* ── Form actions ── */
     .form-actions {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-top: 20px;
-      padding-top: 18px;
+      margin-top: 18px;
+      padding-top: 16px;
       border-top: 1px solid var(--color-border-light, var(--color-border));
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: background 0.15s, opacity 0.15s;
-      font-family: inherit;
-    }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary {
-      background: var(--color-accent);
-      color: #fff;
-    }
-    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
-    .btn-secondary {
-      background: var(--nav-hover-bg);
-      color: var(--color-text);
-      border: 1px solid var(--color-border);
-    }
-    .btn-secondary:hover:not(:disabled) { background: var(--nav-active-bg); }
-    .btn-danger {
-      background: transparent;
-      color: #c0392b;
-      border: 1px solid color-mix(in srgb, #e05252 40%, transparent);
-    }
-    .btn-danger:hover:not(:disabled) {
-      background: color-mix(in srgb, #e05252 10%, transparent);
-    }
-
-    /* ── Divider ── */
-    .section-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 0 0 16px;
-      max-width: 580px;
-    }
-    .section-divider-label {
-      font-size: 12px;
-      color: var(--color-text-muted);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    .section-divider-line {
-      flex: 1;
-      height: 1px;
-      background: var(--color-border);
-    }
-
-    /* ── Configured list ── */
-    .configured-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-width: 580px;
-    }
-    .configured-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      background: var(--color-surface);
-    }
-    .configured-icon {
-      width: 28px; height: 28px;
-      border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      flex-shrink: 0;
-      color: #fff;
-    }
-    .configured-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .configured-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--color-text);
-    }
-    .configured-model {
-      font-size: 12px;
-      color: var(--color-text-muted);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .configured-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .btn-edit {
-      padding: 4px 10px;
-      border-radius: 5px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1px solid var(--color-border);
-      background: var(--nav-hover-bg);
-      color: var(--color-text);
-      font-family: inherit;
-      transition: background 0.12s;
-    }
-    .btn-edit:hover { background: var(--nav-active-bg); }
-    .btn-delete {
-      width: 26px; height: 26px;
-      border-radius: 5px;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--color-text-muted);
-      cursor: pointer;
-      font-size: 15px;
-      line-height: 1;
-      transition: all 0.12s;
-    }
-    .btn-delete:hover {
-      background: color-mix(in srgb, #e05252 10%, transparent);
-      border-color: color-mix(in srgb, #e05252 30%, transparent);
-      color: #c0392b;
-    }
-    .configured-empty {
-      font-size: 13px;
-      color: var(--color-text-muted);
-      padding: 14px 0;
-      text-align: center;
-      border: 1px dashed var(--color-border);
-      border-radius: 8px;
-      max-width: 580px;
     }
 
     /* ── Toast ── */
@@ -386,304 +457,434 @@
       pointer-events: none;
     }
     .save-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .meso-sidebar {
+        width: var(--sidebar-w-collapsed, 52px) !important;
+        min-width: var(--sidebar-w-collapsed, 52px) !important;
+      }
+      .meso-sidebar__title { opacity: 0 !important; }
+      .meso-sidebar__logo { opacity: 0 !important; width: 0 !important; margin: 0 !important; }
+      .meso-sidebar__header { justify-content: center !important; padding: 0 !important; }
+      .meso-sidebar__nav-label { opacity: 0 !important; }
+      .meso-sidebar__nav-item { justify-content: center !important; padding: 8px 0 !important; margin: 1px 4px !important; }
+      .meso-sidebar__toggle { width: 40px !important; height: 40px !important; }
+    }
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<header class="settings-header">
-  <button class="btn-close" onclick="window.close()" title="关闭">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-  </button>
-  <h1>设置</h1>
-</header>
-
-<!-- Body -->
-<div class="settings-body">
-
-  <!-- Left nav -->
-  <nav class="settings-nav">
-    <div class="nav-item active" id="nav-llm" onclick="selectNav('llm')">
-      <span class="nav-icon">🤖</span>
-      大语言模型
+<!-- Sidebar -->
+<aside class="meso-sidebar" id="sidebar">
+  <div class="meso-sidebar__header">
+    <div class="meso-sidebar__logo">M</div>
+    <span class="meso-sidebar__title">设置</span>
+    <button class="meso-sidebar__toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="收起/展开">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="meso-sidebar__nav">
+    <div class="meso-sidebar__nav-item meso-sidebar__nav-item--active" id="nav-llm" onclick="selectNav('llm')">
+      <span class="meso-sidebar__nav-icon">🤖</span>
+      <span class="meso-sidebar__nav-label">大语言模型</span>
     </div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">⚙</span>
-      通用
+    <div class="meso-sidebar__nav-item meso-sidebar__nav-item--disabled">
+      <span class="meso-sidebar__nav-icon">⚙</span>
+      <span class="meso-sidebar__nav-label">通用</span>
     </div>
   </nav>
+</aside>
 
-  <!-- Main area -->
-  <div class="settings-main" id="settings-main">
-    <!-- LLM panel rendered by JS -->
-  </div>
-
-</div>
+<!-- Main area -->
+<main class="settings-main" id="settings-main">
+  <!-- rendered by JS -->
+</main>
 
 <div class="save-toast" id="save-toast">已保存</div>
 
 <script>
-const PROVIDERS = {
-  zhipu:         { name:'智谱 AI (GLM)',      shortName:'智谱',    icon:'智', iconBg:'#2563eb', desc:'国产大模型，GLM-4 系列。', apiKeyHint:'在智谱 AI 开放平台创建 API Key。', defaultModel:'glm-4-flash', modelHint:'glm-4-flash · glm-4 · glm-4-plus · glm-4-long', defaultBaseUrl:'https://open.bigmodel.cn/api/paas/v4', hasGroupId:false },
-  qwen:          { name:'通义千问 (Qwen)',     shortName:'千问',    icon:'千', iconBg:'#7c3aed', desc:'阿里云百炼平台，Qwen 系列。', apiKeyHint:'在阿里云百炼控制台获取 API Key。', defaultModel:'qwen-plus', modelHint:'qwen-max · qwen-plus · qwen-turbo · qwen-long', defaultBaseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1', hasGroupId:false },
-  kimi:          { name:'Kimi (Moonshot AI)', shortName:'Kimi',   icon:'K',  iconBg:'#0891b2', desc:'月之暗面长上下文大模型。', apiKeyHint:'在 Moonshot AI 开放平台创建 API Key。', defaultModel:'moonshot-v1-8k', modelHint:'moonshot-v1-8k · moonshot-v1-32k · moonshot-v1-128k', defaultBaseUrl:'https://api.moonshot.cn/v1', hasGroupId:false },
-  deepseek:      { name:'DeepSeek',           shortName:'DS',     icon:'DS', iconBg:'#0f766e', desc:'高性价比，支持推理模式。', apiKeyHint:'在 DeepSeek 开放平台创建 API Key。', defaultModel:'deepseek-chat', modelHint:'deepseek-chat · deepseek-reasoner', defaultBaseUrl:'https://api.deepseek.com/v1', hasGroupId:false },
-  'minimax-cn':  { name:'MiniMax（国内）',     shortName:'MM',     icon:'MM', iconBg:'#b45309', desc:'国内版需要 API Key。', apiKeyHint:'在 MiniMax 开放平台创建 API Key。', defaultModel:'abab6.5s-chat', modelHint:'abab6.5s-chat · abab6.5-chat', defaultBaseUrl:'https://api.minimax.chat/v1', hasGroupId:true, groupIdHint:'Group ID 可在 MiniMax 控制台"团队信息"中找到，不填使用默认配置。' },
-  anthropic:     { name:'Anthropic (Claude)', shortName:'Claude', icon:'C',  iconBg:'#c2410c', desc:'Claude 系列模型。', apiKeyHint:'在 Anthropic Console 创建 API Key。', defaultModel:'claude-sonnet-4-6', modelHint:'claude-opus-4-7 · claude-sonnet-4-6 · claude-haiku-4-5', defaultBaseUrl:'https://api.anthropic.com/v1', hasGroupId:false },
-  openai:        { name:'OpenAI',             shortName:'GPT',    icon:'AI', iconBg:'#16a34a', desc:'GPT-4、o 系列模型。', apiKeyHint:'在 OpenAI Platform 创建 API Key。', defaultModel:'gpt-4o', modelHint:'gpt-4o · gpt-4o-mini · o3 · o4-mini', defaultBaseUrl:'https://api.openai.com/v1', hasGroupId:false },
-  'minimax-intl':{ name:'MiniMax 国际版',     shortName:'MiniMax',icon:'M+', iconBg:'#9333ea', desc:'国际版无需 Group ID。', apiKeyHint:'在 MiniMax 国际版控制台创建 API Key。', defaultModel:'MiniMax-Text-01', modelHint:'MiniMax-Text-01', defaultBaseUrl:'https://api.minimaxi.chat/v1', hasGroupId:false },
-  private:       { name:'私有部署',           shortName:'本地',   icon:'⚙', iconBg:'#475569', desc:'兼容 OpenAI API 的自托管模型。', apiKeyHint:'若不需要鉴权可留空或填任意字符。', defaultModel:'', modelHint:'llama3 · qwen2.5 · mistral 等', defaultBaseUrl:'http://localhost:11434/v1', hasGroupId:false },
+var MESO_PROVIDERS = window.MESO_PROVIDERS
+
+/* ── Sidebar toggle ── */
+var sidebarCollapsed = false
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed
+  document.getElementById('sidebar').classList.toggle('meso-sidebar--collapsed', sidebarCollapsed)
 }
 
-function getConfig() {
-  try { return JSON.parse(localStorage.getItem('meso-llm-config') || '{}') } catch { return {} }
+/* ── Storage ── */
+function getInstances() {
+  try { return JSON.parse(localStorage.getItem('meso-llm-instances') || '[]') } catch { return [] }
 }
-function saveConfig(data) {
-  localStorage.setItem('meso-llm-config', JSON.stringify(data))
+function saveInstances(arr) {
+  localStorage.setItem('meso-llm-instances', JSON.stringify(arr))
 }
 
+/* ── Migration from old meso-llm-config ── */
+function migrateOldConfig() {
+  if (localStorage.getItem('meso-llm-instances')) return
+  var old = {}
+  try { old = JSON.parse(localStorage.getItem('meso-llm-config') || '{}') } catch {}
+  var instances = []
+  var keys = Object.keys(old)
+  for (var i = 0; i < keys.length; i++) {
+    var pid = keys[i]
+    var cfg = old[pid]
+    if (!cfg.apiKey) continue
+    var p = MESO_PROVIDERS[pid]
+    if (!p) continue
+    instances.push({
+      id: 'inst_' + Date.now() + '_' + pid,
+      name: p.shortName + ' ' + (cfg.model || p.defaultModel),
+      providerId: pid,
+      apiKey: cfg.apiKey,
+      model: cfg.model || p.defaultModel,
+      baseUrl: cfg.baseUrl || p.defaultBaseUrl,
+      temperature: cfg.temperature !== undefined ? cfg.temperature : 0.7,
+      maxTokens: cfg.maxTokens !== undefined ? cfg.maxTokens : 4096,
+      topP: cfg.topP !== undefined ? cfg.topP : 1.0,
+      groupId: cfg.groupId || '',
+    })
+  }
+  if (instances.length) localStorage.setItem('meso-llm-instances', JSON.stringify(instances))
+}
+
+/* ── Toast ── */
 function showToast(msg) {
-  const t = document.getElementById('save-toast')
+  var t = document.getElementById('save-toast')
   t.textContent = msg
   t.classList.add('show')
-  setTimeout(() => t.classList.remove('show'), 2000)
+  setTimeout(function() { t.classList.remove('show') }, 2000)
 }
 
+/* ── Nav ── */
 function selectNav(section) {
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'))
-  document.getElementById('nav-' + section).classList.add('active')
+  document.querySelectorAll('.meso-sidebar__nav-item').forEach(function(el) {
+    el.classList.remove('meso-sidebar__nav-item--active')
+  })
+  var navEl = document.getElementById('nav-' + section)
+  if (navEl) navEl.classList.add('meso-sidebar__nav-item--active')
   if (section === 'llm') renderLLMPanel()
 }
 
-/* ── LLM panel ── */
+/* ── Editing state ── */
+var editingId = null  // null = new, string = existing id
+
+/* ── LLM Panel ── */
 function renderLLMPanel() {
-  const main = document.getElementById('settings-main')
-  const cfg = getConfig()
+  var main = document.getElementById('settings-main')
+  var instances = getInstances()
 
-  // determine initial provider selection
-  const configuredIds = Object.keys(PROVIDERS).filter(id => cfg[id]?.apiKey)
-  const providerIds = Object.keys(PROVIDERS)
-  const initialId = configuredIds.length > 0 ? configuredIds[0] : providerIds[0]
-
-  const providerOptions = providerIds.map(id => {
-    const p = PROVIDERS[id]
-    return '<option value="' + id + '">' + p.name + '<\/option>'
+  var providerOptions = Object.keys(MESO_PROVIDERS).map(function(id) {
+    var p = MESO_PROVIDERS[id]
+    return '<option value="' + id + '">' + p.name + '</option>'
   }).join('')
 
-  main.innerHTML = '<h2 class="settings-main-title">大语言模型<\/h2>' +
-    '<div class="llm-form-card" id="llm-form-card">' +
-      '<div class="form-group">' +
-        '<label class="form-label">服务商<\/label>' +
-        '<select class="form-select" id="f-provider" onchange="onProviderSelect()">' + providerOptions + '<\/select>' +
-      '<\/div>' +
-      '<div id="f-provider-desc" class="form-hint" style="margin-bottom:14px;"><\/div>' +
-      '<div class="form-group">' +
-        '<label class="form-label">API Key<\/label>' +
-        '<div class="form-input-wrap">' +
-          '<input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off">' +
-          '<button class="btn-show-key" onclick="toggleKey(\'f-apikey\', this)" tabindex="-1">' +
-            '<svg id="eye-icon-f-apikey" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-              '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
-              '<circle cx="12" cy="12" r="3"/>' +
-            '<\/svg>' +
-          '<\/button>' +
-        '<\/div>' +
-        '<div class="form-hint" id="f-apikey-hint"><\/div>' +
-      '<\/div>' +
-      '<div id="f-groupid-wrap" class="form-group" style="display:none;">' +
-        '<label class="form-label">Group ID <span class="optional">可选<\/span><\/label>' +
-        '<input class="form-input" type="text" id="f-groupid" placeholder="填入 Group ID（可不填）">' +
-        '<div class="form-hint" id="f-groupid-hint"><\/div>' +
-      '<\/div>' +
-      '<div class="form-group">' +
-        '<label class="form-label">模型名称<\/label>' +
-        '<input class="form-input" type="text" id="f-model" placeholder="">' +
-        '<div class="form-hint" id="f-model-hint"><\/div>' +
-      '<\/div>' +
-      '<div class="form-group">' +
-        '<label class="form-label">Base URL<\/label>' +
-        '<input class="form-input" type="text" id="f-baseurl" placeholder="">' +
-        '<div class="form-hint">修改此地址可接入兼容代理或自定义端点。<\/div>' +
-      '<\/div>' +
-      '<div class="form-group">' +
-        '<label class="form-label">温度 (Temperature)<\/label>' +
-        '<div class="range-row">' +
-          '<span class="range-bound">0.0<\/span>' +
-          '<input type="range" id="f-temperature" min="0" max="2" step="0.1" value="0.7" oninput="document.getElementById(\'f-temperature-val\').textContent = parseFloat(this.value).toFixed(1)">' +
-          '<span class="range-bound">2.0<\/span>' +
-          '<span class="range-val" id="f-temperature-val">0.7<\/span>' +
-        '<\/div>' +
-      '<\/div>' +
-      '<div class="form-group">' +
-        '<label class="form-label">Max Tokens<\/label>' +
-        '<input class="form-input" type="number" id="f-maxtokens" min="1" max="32768" step="1" value="4096" style="width:140px;">' +
-      '<\/div>' +
-      '<div class="form-group">' +
-        '<label class="form-label">Top-P<\/label>' +
-        '<div class="range-row">' +
-          '<span class="range-bound">0.0<\/span>' +
-          '<input type="range" id="f-topp" min="0" max="1" step="0.05" value="1.0" oninput="document.getElementById(\'f-topp-val\').textContent = parseFloat(this.value).toFixed(2)">' +
-          '<span class="range-bound">1.0<\/span>' +
-          '<span class="range-val" id="f-topp-val">1.00<\/span>' +
-        '<\/div>' +
-      '<\/div>' +
-      '<div class="form-actions">' +
-        '<button class="btn btn-primary" onclick="saveProvider()">保存配置<\/button>' +
-        '<button class="btn btn-danger" onclick="clearProvider()">清除<\/button>' +
-      '<\/div>' +
-    '<\/div>' +
-    '<div class="section-divider">' +
-      '<span class="section-divider-label">已配置的模型<\/span>' +
-      '<div class="section-divider-line"><\/div>' +
-    '<\/div>' +
-    '<div id="configured-list-wrap"><\/div>'
+  var html = '<div class="main-title-row">' +
+    '<h2 class="main-title">大语言模型</h2>' +
+    '<button class="btn btn-primary" id="btn-add-instance" onclick="openForm(null)">+ 新增实例</button>' +
+    '</div>'
 
-  // set initial provider
-  document.getElementById('f-provider').value = initialId
-  fillFormForProvider(initialId)
-  renderConfiguredList()
+  html += '<div class="section-divider">' +
+    '<span class="section-divider-label">已配置的实例</span>' +
+    '<div class="section-divider-line"></div>' +
+    '</div>'
+
+  html += '<div id="instance-list-wrap"></div>'
+
+  html += '<div class="form-panel" id="form-panel">' +
+    '<div class="form-panel-title" id="form-panel-title">新增实例</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">服务商</label>' +
+      '<select class="form-select" id="f-provider" onchange="onProviderSelect()">' + providerOptions + '</select>' +
+      '<div class="form-hint" id="f-provider-desc"></div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">实例名称</label>' +
+      '<input class="form-input" type="text" id="f-name" placeholder="例：智谱 glm-4-flash">' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">API Key</label>' +
+      '<div class="form-input-wrap">' +
+        '<input class="form-input key-input" type="password" id="f-apikey" placeholder="sk-..." autocomplete="off">' +
+        '<button class="btn-show-key" onclick="toggleKey()" tabindex="-1">' +
+          '<svg id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
+            '<circle cx="12" cy="12" r="3"/>' +
+          '</svg>' +
+        '</button>' +
+      '</div>' +
+      '<div class="form-hint" id="f-apikey-hint"></div>' +
+    '</div>' +
+    '<div id="f-groupid-wrap" class="form-group" style="display:none;">' +
+      '<label class="form-label">Group ID <span class="optional">可选</span></label>' +
+      '<input class="form-input" type="text" id="f-groupid" placeholder="填入 Group ID（可不填）">' +
+      '<div class="form-hint" id="f-groupid-hint"></div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">模型名称</label>' +
+      '<input class="form-input" type="text" id="f-model" placeholder="">' +
+      '<div class="form-hint" id="f-model-hint"></div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Base URL</label>' +
+      '<input class="form-input" type="text" id="f-baseurl" placeholder="">' +
+      '<div class="form-hint">修改此地址可接入兼容代理或自定义端点。</div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">温度 (Temperature)</label>' +
+      '<div class="range-row">' +
+        '<span class="range-bound">0.0</span>' +
+        '<input type="range" id="f-temperature" min="0" max="2" step="0.1" value="0.7" oninput="syncRangeVal(\'f-temperature\', \'f-temperature-val\', 1)">' +
+        '<span class="range-bound">2.0</span>' +
+        '<span class="range-val" id="f-temperature-val">0.7</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Max Tokens</label>' +
+      '<input class="form-input" type="number" id="f-maxtokens" min="1" max="32768" step="1" value="4096" style="width:140px;">' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Top-P</label>' +
+      '<div class="range-row">' +
+        '<span class="range-bound">0.0</span>' +
+        '<input type="range" id="f-topp" min="0" max="1" step="0.05" value="1.0" oninput="syncRangeVal(\'f-topp\', \'f-topp-val\', 2)">' +
+        '<span class="range-bound">1.0</span>' +
+        '<span class="range-val" id="f-topp-val">1.00</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-actions">' +
+      '<button class="btn btn-primary" onclick="saveInstance()">保存</button>' +
+      '<button class="btn btn-secondary" onclick="closeForm()">取消</button>' +
+    '</div>' +
+    '</div>'
+
+  main.innerHTML = html
+  renderInstanceList()
 }
 
+function syncRangeVal(inputId, valId, decimals) {
+  var v = parseFloat(document.getElementById(inputId).value)
+  document.getElementById(valId).textContent = v.toFixed(decimals)
+}
+
+/* ── Instance list ── */
+function renderInstanceList() {
+  var wrap = document.getElementById('instance-list-wrap')
+  if (!wrap) return
+  var instances = getInstances()
+  if (instances.length === 0) {
+    wrap.innerHTML = '<div class="instance-empty">暂无实例，点击右上角"+ 新增实例"添加</div>'
+    return
+  }
+  var html = '<div class="instance-list">'
+  for (var i = 0; i < instances.length; i++) {
+    var inst = instances[i]
+    var p = MESO_PROVIDERS[inst.providerId] || { icon: '?', iconBg: '#888', shortName: inst.providerId, name: inst.providerId }
+    html += '<div class="instance-card">' +
+      '<div class="instance-icon" style="background:' + p.iconBg + ';">' + p.icon + '</div>' +
+      '<div class="instance-info">' +
+        '<div class="instance-name">' + escHtml(inst.name) + '</div>' +
+        '<div class="instance-meta">' + escHtml(inst.model || '—') + '  ·  temp:' + (inst.temperature !== undefined ? inst.temperature : 0.7) + '  ·  tokens:' + (inst.maxTokens || 4096) + '</div>' +
+      '</div>' +
+      '<div class="instance-actions">' +
+        '<button class="btn-edit" onclick="openForm(\'' + inst.id + '\')">编辑</button>' +
+        '<button class="btn-delete" onclick="deleteInstance(\'' + inst.id + '\')" title="删除">×</button>' +
+      '</div>' +
+      '</div>'
+  }
+  html += '</div>'
+  wrap.innerHTML = html
+}
+
+/* ── Open/close form ── */
+function openForm(id) {
+  editingId = id
+  var panel = document.getElementById('form-panel')
+  if (!panel) return
+  panel.classList.add('open')
+  document.getElementById('form-panel-title').textContent = id ? '编辑实例' : '新增实例'
+
+  if (id) {
+    var instances = getInstances()
+    var inst = null
+    for (var i = 0; i < instances.length; i++) {
+      if (instances[i].id === id) { inst = instances[i]; break }
+    }
+    if (!inst) return
+    document.getElementById('f-provider').value = inst.providerId
+    document.getElementById('f-name').value = inst.name
+    document.getElementById('f-apikey').value = inst.apiKey || ''
+    document.getElementById('f-model').value = inst.model || ''
+    document.getElementById('f-baseurl').value = inst.baseUrl || ''
+    document.getElementById('f-temperature').value = inst.temperature !== undefined ? inst.temperature : 0.7
+    document.getElementById('f-temperature-val').textContent = parseFloat(inst.temperature !== undefined ? inst.temperature : 0.7).toFixed(1)
+    document.getElementById('f-maxtokens').value = inst.maxTokens !== undefined ? inst.maxTokens : 4096
+    document.getElementById('f-topp').value = inst.topP !== undefined ? inst.topP : 1.0
+    document.getElementById('f-topp-val').textContent = parseFloat(inst.topP !== undefined ? inst.topP : 1.0).toFixed(2)
+    document.getElementById('f-groupid').value = inst.groupId || ''
+    applyProviderMeta(inst.providerId)
+  } else {
+    var firstPid = Object.keys(MESO_PROVIDERS)[0]
+    document.getElementById('f-provider').value = firstPid
+    document.getElementById('f-apikey').value = ''
+    document.getElementById('f-groupid').value = ''
+    document.getElementById('f-temperature').value = 0.7
+    document.getElementById('f-temperature-val').textContent = '0.7'
+    document.getElementById('f-maxtokens').value = 4096
+    document.getElementById('f-topp').value = 1.0
+    document.getElementById('f-topp-val').textContent = '1.00'
+    applyProviderMeta(firstPid)
+    autoFillName()
+  }
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+function closeForm() {
+  var panel = document.getElementById('form-panel')
+  if (panel) panel.classList.remove('open')
+  editingId = null
+}
+
+/* ── Provider select ── */
 function onProviderSelect() {
-  const id = document.getElementById('f-provider').value
-  fillFormForProvider(id)
+  var pid = document.getElementById('f-provider').value
+  applyProviderMeta(pid)
+  autoFillName()
 }
 
-function fillFormForProvider(id) {
-  const p = PROVIDERS[id]
-  const cfg = getConfig()
-  const saved = cfg[id] || {}
-
+function applyProviderMeta(pid) {
+  var p = MESO_PROVIDERS[pid]
+  if (!p) return
   document.getElementById('f-provider-desc').textContent = p.desc
-  document.getElementById('f-apikey').value = saved.apiKey || ''
   document.getElementById('f-apikey-hint').textContent = p.apiKeyHint
 
-  // group id
-  const groupWrap = document.getElementById('f-groupid-wrap')
+  var groupWrap = document.getElementById('f-groupid-wrap')
   if (p.hasGroupId) {
     groupWrap.style.display = ''
-    document.getElementById('f-groupid').value = saved.groupId || ''
     document.getElementById('f-groupid-hint').textContent = p.groupIdHint || ''
   } else {
     groupWrap.style.display = 'none'
   }
 
-  document.getElementById('f-model').value = saved.model !== undefined ? saved.model : p.defaultModel
-  document.getElementById('f-model').placeholder = p.defaultModel || '输入模型名称'
+  var modelInp = document.getElementById('f-model')
+  if (!modelInp.value || !editingId) {
+    modelInp.value = p.defaultModel
+  }
+  modelInp.placeholder = p.defaultModel || '输入模型名称'
   document.getElementById('f-model-hint').textContent = p.modelHint
 
-  document.getElementById('f-baseurl').value = saved.baseUrl !== undefined ? saved.baseUrl : p.defaultBaseUrl
-  document.getElementById('f-baseurl').placeholder = p.defaultBaseUrl
-
-  const temp = saved.temperature !== undefined ? saved.temperature : 0.7
-  const maxTok = saved.maxTokens !== undefined ? saved.maxTokens : 4096
-  const topP = saved.topP !== undefined ? saved.topP : 1.0
-
-  document.getElementById('f-temperature').value = temp
-  document.getElementById('f-temperature-val').textContent = parseFloat(temp).toFixed(1)
-  document.getElementById('f-maxtokens').value = maxTok
-  document.getElementById('f-topp').value = topP
-  document.getElementById('f-topp-val').textContent = parseFloat(topP).toFixed(2)
-}
-
-function saveProvider() {
-  const id = document.getElementById('f-provider').value
-  const p = PROVIDERS[id]
-  const cfg = getConfig()
-
-  const entry = {
-    apiKey:      document.getElementById('f-apikey').value.trim(),
-    model:       document.getElementById('f-model').value.trim() || p.defaultModel,
-    baseUrl:     document.getElementById('f-baseurl').value.trim() || p.defaultBaseUrl,
-    temperature: parseFloat(document.getElementById('f-temperature').value),
-    maxTokens:   parseInt(document.getElementById('f-maxtokens').value, 10) || 4096,
-    topP:        parseFloat(document.getElementById('f-topp').value),
+  var baseUrlInp = document.getElementById('f-baseurl')
+  if (!baseUrlInp.value || !editingId) {
+    baseUrlInp.value = p.defaultBaseUrl
   }
-  if (p.hasGroupId) {
-    entry.groupId = document.getElementById('f-groupid').value.trim()
+  baseUrlInp.placeholder = p.defaultBaseUrl
+}
+
+function autoFillName() {
+  var pid = document.getElementById('f-provider').value
+  var p = MESO_PROVIDERS[pid]
+  if (!p) return
+  var model = document.getElementById('f-model').value || p.defaultModel
+  document.getElementById('f-name').value = p.shortName + ' ' + model
+}
+
+/* ── Save / delete ── */
+function saveInstance() {
+  var pid = document.getElementById('f-provider').value
+  var p = MESO_PROVIDERS[pid]
+  var name = document.getElementById('f-name').value.trim()
+  var apiKey = document.getElementById('f-apikey').value.trim()
+  var model = document.getElementById('f-model').value.trim() || p.defaultModel
+  var baseUrl = document.getElementById('f-baseurl').value.trim() || p.defaultBaseUrl
+  var temperature = parseFloat(document.getElementById('f-temperature').value)
+  var maxTokens = parseInt(document.getElementById('f-maxtokens').value, 10) || 4096
+  var topP = parseFloat(document.getElementById('f-topp').value)
+  var groupId = p.hasGroupId ? document.getElementById('f-groupid').value.trim() : ''
+
+  if (!name) { alert('请填写实例名称'); return }
+
+  var instances = getInstances()
+
+  if (editingId) {
+    for (var i = 0; i < instances.length; i++) {
+      if (instances[i].id === editingId) {
+        instances[i] = {
+          id: editingId,
+          name: name,
+          providerId: pid,
+          apiKey: apiKey,
+          model: model,
+          baseUrl: baseUrl,
+          temperature: temperature,
+          maxTokens: maxTokens,
+          topP: topP,
+          groupId: groupId,
+        }
+        break
+      }
+    }
+  } else {
+    instances.push({
+      id: 'inst_' + Date.now(),
+      name: name,
+      providerId: pid,
+      apiKey: apiKey,
+      model: model,
+      baseUrl: baseUrl,
+      temperature: temperature,
+      maxTokens: maxTokens,
+      topP: topP,
+      groupId: groupId,
+    })
   }
 
-  cfg[id] = entry
-  saveConfig(cfg)
-  renderConfiguredList()
-  showToast('已保存')
+  saveInstances(instances)
+  renderInstanceList()
+  closeForm()
+  showToast(editingId ? '已更新' : '已保存')
 }
 
-function clearProvider() {
-  const id = document.getElementById('f-provider').value
-  const p = PROVIDERS[id]
-  if (!confirm('确定要清除 ' + p.name + ' 的配置吗？')) return
-  const cfg = getConfig()
-  delete cfg[id]
-  saveConfig(cfg)
-  fillFormForProvider(id)
-  renderConfiguredList()
-  showToast('已清除')
-}
-
-function editProvider(id) {
-  document.getElementById('f-provider').value = id
-  fillFormForProvider(id)
-  document.getElementById('llm-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
-function deleteProvider(id) {
-  const p = PROVIDERS[id]
-  if (!confirm('确定要删除 ' + p.name + ' 的配置吗？')) return
-  const cfg = getConfig()
-  delete cfg[id]
-  saveConfig(cfg)
-  renderConfiguredList()
+function deleteInstance(id) {
+  var instances = getInstances()
+  var inst = null
+  for (var i = 0; i < instances.length; i++) {
+    if (instances[i].id === id) { inst = instances[i]; break }
+  }
+  if (!inst) return
+  if (!confirm('确定要删除实例"' + inst.name + '"吗？')) return
+  instances = instances.filter(function(x) { return x.id !== id })
+  saveInstances(instances)
+  renderInstanceList()
+  if (editingId === id) closeForm()
   showToast('已删除')
 }
 
-function renderConfiguredList() {
-  const wrap = document.getElementById('configured-list-wrap')
-  if (!wrap) return
-  const cfg = getConfig()
-  const configured = Object.keys(PROVIDERS).filter(id => cfg[id]?.apiKey)
-
-  if (configured.length === 0) {
-    wrap.innerHTML = '<div class="configured-empty">暂无已配置的模型，请在上方添加配置<\/div>'
-    return
-  }
-
-  wrap.innerHTML = '<div class="configured-list" id="configured-list"><\/div>'
-  const list = document.getElementById('configured-list')
-  configured.forEach(id => {
-    const p = PROVIDERS[id]
-    const saved = cfg[id]
-    const card = document.createElement('div')
-    card.className = 'configured-card'
-    card.innerHTML =
-      '<div class="configured-icon" style="background:' + p.iconBg + ';">' + p.icon + '<\/div>' +
-      '<div class="configured-info">' +
-        '<div class="configured-name">' + p.shortName + '<\/div>' +
-        '<div class="configured-model">' + (saved.model || p.defaultModel) + '<\/div>' +
-      '<\/div>' +
-      '<div class="configured-actions">' +
-        '<button class="btn-edit" onclick="editProvider(\'' + id + '\')">编辑<\/button>' +
-        '<button class="btn-delete" onclick="deleteProvider(\'' + id + '\')" title="删除">×<\/button>' +
-      '<\/div>'
-    list.appendChild(card)
-  })
-}
-
-function toggleKey(inputId, btn) {
-  const input = document.getElementById(inputId)
-  const icon = document.getElementById('eye-icon-' + inputId)
+/* ── Toggle API Key visibility ── */
+function toggleKey() {
+  var input = document.getElementById('f-apikey')
+  var icon = document.getElementById('eye-icon')
   if (input.type === 'password') {
     input.type = 'text'
-    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"><\/path><line x1="1" y1="1" x2="23" y2="23"><\/line>'
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>'
   } else {
     input.type = 'password'
-    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"><\/path><circle cx="12" cy="12" r="3"><\/circle>'
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>'
   }
 }
 
-// init
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+/* ── Init ── */
+migrateOldConfig()
 selectNav('llm')
 </script>
 </body>

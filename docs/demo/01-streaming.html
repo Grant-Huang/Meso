@@ -328,31 +328,48 @@ const DEMOS = {
     ]
   },
   full: {
-    userMsg: '帮我分析上次讨论的数据库优化方案，给出具体实施步骤',
+    userMsg: '上周生产环境出了三次告警，帮我分析根因并输出自动化巡检脚本',
     events: [
-      { type:'stage', name:'召回记忆',  state:'active' },
-      { type:'stage', name:'召回记忆',  state:'done' },
+      // ── Stage 1: 解析任务 ──
+      { type:'stage', name:'解析任务意图', state:'active' },
+      { type:'stage', name:'解析任务意图', state:'done' },
+      // ── Stage 2: 记忆召回 ──
+      { type:'stage', name:'召回历史上下文', state:'active' },
+      { type:'stage', name:'召回历史上下文', state:'done' },
       { type:'memory', snippets:[
-        { cat:'上次讨论', text:'2026-05 讨论了 orders 表慢查询优化' },
-        { cat:'项目背景', text:'PostgreSQL 15，数据量约 300 万行' },
-        { cat:'用户偏好', text:'偏好简洁方案，附代码示例' },
+        { cat:'告警历史', text:'2026-05-18/19/21 三次 CPU 告警，均发生在 02:00–04:00 批处理窗口' },
+        { cat:'系统架构', text:'Python worker × 8，PostgreSQL 15，Redis 缓存层，日均处理 120 万条记录' },
+        { cat:'用户偏好', text:'输出可直接执行的脚本，附注释，不需要理论背景' },
+        { cat:'已知结论', text:'上次排查发现 orders 表全表扫描，已创建复合索引但效果待验证' },
       ]},
-      { type:'stage', name:'检索知识',  state:'active' },
-      { type:'stage', name:'检索知识',  state:'done' },
-      { type:'stage', name:'生成回复',  state:'active' },
-      { type:'think', delta:'用户的 orders 表有 300 万行，慢查询在 user_id + 时间范围过滤。\n', done:false },
-      { type:'think', delta:'上次讨论决定用复合索引，暂缓分区表。需要给出 SQL + 回滚方案。', done:true },
-      { type:'text', delta:'根据上次讨论记录，整理了以下实施步骤：\n\n' },
-      { type:'text', delta:'**第一步：创建复合索引**（预计 2-5 分钟，CONCURRENTLY 不锁表）\n\n' },
-      { type:'artifact', id:'sql1', lang:'SQL', delta:'-- 使用 CONCURRENTLY 避免锁表\n', done:false },
-      { type:'artifact', id:'sql1', lang:'SQL', delta:'CREATE INDEX CONCURRENTLY idx_orders_user_time\n', done:false },
-      { type:'artifact', id:'sql1', lang:'SQL', delta:'  ON orders (user_id, created_at DESC)\n', done:false },
-      { type:'artifact', id:'sql1', lang:'SQL', delta:'  WHERE status != \'deleted\';\n\n', done:false },
-      { type:'artifact', id:'sql1', lang:'SQL', delta:'-- 验证索引命中\nEXPLAIN ANALYZE\n  SELECT * FROM orders\n  WHERE user_id = $1\n    AND created_at > NOW() - INTERVAL \'30 days\';\n', done:true },
-      { type:'text', delta:'\n**第二步**：观察慢查询日志，确认索引命中率 > 95%。\n\n' },
-      { type:'text', delta:'**回滚**：`DROP INDEX CONCURRENTLY idx_orders_user_time;`\n\n' },
-      { type:'text', delta:'当前数据量 300 万行，暂不需要考虑分区表方案。' },
-      { type:'stage', name:'生成回复', state:'done' },
+      // ── Stage 3: 多 Agent 并行 ──
+      { type:'stage', name:'调度 · 日志分析 Agent', state:'active' },
+      { type:'stage', name:'调度 · 日志分析 Agent', state:'done' },
+      { type:'stage', name:'调度 · 性能归因 Agent', state:'active' },
+      { type:'stage', name:'调度 · 性能归因 Agent', state:'done' },
+      // ── Stage 4: 汇总 ──
+      { type:'stage', name:'汇总结果 · 生成回复', state:'active' },
+      // ── Think ──
+      { type:'think', delta:'两个 Agent 均已返回。日志 Agent：三次告警时间段内 worker 进程的 GC 停顿均超过 8 秒，\n', done:false },
+      { type:'think', delta:'与批处理任务的内存分配模式高度相关。性能归因 Agent：复合索引已命中但存在 VACUUM 滞后，\n', done:false },
+      { type:'think', delta:'dead tuple 比例达 34%，导致索引扫描退化为顺序扫描。根因是 autovacuum 阈值配置过高。\n', done:false },
+      { type:'think', delta:'用户要求直接输出可执行脚本，附注释即可，不需要理论阐述。', done:true },
+      // ── Text ──
+      { type:'text', delta:'根据日志分析和性能归因结果，**根因**是 `autovacuum` 阈值过高导致 dead tuple 堆积，\n' },
+      { type:'text', delta:'复合索引在高 dead tuple 率下退化为顺序扫描，叠加 GC 停顿触发 CPU 告警。\n\n' },
+      { type:'text', delta:'以下是自动化巡检脚本，涵盖三项关键指标检测：\n\n' },
+      // ── Artifact ──
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'#!/usr/bin/env python3\n"""生产环境自动化巡检 — CPU 告警根因检测"""\n\n', done:false },
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'import psycopg2, subprocess, sys\nfrom datetime import datetime\n\n', done:false },
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'DSN = "postgresql://localhost/prod"\nWARN_DEAD_RATIO = 0.20   # dead tuple 比例告警阈值\nWARN_GC_MS      = 5000   # GC 停顿告警阈值 (ms)\n\n', done:false },
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'def check_dead_tuples(conn):\n    """检查 dead tuple 比例，> 20% 触发告警"""\n    cur = conn.cursor()\n    cur.execute("""\n        SELECT relname,\n               n_dead_tup::float / NULLIF(n_live_tup + n_dead_tup, 0) AS dead_ratio,\n               last_autovacuum\n        FROM pg_stat_user_tables\n        WHERE n_dead_tup > 1000\n        ORDER BY dead_ratio DESC LIMIT 10\n    """)\n    issues = []\n    for row in cur.fetchall():\n        if row[1] and row[1] > WARN_DEAD_RATIO:\n            issues.append(f"  ⚠️  {row[0]}: dead={row[1]:.1%}, last_vacuum={row[2]}")\n    return issues\n\n', done:false },
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'def check_index_health(conn):\n    """检查索引扫描退化（顺序扫描占比异常）"""\n    cur = conn.cursor()\n    cur.execute("""\n        SELECT relname,\n               seq_scan, idx_scan,\n               seq_scan::float / NULLIF(seq_scan + idx_scan, 0) AS seq_ratio\n        FROM pg_stat_user_tables\n        WHERE seq_scan + idx_scan > 100\n        ORDER BY seq_ratio DESC LIMIT 5\n    """)\n    issues = []\n    for row in cur.fetchall():\n        if row[3] and row[3] > 0.5:\n            issues.append(f"  ⚠️  {row[0]}: seq_ratio={row[3]:.1%} (seq={row[1]}, idx={row[2]})")\n    return issues\n\n', done:false },
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'def check_worker_gc():\n    """检查 worker 进程最近 GC 停顿（需 py-spy 或 /proc）"""\n    try:\n        out = subprocess.check_output(\n            ["python3", "-c", "import gc; gc.collect(); print(gc.get_count())"],\n            timeout=5\n        ).decode().strip()\n        return []\n    except Exception as e:\n        return [f"  ⚠️  GC 检测失败: {e}"]\n\n', done:false },
+      { type:'artifact', id:'inspect1', lang:'Python', delta:'if __name__ == "__main__":\n    print(f"[{datetime.now():%Y-%m-%d %H:%M}] Meso 生产巡检启动\\n")\n    conn = psycopg2.connect(DSN)\n    issues = []\n    issues += check_dead_tuples(conn)\n    issues += check_index_health(conn)\n    issues += check_worker_gc()\n    conn.close()\n    if issues:\n        print("发现以下问题：")\n        print("\\n".join(issues))\n        print("\\n建议立即执行: VACUUM ANALYZE orders;")\n        sys.exit(1)\n    else:\n        print("✅ 所有指标正常")\n', done:true },
+      // ── Text continued ──
+      { type:'text', delta:'\n**立即修复**：`VACUUM ANALYZE orders;` 可在不锁表的情况下回收 dead tuple。\n\n' },
+      { type:'text', delta:'**长期方案**：调低 `autovacuum_vacuum_scale_factor` 至 `0.05`，使其在 dead tuple 达 5% 时自动触发。' },
+      { type:'stage', name:'汇总结果 · 生成回复', state:'done' },
       { type:'done' },
     ]
   },

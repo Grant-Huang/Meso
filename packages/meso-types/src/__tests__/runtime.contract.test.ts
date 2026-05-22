@@ -124,6 +124,52 @@ describe('soul-stream contract', () => {
   })
 })
 
+describe('workflow-stream contract', () => {
+  it('final state matches snapshot', () => {
+    expect(replayFixture('workflow-stream.txt')).toMatchObject(
+      loadSnapshot('workflow-stream.snapshot.json'),
+    )
+  })
+
+  it('workflowRunOrder preserves first-seen order', () => {
+    const state = replayFixture('workflow-stream.txt')
+    expect(state.workflowRunOrder).toEqual(['run-001'])
+  })
+
+  it('nodeOrder preserves arrival order', () => {
+    const state = replayFixture('workflow-stream.txt')
+    expect(state.workflowRuns['run-001'].nodeOrder).toEqual(['n1', 'n2', 'n3', 'n4'])
+  })
+
+  it('node state updated in-place (no duplicates)', () => {
+    const state = replayFixture('workflow-stream.txt')
+    const run = state.workflowRuns['run-001']
+    expect(run.nodeOrder).toHaveLength(4)
+    expect(run.nodes['n1'].state).toBe('done')
+    expect(run.nodes['n1'].duration_ms).toBe(42)
+  })
+
+  it('parent_id preserved for tree structure', () => {
+    const state = replayFixture('workflow-stream.txt')
+    const { nodes } = state.workflowRuns['run-001']
+    expect(nodes['n2'].parent_id).toBe('n1')
+    expect(nodes['n3'].parent_id).toBe('n2')
+    expect(nodes['n1'].parent_id).toBeUndefined()
+  })
+
+  it('error state recorded on failed node', () => {
+    const state = replayFixture('workflow-stream.txt')
+    expect(state.workflowRuns['run-001'].nodes['n4'].state).toBe('error')
+    expect(state.workflowRuns['run-001'].nodes['n4'].metadata?.error).toBe('timeout')
+  })
+
+  it('stages unaffected by workflow_node events', () => {
+    const state = replayFixture('workflow-stream.txt')
+    expect(state.stages).toHaveLength(3)
+    expect(state.stages.every(s => s.state === 'done')).toBe(true)
+  })
+})
+
 describe('mcp-stream contract', () => {
   it('final state matches snapshot', () => {
     expect(replayFixture('mcp-stream.txt')).toMatchObject(
@@ -298,6 +344,44 @@ describe('applyEvent', () => {
     const s1 = applyEvent(streaming, { type: 'artifact', schema_version: '1.0', payload: { id: 'a1', lang: 'py', delta: 'x', done: false } })
     const s2 = applyEvent(s1,       { type: 'artifact', schema_version: '1.0', payload: { id: 'a2', lang: 'html preview', delta: 'y', done: false } })
     expect(s2.artifactOrder).toEqual(['a1', 'a2'])
+  })
+
+  it('workflow_node: creates run and node on first event', () => {
+    const s = applyEvent(streaming, {
+      type: 'workflow_node', schema_version: '1.0',
+      payload: { run_id: 'r1', node_id: 'n1', name: 'web_search', state: 'active' },
+    })
+    expect(s.workflowRunOrder).toEqual(['r1'])
+    expect(s.workflowRuns['r1'].nodeOrder).toEqual(['n1'])
+    expect(s.workflowRuns['r1'].nodes['n1'].state).toBe('active')
+  })
+
+  it('workflow_node: updates node state in-place, no order duplication', () => {
+    const s1 = applyEvent(streaming, {
+      type: 'workflow_node', schema_version: '1.0',
+      payload: { run_id: 'r1', node_id: 'n1', name: 'web_search', state: 'active' },
+    })
+    const s2 = applyEvent(s1, {
+      type: 'workflow_node', schema_version: '1.0',
+      payload: { run_id: 'r1', node_id: 'n1', name: 'web_search', state: 'done', duration_ms: 100 },
+    })
+    expect(s2.workflowRuns['r1'].nodeOrder).toHaveLength(1)
+    expect(s2.workflowRuns['r1'].nodes['n1'].state).toBe('done')
+    expect(s2.workflowRuns['r1'].nodes['n1'].duration_ms).toBe(100)
+  })
+
+  it('workflow_node: multiple runs tracked independently', () => {
+    const s1 = applyEvent(streaming, {
+      type: 'workflow_node', schema_version: '1.0',
+      payload: { run_id: 'r1', node_id: 'n1', name: 'a', state: 'active' },
+    })
+    const s2 = applyEvent(s1, {
+      type: 'workflow_node', schema_version: '1.0',
+      payload: { run_id: 'r2', node_id: 'n1', name: 'b', state: 'active' },
+    })
+    expect(s2.workflowRunOrder).toEqual(['r1', 'r2'])
+    expect(s2.workflowRuns['r1'].nodes['n1'].name).toBe('a')
+    expect(s2.workflowRuns['r2'].nodes['n1'].name).toBe('b')
   })
 
   it('extension: log + keyed lookup', () => {

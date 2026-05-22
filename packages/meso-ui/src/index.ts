@@ -17,6 +17,9 @@ export type { ArtifactPanelProps, ArtifactType } from './components/ArtifactPane
 export { StageTimeline } from './components/StageTimeline'
 export type { StageTimelineProps, Stage, StageStatus } from './components/StageTimeline'
 
+export { WorkflowTimeline } from './components/WorkflowTimeline'
+export type { WorkflowTimelineProps } from './components/WorkflowTimeline'
+
 export { MessageList } from './components/MessageList'
 export type { MessageListProps, Message } from './components/MessageList'
 
@@ -91,6 +94,9 @@ export type {
   ErrorPayload,
   ExtensionEvent,
   ExtensionPayload,
+  WorkflowNodeState,
+  WorkflowNodePayload,
+  WorkflowNodeEvent,
   StreamState,
   StreamStatus,
   ArtifactState,
@@ -98,4 +104,6 @@ export type {
   ToolCallState,
   ResourceReadStatus,
   ResourceReadState,
+  WorkflowNodeRecord,
+  WorkflowRunState,
 } from './runtime'

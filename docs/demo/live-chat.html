@@ -8,6 +8,7 @@
     (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
   </script>
   <link rel="stylesheet" href="../platform/meso-tokens.css">
+  <script src="../platform/providers.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -47,6 +48,7 @@
     .cfg-status.ok   { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
     .cfg-status.err  { color: #e05252; background: color-mix(in srgb, #e05252 10%, transparent); }
     .cfg-status.busy { color: var(--color-text-muted); }
+    .cfg-info { font-size: 12px; color: var(--color-text-muted); }
     .btn-clear {
       padding: 4px 10px; border-radius: 6px; font-size: 12px; font-family: inherit;
       border: 1px solid var(--color-border); background: transparent;
@@ -203,12 +205,9 @@
 
 <!-- Config strip -->
 <div class="cfg-strip">
-  <span class="cfg-label">服务商</span>
-  <select class="cfg-select" id="sel-provider" onchange="onProviderChange()">
-    <option value="">— 未配置 —</option>
-  </select>
-  <span class="cfg-label">模型</span>
-  <input class="cfg-input" type="text" id="inp-model" style="width:200px" placeholder="模型名称">
+  <span class="cfg-label">实例</span>
+  <select class="cfg-select" id="sel-instance" onchange="onInstanceChange()" style="min-width:180px"></select>
+  <span class="cfg-info" id="instance-info" style="font-size:12px; color:var(--color-text-muted);"></span>
   <span class="cfg-label">模式</span>
   <select class="cfg-select" id="sel-mode" onchange="onModeChange()">
     <option value="general">通用对话</option>
@@ -225,7 +224,7 @@
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
-    <span>选择服务商后发送消息开始对话</span>
+    <span>选择实例后发送消息开始对话</span>
     <div class="suggestion-row" id="suggestions">
       <span class="suggestion" onclick="useSuggestion(this)">用 Python 写一个快速排序</span>
       <span class="suggestion" onclick="useSuggestion(this)">解释一下流式输出的原理</span>
@@ -257,18 +256,7 @@
 </div>
 
 <script>
-/* ── Provider definitions ── */
-const PROVIDER_DEFS = {
-  zhipu:         { name:'智谱 AI',      defaultModel:'glm-4-flash',         baseUrl:'https://open.bigmodel.cn/api/paas/v4',               authHeader: k=>'Bearer ' + k },
-  qwen:          { name:'通义千问',      defaultModel:'qwen-plus',           baseUrl:'https://dashscope.aliyuncs.com/compatible-mode/v1',  authHeader: k=>'Bearer ' + k },
-  kimi:          { name:'Kimi',         defaultModel:'moonshot-v1-8k',      baseUrl:'https://api.moonshot.cn/v1',                         authHeader: k=>'Bearer ' + k },
-  deepseek:      { name:'DeepSeek',     defaultModel:'deepseek-chat',       baseUrl:'https://api.deepseek.com/v1',                        authHeader: k=>'Bearer ' + k },
-  'minimax-cn':  { name:'MiniMax国内',  defaultModel:'abab6.5s-chat',       baseUrl:'https://api.minimax.chat/v1',                        authHeader: k=>'Bearer ' + k },
-  anthropic:     { name:'Anthropic',    defaultModel:'claude-sonnet-4-6',   baseUrl:'https://api.anthropic.com/v1',                       authHeader: k=>'Bearer ' + k, isAnthropic: true },
-  openai:        { name:'OpenAI',       defaultModel:'gpt-4o',              baseUrl:'https://api.openai.com/v1',                          authHeader: k=>'Bearer ' + k },
-  'minimax-intl':{ name:'MiniMax国际',  defaultModel:'MiniMax-Text-01',     baseUrl:'https://api.minimaxi.chat/v1',                       authHeader: k=>'Bearer ' + k },
-  private:       { name:'私有部署',     defaultModel:'',                    baseUrl:'http://localhost:11434/v1',                          authHeader: k=>'Bearer ' + k },
-}
+var MESO_PROVIDERS = window.MESO_PROVIDERS
 
 const MESO_SYSTEM_PROMPT = `你是 Meso 流式会话平台的专业助手。Meso 是一个基于流式会话（SSE 事件流）的 UI 基础平台，专为 AI 应用构建三栏式工业协作界面。
 
@@ -317,44 +305,37 @@ let messages = []
 let abortCtrl = null
 let streaming = false
 
-/* ── Load config from localStorage ── */
-function getLLMConfig() {
-  try { return JSON.parse(localStorage.getItem('meso-llm-config') || '{}') } catch { return {} }
+/* ── Instance helpers ── */
+function getInstances() {
+  try { return JSON.parse(localStorage.getItem('meso-llm-instances') || '[]') } catch { return [] }
 }
 
 function openSettings() {
   window.open('../settings.html', '_blank', 'noopener')
 }
 
-/* ── Populate provider selector ── */
-function populateProviders() {
-  const cfg = getLLMConfig()
-  const sel = document.getElementById('sel-provider')
-  const configured = Object.entries(PROVIDER_DEFS).filter(([id]) => cfg[id]?.apiKey)
-  sel.innerHTML = '<option value="">— 选择服务商 —</option>'
-  if (configured.length === 0) {
-    sel.innerHTML = '<option value="">— 未配置 API Key —</option>'
-    setStatus('请先在设置页配置 API Key', 'err')
+/* ── Populate instance selector ── */
+function populateInstances() {
+  const instances = getInstances()
+  const sel = document.getElementById('sel-instance')
+  if (!instances.length) {
+    sel.innerHTML = '<option value="">— 未配置实例 —</option>'
+    setStatus('请先在设置页配置实例', 'err')
     return
   }
-  configured.forEach(([id, def]) => {
-    const opt = document.createElement('option')
-    opt.value = id; opt.textContent = def.name
-    sel.appendChild(opt)
-  })
-  sel.value = configured[0][0]
-  onProviderChange()
+  sel.innerHTML = instances.map(function(inst) {
+    return '<option value="' + inst.id + '">' + inst.name + '</option>'
+  }).join('')
+  sel.value = instances[0].id
+  onInstanceChange()
 }
 
-function onProviderChange() {
-  const pid = document.getElementById('sel-provider').value
-  if (!pid) return
-  const cfg = getLLMConfig()
-  const def = PROVIDER_DEFS[pid]
-  const saved = cfg[pid] || {}
-  const modelInp = document.getElementById('inp-model')
-  modelInp.value = saved.model || def.defaultModel
-  modelInp.placeholder = def.defaultModel || '模型名称'
+function onInstanceChange() {
+  const id = document.getElementById('sel-instance').value
+  const inst = getInstances().find(function(i) { return i.id === id })
+  if (!inst) return
+  const p = MESO_PROVIDERS[inst.providerId] || {}
+  document.getElementById('instance-info').textContent = inst.model + (p.name ? '  ·  ' + p.name : '')
   setStatus('就绪', 'ok')
 }
 
@@ -398,20 +379,20 @@ async function sendMessage() {
   const text = ta.value.trim()
   if (!text || streaming) return
 
-  const pid = document.getElementById('sel-provider').value
-  if (!pid) { setStatus('请选择服务商', 'err'); return }
-  const cfg = getLLMConfig()
-  const apiKey = cfg[pid]?.apiKey
+  const instanceId = document.getElementById('sel-instance').value
+  const instances = getInstances()
+  const inst = instances.find(function(i) { return i.id === instanceId })
+  if (!inst) { setStatus('请选择实例', 'err'); return }
+
+  const apiKey = inst.apiKey
   if (!apiKey) { setStatus('API Key 未配置，请打开设置页', 'err'); return }
 
-  const def = PROVIDER_DEFS[pid]
-  const model = document.getElementById('inp-model').value.trim() || def.defaultModel
-  const baseUrl = cfg[pid]?.baseUrl || def.baseUrl
-
-  // Read LLM params from saved config
-  const temperature = cfg[pid]?.temperature !== undefined ? cfg[pid].temperature : 0.7
-  const maxTokens = cfg[pid]?.maxTokens !== undefined ? cfg[pid].maxTokens : 4096
-  const topP = cfg[pid]?.topP !== undefined ? cfg[pid].topP : 1.0
+  const model = inst.model
+  const baseUrl = inst.baseUrl || (MESO_PROVIDERS[inst.providerId] ? MESO_PROVIDERS[inst.providerId].defaultBaseUrl : '') || ''
+  const temperature = inst.temperature !== undefined ? inst.temperature : 0.7
+  const maxTokens = inst.maxTokens !== undefined ? inst.maxTokens : 4096
+  const topP = inst.topP !== undefined ? inst.topP : 1.0
+  const def = MESO_PROVIDERS[inst.providerId] || {}
 
   ta.value = ''; onInput()
   const emptyState = document.getElementById('empty-state')
@@ -431,10 +412,10 @@ async function sendMessage() {
     if (def.isAnthropic) {
       await streamAnthropic({ apiKey, model, baseUrl, maxTokens, temperature, contentEl, thinkBlock, thinkBody, cursorEl })
     } else {
-      await streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, temperature, maxTokens, topP, contentEl, thinkBlock, thinkBody, cursorEl })
+      await streamOpenAICompat({ apiKey, model, baseUrl, def, inst, temperature, maxTokens, topP, contentEl, thinkBlock, thinkBody, cursorEl })
     }
     messages.push({ role: 'assistant', content: contentEl.dataset.raw || contentEl.textContent })
-    setStatus('完成', 'ok')
+    setStatus('✓ 完成', 'ok')
   } catch (err) {
     if (err.name === 'AbortError') {
       setStatus('已停止', 'ok')
@@ -452,14 +433,14 @@ async function sendMessage() {
 }
 
 /* ── OpenAI-compatible streaming ── */
-async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, temperature, maxTokens, topP, contentEl, thinkBlock, thinkBody, cursorEl }) {
+async function streamOpenAICompat({ apiKey, model, baseUrl, def, inst, temperature, maxTokens, topP, contentEl, thinkBlock, thinkBody, cursorEl }) {
   abortCtrl = new AbortController()
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': def.authHeader(apiKey),
+    'Authorization': def.authHeader ? def.authHeader(apiKey) : 'Bearer ' + apiKey,
   }
-  if (pid === 'minimax-cn' && cfg[pid]?.groupId) {
-    headers['GroupId'] = cfg[pid].groupId
+  if (inst.providerId === 'minimax-cn' && inst.groupId) {
+    headers['GroupId'] = inst.groupId
   }
 
   const resp = await fetch(baseUrl + '/chat/completions', {
@@ -519,7 +500,7 @@ async function streamOpenAICompat({ apiKey, model, baseUrl, def, pid, cfg, tempe
 /* ── Anthropic streaming ── */
 async function streamAnthropic({ apiKey, model, baseUrl, maxTokens, temperature, contentEl, thinkBlock, thinkBody, cursorEl }) {
   abortCtrl = new AbortController()
-  const anthropicMessages = buildMessages().filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
+  const anthropicMessages = buildMessages().filter(function(m) { return m.role !== 'system' }).map(function(m) { return { role: m.role, content: m.content } })
 
   const resp = await fetch(baseUrl + '/messages', {
     method: 'POST',
@@ -549,7 +530,6 @@ async function streamAnthropic({ apiKey, model, baseUrl, maxTokens, temperature,
 
   let raw = ''
   let thinkRaw = ''
-  let inThinking = false
   const reader = resp.body.getReader()
   const dec = new TextDecoder()
   let buf = ''
@@ -566,8 +546,8 @@ async function streamAnthropic({ apiKey, model, baseUrl, maxTokens, temperature,
       try { ev = JSON.parse(line.slice(6)) } catch { continue }
 
       if (ev.type === 'content_block_start') {
-        if (ev.content_block?.type === 'thinking') inThinking = true
-        else if (ev.content_block?.type === 'text') inThinking = false
+        if (ev.content_block?.type === 'thinking') { /* inThinking = true */ }
+        else if (ev.content_block?.type === 'text') { /* inThinking = false */ }
       }
       if (ev.type === 'content_block_delta') {
         if (ev.delta?.type === 'thinking_delta') {
@@ -664,7 +644,7 @@ function mdToHtml(s) {
   s = s.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
   // HR
   s = s.replace(/^---+$/gm, '<hr>')
-  // Lists: collect consecutive items then wrap
+  // Lists
   s = s.replace(/((?:^[-*] .+\n?)+)/gm, function(block) {
     const items = block.trim().split('\n').map(function(l) { return '<li>' + l.replace(/^[-*] /, '') + '</li>' }).join('')
     return '<ul>' + items + '</ul>'
@@ -722,7 +702,7 @@ function onModeChange() {
 }
 
 /* ── Init ── */
-populateProviders()
+populateInstances()
 </script>
 </body>
 </html>

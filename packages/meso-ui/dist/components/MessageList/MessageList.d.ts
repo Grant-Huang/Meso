@@ -1,5 +1,6 @@
-import { default as React } from 'react';
-import { StreamState, ExtensionEvent } from '../../runtime';
+import React from 'react';
+import type { StreamState, ExtensionEvent } from '../../runtime';
+import './MessageList.css';
 export interface Message {
     id: string;
     role: 'user' | 'assistant';

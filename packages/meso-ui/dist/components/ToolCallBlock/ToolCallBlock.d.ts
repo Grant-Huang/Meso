@@ -1,4 +1,5 @@
-import { ToolCallState } from '../../runtime';
+import type { ToolCallState } from '../../runtime';
+import './ToolCallBlock.css';
 export interface ToolCallBlockProps {
     toolCall: ToolCallState;
     /** Called when user approves a tool awaiting confirmation. */

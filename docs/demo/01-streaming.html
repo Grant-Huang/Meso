@@ -225,6 +225,7 @@
   </select>
   <span class="ctrl-sep"></span>
   <span class="ctrl-status" id="status-text"></span>
+  <a href="../help.html#streaming" target="_blank" class="icon-btn" title="查看文档" style="text-decoration:none;font-size:15px;line-height:1;">📖</a>
 </div>
 
 <!-- Workspace -->
@@ -442,6 +443,11 @@ let textBuffer = ''
 /* ── Hash-based demo selection ── */
 const hash = location.hash.replace('#','')
 if (hash && DEMOS[hash]) currentDemo = hash
+
+window.addEventListener('hashchange', () => {
+  const h = location.hash.replace('#','')
+  if (h && DEMOS[h]) { currentDemo = h; resetDemo() }
+})
 
 /* ── Reset ── */
 function resetDemo() {

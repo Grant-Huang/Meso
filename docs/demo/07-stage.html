@@ -144,9 +144,12 @@
     .legend-dot.active  { background:var(--color-accent); border-color:var(--color-accent); }
     .legend-dot.done    { background:var(--color-success); border-color:var(--color-success); }
     .legend-text { font-size:12px; color:var(--color-text-secondary); }
+    .doc-btn { position:fixed; top:10px; right:12px; text-decoration:none; font-size:16px; opacity:.5; z-index:100; transition:opacity .15s; line-height:1; }
+    .doc-btn:hover { opacity:1; }
   </style>
 </head>
 <body>
+<a class="doc-btn" href="../help.html#streaming" target="_blank" title="查看文档">📖</a>
 <div class="page">
 
   <div class="page-title">
@@ -221,6 +224,7 @@
       </div>
 
       <!-- Memory chips (appear after stage 0 done) -->
+      <span id="memory"></span>
       <div id="memory-chips-wrap" style="display:none; margin-top:16px;">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-muted);margin-bottom:8px;">已召回记忆</div>
         <div class="memory-chips-wrap">
@@ -361,6 +365,10 @@
 
   // Init
   STAGES.forEach((_, i) => setStageState(i, 'pending'));
+
+  const _h = location.hash.slice(1);
+  if (_h) { const _el = document.getElementById(_h); if (_el) setTimeout(() => _el.scrollIntoView({behavior:'smooth'}), 100); }
+  window.addEventListener('hashchange', () => { const _h2 = location.hash.slice(1); const _el2 = document.getElementById(_h2); if (_el2) _el2.scrollIntoView({behavior:'smooth'}); });
 </script>
 </body>
 </html>

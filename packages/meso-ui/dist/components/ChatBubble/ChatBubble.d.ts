@@ -1,3 +1,4 @@
+import './ChatBubble.css';
 export type ChatRole = 'user' | 'assistant';
 export interface ChatBubbleProps {
     role: ChatRole;

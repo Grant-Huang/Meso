@@ -1,8 +1,7 @@
 {
   "name": "meso",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "demo"
-  ]
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
 }

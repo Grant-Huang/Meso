@@ -1,4 +1,5 @@
-import { default as React } from 'react';
+import React from 'react';
+import './ThreeColumnLayout.css';
 export interface NavItem {
     id: string;
     label: string;

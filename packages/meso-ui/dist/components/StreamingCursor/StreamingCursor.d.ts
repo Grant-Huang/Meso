@@ -1,3 +1,4 @@
+import './StreamingCursor.css';
 export interface StreamingCursorProps {
     /** Whether the cursor is currently visible/blinking */
     active?: boolean;

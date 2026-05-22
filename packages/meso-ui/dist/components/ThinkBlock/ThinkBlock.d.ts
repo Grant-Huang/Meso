@@ -1,3 +1,4 @@
+import './ThinkBlock.css';
 export interface ThinkBlockProps {
     /** Accumulated think content */
     content: string;

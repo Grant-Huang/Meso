@@ -1,4 +1,5 @@
-import { ToolCallPayload } from '../../runtime';
+import type { ToolCallPayload } from '../../runtime';
+import './ConfirmGate.css';
 export interface ConfirmGateProps {
     toolCall: ToolCallPayload;
     onConfirm: (toolCallId: string) => void;

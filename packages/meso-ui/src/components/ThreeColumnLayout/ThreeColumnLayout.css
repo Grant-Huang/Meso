@@ -158,6 +158,10 @@
   flex-shrink: 0;
 }
 
+.meso-session-col--hidden {
+  display: none;
+}
+
 /* Main area */
 .meso-main {
   flex: 1;
@@ -177,9 +181,69 @@
   gap: 10px;
 }
 
+.meso-main__artifact-toggle {
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.meso-main__artifact-toggle:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+  color: var(--color-text);
+}
+
 .meso-main__content {
   flex: 1;
   overflow: hidden;
+  display: flex;
+}
+
+/* Split layout */
+.meso-main__chat {
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.meso-main__artifact {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Splitter */
+.meso-split-divider {
+  flex-shrink: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: var(--color-border, #b0baa8);
+  transition: background 0.12s;
+  touch-action: none;
+  position: relative;
+}
+
+.meso-split-divider:hover,
+.meso-split-divider:active {
+  background: var(--splitter-hover, #9cb8a8);
+}
+
+/* Non-split: chat fills width */
+.meso-main__content > *:only-child {
+  width: 100%;
+  height: 100%;
 }
 
 /* ── Responsive breakpoints ── */

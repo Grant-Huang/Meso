@@ -50,12 +50,24 @@ export interface MessageListProps {
    * Must return sanitized HTML (e.g. marked + DOMPurify output).
    */
   renderMarkdown?: (source: string) => string
+  /**
+   * Async Mermaid renderer passed to ArtifactPanel.
+   * Receives source, returns SVG string. Called once streaming is done.
+   */
+  renderMermaid?: (source: string) => Promise<string>
+  /**
+   * Syntax highlighter passed to ArtifactPanel.
+   * Receives (code, lang), returns sanitized HTML. Called once streaming is done.
+   */
+  highlightCode?: (code: string, lang: string) => string
 }
 
 /** Map protocol lang string to ArtifactPanel type + language prop. */
 function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
   if (lang === 'html preview') return { type: 'html' }
   if (lang === 'mermaid') return { type: 'mermaid' }
+  if (lang === 'markdown') return { type: 'markdown' }
+  if (lang === 'table') return { type: 'table' }
   return { type: 'code', language: lang }
 }
 
@@ -70,6 +82,8 @@ export function MessageList({
   className,
   renderExtension,
   renderMarkdown,
+  renderMermaid,
+  highlightCode,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -204,6 +218,9 @@ export function MessageList({
                   streaming={!art.done}
                   onCopy={onArtifactCopy}
                   onDownload={onArtifactDownload}
+                  renderMermaid={renderMermaid}
+                  highlightCode={highlightCode}
+                  renderMarkdown={renderMarkdown}
                 />
               )
             })}

@@ -93,9 +93,8 @@ export function MessageList({
 
   const hasContent = messages.length > 0 || (streaming && streaming.status !== 'idle')
 
-  const allStagesDone = streaming
-    ? streaming.stages.every(s => s.state === 'done' || s.state === 'error')
-    : true
+  // Stages stay visible after completion so users can see what pipeline ran.
+  // The StageTimeline marks completed stages as 'done' rather than hiding them.
 
   return (
     <div className={`meso-message-list${className ? ` ${className}` : ''}`}>
@@ -125,8 +124,8 @@ export function MessageList({
               </div>
             )}
 
-            {/* Pipeline stages */}
-            {streaming.stages.length > 0 && !allStagesDone && (
+            {/* Pipeline stages — always shown when present */}
+            {streaming.stages.length > 0 && (
               <StageTimeline
                 stages={streaming.stages.map((s): Stage => ({
                   id: s.name,

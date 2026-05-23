@@ -9,6 +9,62 @@ export interface WorkflowTimelineProps {
   showRunId?: boolean
 }
 
+// ── Tree structure ──────────────────────────────────────────────────
+
+type TreeItem =
+  | { kind: 'node';     node: WorkflowNodeRecord; isLast: boolean }
+  | { kind: 'parallel'; nodes: WorkflowNodeRecord[]; isLast: boolean }
+
+function buildTree(run: WorkflowRunState): TreeItem[] {
+  const { nodes, nodeOrder } = run
+
+  // Map parent_id → children ids
+  const childrenOf = new Map<string | null, string[]>()
+  for (const id of nodeOrder) {
+    const node = nodes[id]
+    if (!node) continue
+    const key = node.parent_id ?? null
+    if (!childrenOf.has(key)) childrenOf.set(key, [])
+    childrenOf.get(key)!.push(id)
+  }
+
+  // Any parent with 2+ children → those children are parallel siblings
+  const parallelGroupOf = new Map<string, string[]>()
+  for (const [, siblings] of childrenOf) {
+    if (siblings.length > 1) {
+      for (const id of siblings) parallelGroupOf.set(id, siblings)
+    }
+  }
+
+  const result: TreeItem[] = []
+  const seen = new Set<string>()
+
+  for (const id of nodeOrder) {
+    if (seen.has(id)) continue
+    const node = nodes[id]
+    if (!node) continue
+
+    const siblings = parallelGroupOf.get(id)
+    if (siblings) {
+      const siblingNodes = siblings
+        .map(sid => nodes[sid])
+        .filter((n): n is WorkflowNodeRecord => !!n)
+      for (const s of siblingNodes) seen.add(s.node_id)
+      result.push({ kind: 'parallel', nodes: siblingNodes, isLast: false })
+    } else {
+      seen.add(id)
+      result.push({ kind: 'node', node, isLast: false })
+    }
+  }
+
+  if (result.length > 0) {
+    result[result.length - 1] = { ...result[result.length - 1], isLast: true }
+  }
+  return result
+}
+
+// ── Shared helpers ──────────────────────────────────────────────────
+
 function NodeIcon({ state }: { state: WorkflowNodeRecord['state'] }) {
   if (state === 'done') {
     return (
@@ -32,7 +88,6 @@ function NodeIcon({ state }: { state: WorkflowNodeRecord['state'] }) {
       </svg>
     )
   }
-  // active
   return <span className="meso-wf-node__spinner" aria-hidden="true" />
 }
 
@@ -41,18 +96,19 @@ function formatDuration(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`
 }
 
+// ── Sequential node row ─────────────────────────────────────────────
+
 interface NodeRowProps {
   node: WorkflowNodeRecord
-  depth: number
   isLast: boolean
 }
 
-function NodeRow({ node, depth, isLast }: NodeRowProps) {
+function NodeRow({ node, isLast }: NodeRowProps) {
   const [expanded, setExpanded] = useState(false)
   const hasMetadata = node.metadata && Object.keys(node.metadata).length > 0
 
   return (
-    <div className={`meso-wf-node meso-wf-node--${node.state}`} style={{ '--meso-wf-depth': depth } as React.CSSProperties}>
+    <div className={`meso-wf-node meso-wf-node--${node.state}`}>
       <div className="meso-wf-node__track">
         <div className="meso-wf-node__dot">
           <NodeIcon state={node.state} />
@@ -78,6 +134,9 @@ function NodeRow({ node, depth, isLast }: NodeRowProps) {
             </button>
           )}
         </div>
+        {node.state === 'error' && !!node.metadata?.error && (
+          <div className="meso-wf-node__error">{String(node.metadata.error)}</div>
+        )}
         {expanded && hasMetadata && (
           <pre className="meso-wf-node__meta">{JSON.stringify(node.metadata, null, 2)}</pre>
         )}
@@ -86,20 +145,46 @@ function NodeRow({ node, depth, isLast }: NodeRowProps) {
   )
 }
 
-function buildTree(run: WorkflowRunState): Array<{ node: WorkflowNodeRecord; depth: number }> {
-  const { nodes, nodeOrder } = run
-  const depthMap = new Map<string, number>()
-  const result: Array<{ node: WorkflowNodeRecord; depth: number }> = []
+// ── Parallel group ──────────────────────────────────────────────────
 
-  for (const id of nodeOrder) {
-    const node = nodes[id]
-    if (!node) continue
-    const depth = node.parent_id ? (depthMap.get(node.parent_id) ?? 0) + 1 : 0
-    depthMap.set(id, depth)
-    result.push({ node, depth })
-  }
-  return result
+interface ParallelGroupProps {
+  nodes: WorkflowNodeRecord[]
+  isLast: boolean
 }
+
+function ParallelGroup({ nodes, isLast }: ParallelGroupProps) {
+  return (
+    <div className="meso-wf-parallel">
+      {/* Branch cards */}
+      <div className="meso-wf-parallel__row">
+        {nodes.map((node, idx) => (
+          <div key={node.node_id} className={`meso-wf-parallel__branch meso-wf-parallel__branch--${node.state}`}>
+            <div className="meso-wf-parallel__branch-dot">
+              <NodeIcon state={node.state} />
+            </div>
+            <div className="meso-wf-parallel__branch-body">
+              <div className="meso-wf-parallel__branch-label">并行分支 {String.fromCharCode(65 + idx)}</div>
+              <code className="meso-wf-node__name">{node.name}</code>
+              {node.state === 'error' && !!node.metadata?.error && (
+                <div className="meso-wf-node__error">{String(node.metadata.error)}</div>
+              )}
+              {node.duration_ms !== undefined && (
+                <span className="meso-wf-node__duration" style={{ display: 'block', marginTop: 2 }}>
+                  {formatDuration(node.duration_ms)}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Merge connector + vertical line to next item */}
+      {!isLast && <div className="meso-wf-parallel__merge" />}
+    </div>
+  )
+}
+
+// ── Main export ─────────────────────────────────────────────────────
 
 export function WorkflowTimeline({ runs, showRunId = true }: WorkflowTimelineProps) {
   if (runs.length === 0) return null
@@ -108,20 +193,19 @@ export function WorkflowTimeline({ runs, showRunId = true }: WorkflowTimelinePro
   return (
     <div className="meso-wf" role="status" aria-label="工作流进度">
       {runs.map(run => {
-        const rows = buildTree(run)
+        const items = buildTree(run)
         return (
           <div key={run.run_id} className="meso-wf-run">
             {multiRun && showRunId && (
               <div className="meso-wf-run__label">{run.run_id}</div>
             )}
-            {rows.map(({ node, depth }, idx) => (
-              <NodeRow
-                key={node.node_id}
-                node={node}
-                depth={depth}
-                isLast={idx === rows.length - 1}
-              />
-            ))}
+            {items.map((item, idx) =>
+              item.kind === 'parallel' ? (
+                <ParallelGroup key={`parallel-${idx}`} nodes={item.nodes} isLast={item.isLast} />
+              ) : (
+                <NodeRow key={item.node.node_id} node={item.node} isLast={item.isLast} />
+              )
+            )}
           </div>
         )
       })}

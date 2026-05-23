@@ -1,4 +1,4 @@
-import type { StagePayload, MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent } from './protocol';
+import type { StagePayload, MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState } from './protocol';
 export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error';
 export interface ArtifactState {
     id: string;
@@ -17,6 +17,23 @@ export interface ResourceReadState {
     read: ResourceReadPayload;
     content?: ResourceContentPayload;
     status: ResourceReadStatus;
+}
+export interface WorkflowNodeRecord {
+    node_id: string;
+    run_id: string;
+    parent_id?: string | null;
+    name: string;
+    state: WorkflowNodeState;
+    started_at?: number;
+    duration_ms?: number;
+    metadata?: Record<string, unknown>;
+}
+export interface WorkflowRunState {
+    run_id: string;
+    /** All nodes keyed by node_id for O(1) lookup and state updates. */
+    nodes: Record<string, WorkflowNodeRecord>;
+    /** Node ids in first-seen order — use for deterministic rendering. */
+    nodeOrder: string[];
 }
 export interface StreamState {
     status: StreamStatus;
@@ -47,6 +64,14 @@ export interface StreamState {
     artifacts: Record<string, ArtifactState>;
     /** Artifact ids in first-seen order — use for deterministic rendering. */
     artifactOrder: string[];
+    /**
+     * Workflow runs keyed by run_id. One stream may contain multiple runs
+     * (e.g. parallel sub-graphs from LangGraph or Temporal).
+     * Stage = user-readable coarse progress; workflow_node = developer-facing fine steps.
+     */
+    workflowRuns: Record<string, WorkflowRunState>;
+    /** Run ids in first-seen order — use for deterministic rendering. */
+    workflowRunOrder: string[];
     /**
      * Extension events keyed by name for lookup (e.g. extensions["tool_progress"]).
      * For time-ordered rendering, use extensionLog instead.

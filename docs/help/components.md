@@ -16,6 +16,12 @@ import {
   StageTimeline,
   ArtifactPanel,
   StreamingCursor,
+  WorkflowTimeline,
+  ToolCallBlock,
+  ConfirmGate,
+  SoulIndicator,
+  SkillIndicator,
+  ResourceReadBlock,
   useSSEStream,
   useTheme,
 } from '@meso/ui'
@@ -27,9 +33,14 @@ import type {
   ExtensionEvent,
   NavItem,
   StreamOptions,
+  StreamCallbacks,
   ArtifactState,
-  StageItem,
+  Stage,
+  StageStatus,
   MemorySnippet,
+  WorkflowRunState,
+  WorkflowNodeRecord,
+  WorkflowNodeState,
   SSEEvent,
   ThinkPayload,
   TextPayload,
@@ -162,16 +173,18 @@ interface Message {
 流水线阶段进度时间轴。
 
 ```typescript
-interface StageItem {
+type StageStatus = 'pending' | 'active' | 'done'
+
+interface Stage {
   id:     string
   label:  string
-  status: 'pending' | 'active' | 'done' | 'error'
+  status: StageStatus
 }
 ```
 
 | Prop | 类型 | 默认 | 说明 |
 |------|------|------|------|
-| `stages` | `StageItem[]` | 必填 | 阶段列表 |
+| `stages` | `Stage[]` | 必填 | 阶段列表 |
 | `compact` | `boolean` | `false` | 单行紧凑模式 |
 
 | `status` | 显示 |
@@ -198,12 +211,143 @@ interface StageItem {
 
 ---
 
+## WorkflowTimeline
+
+DAG 工作流可观测性组件，将 `workflow_node` 事件流渲染为带深度缩进的树形节点列表。
+
+```tsx
+import { WorkflowTimeline } from '@meso/ui'
+
+<WorkflowTimeline
+  runs={Object.values(state.workflowRuns)}
+  showRunId={state.workflowRunOrder.length > 1}
+/>
+```
+
+| Prop | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| `runs` | `WorkflowRunState[]` | 必填 | 工作流运行列表，来自 `state.workflowRuns` |
+| `showRunId` | `boolean` | `true` | 多 run 时是否显示 run_id 标签 |
+
+每个节点展示名称、耗时，有 `metadata` 时显示展开按钮。节点状态：
+
+| `state` | 显示 |
+|---------|------|
+| `'active'` | 旋转动画圆点（accent 色） |
+| `'done'` | 绿色对号圆点 |
+| `'error'` | 红色 × 圆点 |
+| `'skipped'` | 短横线圆点（次要色） |
+
+---
+
+## ToolCallBlock
+
+展示单个工具调用的调用参数与执行结果，支持 `awaiting_confirm` 状态。
+
+```tsx
+import { ToolCallBlock } from '@meso/ui'
+
+{state.toolCallOrder.map(id => (
+  <ToolCallBlock
+    key={id}
+    toolCall={state.toolCalls[id]}
+    onConfirm={id => postConfirm(id)}
+    onCancel={id => postCancel(id)}
+  />
+))}
+```
+
+| Prop | 类型 | 说明 |
+|------|------|------|
+| `toolCall` | `ToolCallState` | 来自 `state.toolCalls[id]` |
+| `onConfirm` | `(id: string) => void` | 用户批准时回调（awaiting_confirm 状态） |
+| `onCancel` | `(id: string) => void` | 用户拒绝时回调 |
+
+---
+
+## ConfirmGate
+
+危险操作的独立确认弹层，按 `risk` 字段渲染不同样式（safe / write / destructive）。
+
+```tsx
+import { ConfirmGate } from '@meso/ui'
+
+<ConfirmGate
+  toolCall={pendingCall}
+  onConfirm={id => postConfirm(id)}
+  onCancel={id => postCancel(id)}
+/>
+```
+
+| Prop | 类型 | 说明 |
+|------|------|------|
+| `toolCall` | `ToolCallPayload` | 待确认的工具调用 |
+| `onConfirm` | `(id: string) => void` | 用户确认时回调 |
+| `onCancel` | `(id: string) => void` | 用户取消时回调 |
+
+---
+
+## SoulIndicator
+
+展示当前激活的 Soul（人格/角色）信息。
+
+```tsx
+import { SoulIndicator } from '@meso/ui'
+
+{state.activeSoul && (
+  <SoulIndicator soul={state.activeSoul} compact={false} />
+)}
+```
+
+| Prop | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| `soul` | `SoulPayload` | 必填 | 来自 `state.activeSoul` |
+| `compact` | `boolean` | `false` | 紧凑模式：仅显示头像，不显示名称和特征 |
+
+---
+
+## SkillIndicator
+
+展示当前激活的 Skill（操作模式）信息。
+
+```tsx
+import { SkillIndicator } from '@meso/ui'
+
+{state.activeSkill && (
+  <SkillIndicator skill={state.activeSkill} />
+)}
+```
+
+| Prop | 类型 | 说明 |
+|------|------|------|
+| `skill` | `SkillPayload` | 来自 `state.activeSkill` |
+
+---
+
+## ResourceReadBlock
+
+展示单个 MCP 资源读取的 URI、内容（可折叠）和状态。
+
+```tsx
+import { ResourceReadBlock } from '@meso/ui'
+
+{state.resourceReadOrder.map(id => (
+  <ResourceReadBlock key={id} resourceRead={state.resourceReads[id]} />
+))}
+```
+
+| Prop | 类型 | 说明 |
+|------|------|------|
+| `resourceRead` | `ResourceReadState` | 来自 `state.resourceReads[id]` |
+
+---
+
 ## useSSEStream
 
 核心流式请求 Hook。
 
 ```typescript
-const { state, start, abort, reset } = useSSEStream(url: string)
+const { state, start, abort, reset } = useSSEStream(url: string, callbacks?: StreamCallbacks)
 ```
 
 | 返回值 | 类型 | 说明 |
@@ -220,6 +364,28 @@ interface StreamOptions {
   method?:  'GET' | 'POST'              // 默认：有 body 时 POST，否则 GET
   headers?: Record<string, string>      // 自定义请求头（Authorization 等）
   body?:    Record<string, unknown>     // POST body，自动序列化为 JSON
+}
+```
+
+### StreamCallbacks
+
+可选的第二参数，用于在事件到达时触发副作用（日志、分析、通知等），不影响状态更新。
+
+```typescript
+interface StreamCallbacks {
+  onCapabilities?:   (capabilities: CapabilitiesPayload) => void
+  onStageChange?:    (stage: StagePayload) => void
+  onMemoryRecalled?: (snippets: MemorySnippet[]) => void
+  onMemorySaved?:    (saved: MemorySavedPayload) => void
+  onSoulActivated?:  (soul: SoulPayload) => void
+  onSkillActivated?: (skill: SkillPayload) => void
+  onToolCall?:       (call: ToolCallPayload) => void
+  onToolResult?:     (result: ToolResultPayload) => void
+  onResourceRead?:   (read: ResourceReadPayload) => void
+  onResourceContent?:(content: ResourceContentPayload) => void
+  onArtifact?:       (artifact: ArtifactState) => void
+  onError?:          (message: string, code?: string) => void
+  onDone?:           (finalState: StreamState) => void
 }
 ```
 
@@ -256,16 +422,41 @@ const { theme, toggle } = useTheme()
 ```typescript
 interface StreamState {
   status:         'idle' | 'streaming' | 'done' | 'error'
-  stages:         StageItem[]
+
+  // 能力上下文
+  availableCapabilities: CapabilitiesPayload | null
+  activeSoul:            SoulPayload | null
+  activeSkill:           SkillPayload | null
+
+  // 阶段进度
+  stages:         Stage[]
+
+  // 记忆
   memorySnippets: MemorySnippet[]
-  thinkContent:   string
-  thinkDone:      boolean
-  textContent:    string
-  artifacts:      Record<string, ArtifactState>
-  artifactOrder:  string[]
-  extensions:     Record<string, ExtensionEvent[]>
-  extensionLog:   ExtensionEvent[]
-  errorMessage:   string | null
+  memorySaved:    MemorySavedPayload[]
+
+  // 工具调用 & 资源读取
+  toolCalls:         Record<string, ToolCallState>
+  toolCallOrder:     string[]
+  resourceReads:     Record<string, ResourceReadState>
+  resourceReadOrder: string[]
+
+  // LLM 输出
+  thinkContent:  string
+  thinkDone:     boolean
+  textContent:   string
+  artifacts:     Record<string, ArtifactState>
+  artifactOrder: string[]
+
+  // 工作流节点
+  workflowRuns:     Record<string, WorkflowRunState>
+  workflowRunOrder: string[]
+
+  // 扩展事件
+  extensions:   Record<string, ExtensionEvent[]>
+  extensionLog: ExtensionEvent[]
+
+  errorMessage: string | null
 }
 
 interface ArtifactState {

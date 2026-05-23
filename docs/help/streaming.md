@@ -54,9 +54,17 @@ function ChatArea() {
 
 | SSE 事件 | StreamState 变化 | UI 动作 |
 |---------|-----------------|---------|
+| `capabilities` | `availableCapabilities` 设置 | 应用可按需展示可用能力 |
+| `soul` | `activeSoul` 设置 | SoulIndicator 显示当前人格 |
+| `skill_active` | `activeSkill` 设置 | SkillIndicator 显示当前技能 |
 | `stage` active | `stages` 追加/更新 | StageTimeline 出现，旋转动画 |
 | `stage` done | `stages[n].state = 'done'` | 打对号，全 done 后 1.5s 折叠 |
 | `memory` | `memorySnippets` 替换 | Memory 芯片出现 |
+| `memory_saved` | `memorySaved` 追加 | 可选 UI 提示已保存 |
+| `tool_call` | `toolCalls[id]` 添加，`toolCallOrder` 追加 | ToolCallBlock 出现；`risk=destructive/write` 时触发 ConfirmGate |
+| `tool_result` | `toolCalls[id].result` 更新 | ToolCallBlock 更新为 done/error |
+| `resource_read` | `resourceReads[id]` 添加 | ResourceReadBlock 出现 |
+| `resource_content` | `resourceReads[id].content` 更新 | ResourceReadBlock 更新为 done |
 | `think` delta | `thinkContent` 追加 | ThinkBlock 展开，逐字显示 |
 | `think` done:true | `thinkDone = true` | 1.5s 后自动折叠 |
 | `text` | `textContent` 追加 | ChatBubble 出现，光标闪烁 |
@@ -77,11 +85,23 @@ function ChatArea() {
 interface StreamState {
   status:         'idle' | 'streaming' | 'done' | 'error'
 
-  // 阶段进度（按首次出现顺序）
-  stages:         Array<{ name: string; state: 'active' | 'done' | 'error' }>
+  // 能力上下文（LLM 生成前设定）
+  availableCapabilities: CapabilitiesPayload | null  // capabilities 事件
+  activeSoul:            SoulPayload | null           // soul 事件
+  activeSkill:           SkillPayload | null          // skill_active 事件
 
-  // 记忆召回结果（整体替换）
-  memorySnippets: Array<{ category: string; content: string }>
+  // 阶段进度（按首次出现顺序，deduped by name）
+  stages:         StagePayload[]
+
+  // 记忆
+  memorySnippets: MemorySnippet[]       // 召回片段（memory 事件，整体替换）
+  memorySaved:    MemorySavedPayload[]  // 本轮已持久化的记忆条目
+
+  // 工具调用 & 资源读取（按首次出现顺序）
+  toolCalls:         Record<string, ToolCallState>
+  toolCallOrder:     string[]
+  resourceReads:     Record<string, ResourceReadState>
+  resourceReadOrder: string[]
 
   // 推理过程
   thinkContent:   string     // 累积全文
@@ -91,12 +111,12 @@ interface StreamState {
   textContent:    string     // 累积全文
 
   // Artifacts（多个，按顺序）
-  artifacts:      Record<string, { id: string; lang: string; content: string; done: boolean }>
+  artifacts:      Record<string, ArtifactState>
   artifactOrder:  string[]   // id 按首次出现顺序
 
   // 工作流节点（workflow_node 事件，开发者可观测性）
-  workflowRunOrder: string[]                        // run_id 按首次出现顺序
   workflowRuns:     Record<string, WorkflowRunState>
+  workflowRunOrder: string[]                        // run_id 按首次出现顺序
 
   // 扩展事件
   extensionLog:   ExtensionEvent[]                  // 按到达顺序

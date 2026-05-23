@@ -38,6 +38,8 @@ export interface MessageListProps {
   onToolCancel?: (toolCallId: string) => void
   /** Rendered when messages is empty and no streaming is active. */
   emptyState?: React.ReactNode
+  /** Alignment of the empty state. Defaults to 'center'. Use 'top' for welcome screens that sit above the composer. */
+  emptyStateAlign?: 'center' | 'top'
   className?: string
   /**
    * Render custom UI for extension events in arrival order.
@@ -79,6 +81,7 @@ export function MessageList({
   onToolConfirm,
   onToolCancel,
   emptyState,
+  emptyStateAlign = 'center',
   className,
   renderExtension,
   renderMarkdown,
@@ -100,7 +103,9 @@ export function MessageList({
     <div className={`meso-message-list${className ? ` ${className}` : ''}`}>
       <div className="meso-message-list__inner">
         {!hasContent && emptyState && (
-          <div className="meso-message-list__empty">{emptyState}</div>
+          <div className={`meso-message-list__empty${emptyStateAlign === 'top' ? ' meso-message-list__empty--top' : ''}`}>
+            {emptyState}
+          </div>
         )}
 
         {messages.map((m) => (

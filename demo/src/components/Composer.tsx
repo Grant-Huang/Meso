@@ -8,7 +8,7 @@ interface ComposerProps {
   onChange: (value: string) => void
 }
 
-export function Composer({ onSend, disabled, placeholder = '输入消息… (Enter 发送，Shift+Enter 换行)', value, onChange }: ComposerProps) {
+export function Composer({ onSend, disabled, placeholder = '输入消息… (Ctrl+Enter 发送，Enter 换行)', value, onChange }: ComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSend = () => {
@@ -47,7 +47,7 @@ export function Composer({ onSend, disabled, placeholder = '输入消息… (Ent
           value={value}
           onChange={handleInput}
           onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSend() }
           }}
           placeholder={placeholder}
           rows={1}

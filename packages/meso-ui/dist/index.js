@@ -319,8 +319,7 @@ function he({ stages: r, compact: a = !1 }) {
       children: [
         /* @__PURE__ */ e("div", { className: "meso-stage__dot", children: t.status === "done" ? /* @__PURE__ */ e("svg", { width: "10", height: "10", viewBox: "0 0 10 10", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ e("polyline", { points: "1.5,5.5 4,8 8.5,2.5" }) }) : /* @__PURE__ */ e("span", { className: "meso-stage__dot-inner" }) }),
         s < r.length - 1 && /* @__PURE__ */ e("div", { className: `meso-stage__line${t.status === "done" ? " meso-stage__line--done" : ""}` }),
-        !a && /* @__PURE__ */ e("span", { className: "meso-stage__label", children: t.label }),
-        a && /* @__PURE__ */ e("span", { className: "meso-stage__label meso-stage__label--compact", children: t.label })
+        /* @__PURE__ */ e("span", { className: `meso-stage__label${a ? " meso-stage__label--compact" : ""}`, children: t.label })
       ]
     },
     t.id
@@ -377,7 +376,7 @@ function Be({ runs: r, showRunId: a = !0 }) {
   return /* @__PURE__ */ e("div", { className: "meso-wf", role: "status", "aria-label": "工作流进度", children: r.map((s) => {
     const n = pe(s);
     return /* @__PURE__ */ o("div", { className: "meso-wf-run", children: [
-      (t || a) && t && /* @__PURE__ */ e("div", { className: "meso-wf-run__label", children: s.run_id }),
+      t && a && /* @__PURE__ */ e("div", { className: "meso-wf-run__label", children: s.run_id }),
       n.map(({ node: c, depth: u }, m) => /* @__PURE__ */ e(
         fe,
         {

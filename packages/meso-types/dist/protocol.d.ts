@@ -229,6 +229,26 @@ export interface ResourceContentPayload {
 }
 /** Resource content arrived (or failed). */
 export type ResourceContentEvent = Envelope<'resource_content', ResourceContentPayload>;
+export type WorkflowNodeState = 'active' | 'done' | 'error' | 'skipped';
+export interface WorkflowNodePayload {
+    /** Groups all nodes belonging to the same workflow execution. */
+    run_id: string;
+    /** Unique node identifier within the run. */
+    node_id: string;
+    /** Parent node id for tree/sub-graph structure. Null or absent = root node. */
+    parent_id?: string | null;
+    /** Developer-facing node name (e.g. "web_search", "fetch_batch_3"). */
+    name: string;
+    state: WorkflowNodeState;
+    /** Unix ms timestamp when this node started. */
+    started_at?: number;
+    /** Wall-clock duration in milliseconds (present on done/error). */
+    duration_ms?: number;
+    /** Arbitrary domain-specific metadata (e.g. input/output summaries). */
+    metadata?: Record<string, unknown>;
+}
+/** Fine-grained workflow node progress — developer-facing, not shown to end users. */
+export type WorkflowNodeEvent = Envelope<'workflow_node', WorkflowNodePayload>;
 export interface ExtensionPayload {
     /** Identifies the extension type (e.g. "tool_progress", "confirm_gate"). */
     name: string;
@@ -238,5 +258,5 @@ export interface ExtensionPayload {
 }
 /** Third-party extension event — consumed via MessageList's renderExtension prop. */
 export type ExtensionEvent = Envelope<'extension', ExtensionPayload>;
-export type SSEEvent = StageEvent | CapabilitiesEvent | MemoryEvent | MemorySavedEvent | SoulEvent | SkillActiveEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | ResourceReadEvent | ResourceContentEvent | DoneEvent | ErrorEvent | ExtensionEvent;
+export type SSEEvent = StageEvent | CapabilitiesEvent | MemoryEvent | MemorySavedEvent | SoulEvent | SkillActiveEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | ResourceReadEvent | ResourceContentEvent | WorkflowNodeEvent | DoneEvent | ErrorEvent | ExtensionEvent;
 export {};

@@ -181,3 +181,121 @@
   word-break: break-all;
   line-height: 1.5;
 }
+
+/* ── Error message ── */
+.meso-wf-node__error {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-error, #e06c6c);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Parallel group ── */
+.meso-wf-parallel {
+  display: flex;
+  flex-direction: column;
+}
+
+.meso-wf-parallel__row {
+  display: flex;
+  gap: 8px;
+  margin-left: 24px; /* align to where sequential nodes' body starts */
+}
+
+.meso-wf-parallel__branch {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: var(--color-bg);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.meso-wf-parallel__branch--done {
+  border-color: var(--color-success, #3d6b52);
+  background: var(--color-bg-elevated, rgba(61,107,82,0.06));
+}
+
+.meso-wf-parallel__branch--active {
+  border-color: var(--color-accent);
+  background: rgba(61,107,82,0.04);
+}
+
+.meso-wf-parallel__branch--error {
+  border-color: var(--color-error, #e06c6c);
+  background: rgba(224,108,108,0.04);
+}
+
+.meso-wf-parallel__branch-dot {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.meso-wf-parallel__branch--done .meso-wf-parallel__branch-dot {
+  border-color: var(--color-success, #3d6b52);
+  background: var(--color-success, #3d6b52);
+  color: #fff;
+}
+
+.meso-wf-parallel__branch--active .meso-wf-parallel__branch-dot {
+  border-color: var(--color-accent);
+}
+
+.meso-wf-parallel__branch--error .meso-wf-parallel__branch-dot {
+  border-color: var(--color-error, #e06c6c);
+  background: var(--color-error, #e06c6c);
+  color: #fff;
+}
+
+.meso-wf-parallel__branch-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.meso-wf-parallel__branch-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+/* Merge connector: two vertical lines (one per branch) then center */
+.meso-wf-parallel__merge {
+  margin-left: 24px;
+  height: 14px;
+  position: relative;
+}
+
+.meso-wf-parallel__merge::before {
+  content: '';
+  position: absolute;
+  left: calc(25% - 0.75px);
+  width: 1.5px;
+  height: 100%;
+  background: var(--color-border);
+}
+
+.meso-wf-parallel__merge::after {
+  content: '';
+  position: absolute;
+  right: calc(25% - 0.75px);
+  width: 1.5px;
+  height: 100%;
+  background: var(--color-border);
+}

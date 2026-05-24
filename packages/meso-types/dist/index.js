@@ -1,5 +1,5 @@
-const t = "1.0";
-function y() {
+const d = "1.0";
+function f() {
   return {
     status: "idle",
     availableCapabilities: null,
@@ -24,7 +24,7 @@ function y() {
     errorMessage: null
   };
 }
-function f(r, e) {
+function m(r, e) {
   switch (e.type) {
     case "capabilities":
       return { ...r, availableCapabilities: e.payload };
@@ -105,7 +105,7 @@ function f(r, e) {
     case "text":
       return { ...r, textContent: r.textContent + e.payload.delta };
     case "artifact": {
-      const { id: o, lang: a, delta: n, done: s } = e.payload, l = r.artifacts[o], c = r.artifactOrder.includes(o) ? r.artifactOrder : [...r.artifactOrder, o];
+      const { id: o, lang: a, delta: n, done: t } = e.payload, l = r.artifacts[o], c = r.artifactOrder.includes(o) ? r.artifactOrder : [...r.artifactOrder, o];
       return {
         ...r,
         artifactOrder: c,
@@ -115,13 +115,13 @@ function f(r, e) {
             id: o,
             lang: a,
             content: ((l == null ? void 0 : l.content) ?? "") + n,
-            done: s ?? !1
+            done: t ?? !1
           }
         }
       };
     }
     case "workflow_node": {
-      const { run_id: o, node_id: a, parent_id: n, name: s, state: l, started_at: c, duration_ms: u, metadata: i } = e.payload, d = r.workflowRuns[o] ?? { nodes: {}, nodeOrder: [] }, p = d.nodeOrder.includes(a) ? d.nodeOrder : [...d.nodeOrder, a];
+      const { run_id: o, node_id: a, parent_id: n, name: t, state: l, started_at: c, duration_ms: i, metadata: u } = e.payload, s = r.workflowRuns[o] ?? { nodes: {}, nodeOrder: [] }, p = s.nodeOrder.includes(a) ? s.nodeOrder : [...s.nodeOrder, a];
       return {
         ...r,
         workflowRunOrder: r.workflowRunOrder.includes(o) ? r.workflowRunOrder : [...r.workflowRunOrder, o],
@@ -130,8 +130,8 @@ function f(r, e) {
           [o]: {
             run_id: o,
             nodes: {
-              ...d.nodes,
-              [a]: { node_id: a, run_id: o, parent_id: n, name: s, state: l, started_at: c, duration_ms: u, metadata: i }
+              ...s.nodes,
+              [a]: { node_id: a, run_id: o, parent_id: n, name: t, state: l, started_at: c, duration_ms: i, metadata: u }
             },
             nodeOrder: p
           }
@@ -165,7 +165,7 @@ function O(r) {
   if (!r.startsWith("data: ")) return null;
   const e = r.slice(6).trim();
   if (e === "[DONE]")
-    return { type: "done", schema_version: t, payload: {} };
+    return { type: "done", schema_version: d, payload: {} };
   let o;
   try {
     o = JSON.parse(e);
@@ -174,11 +174,31 @@ function O(r) {
   }
   if (!o || typeof o != "object" || Array.isArray(o)) return null;
   const a = o;
-  return typeof a.type != "string" || !a.payload || typeof a.payload != "object" || Array.isArray(a.payload) ? null : (a.schema_version || (a.schema_version = t), a);
+  return typeof a.type != "string" || !a.payload || typeof a.payload != "object" || Array.isArray(a.payload) ? null : (a.schema_version || (a.schema_version = d), a);
+}
+function y(r) {
+  const [e] = d.split(".").map(Number), [o] = (r.schema_version ?? "").split(".").map(Number);
+  return o === e;
+}
+function w(r) {
+  if (!y(r))
+    throw new Error(
+      `Meso protocol version mismatch: runtime expects ${d}, received ${r.schema_version}. Upgrade @meso/types or your backend.`
+    );
+}
+function R(r, e) {
+  return {
+    id: e,
+    label: r.name,
+    status: r.state
+  };
 }
 export {
-  t as PROTOCOL_VERSION,
-  f as applyEvent,
-  y as createInitialStreamState,
-  O as parseSSELine
+  d as PROTOCOL_VERSION,
+  m as applyEvent,
+  w as assertCompatibleVersion,
+  f as createInitialStreamState,
+  y as isCompatibleVersion,
+  O as parseSSELine,
+  R as stagePayloadToStage
 };

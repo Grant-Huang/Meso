@@ -26,6 +26,8 @@ export interface MessageListProps {
     onToolCancel?: (toolCallId: string) => void;
     /** Rendered when messages is empty and no streaming is active. */
     emptyState?: React.ReactNode;
+    /** Alignment of the empty state. Defaults to 'center'. Use 'top' for welcome screens that sit above the composer. */
+    emptyStateAlign?: 'center' | 'top';
     className?: string;
     /**
      * Render custom UI for extension events in arrival order.
@@ -49,4 +51,4 @@ export interface MessageListProps {
      */
     highlightCode?: (code: string, lang: string) => string;
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, className, renderExtension, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

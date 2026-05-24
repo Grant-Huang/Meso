@@ -51,6 +51,9 @@ export {
   parseSSELine,
   applyEvent,
   createInitialStreamState,
+  isCompatibleVersion,
+  assertCompatibleVersion,
+  stagePayloadToStage,
 } from './runtime'
 export type {
   CapabilityProvider,

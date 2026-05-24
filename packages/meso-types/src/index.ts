@@ -62,3 +62,6 @@ export { createInitialStreamState } from './streamState'
 
 export { applyEvent } from './applyEvent'
 export { parseSSELine } from './parseSSELine'
+export { isCompatibleVersion, assertCompatibleVersion } from './versionGuard'
+export { stagePayloadToStage } from './stageAdapter'
+export type { Stage as StageAdapterStage } from './stageAdapter'

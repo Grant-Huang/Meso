@@ -16,14 +16,20 @@ export interface ThreeColumnLayoutProps {
   sidebarFooter?: React.ReactNode
   /** Full content of the middle session column */
   sessionColumn: React.ReactNode
-  /** Main area content (right column) */
+  /** Main area content (chat column) */
   children: React.ReactNode
   /** Whether sidebar starts collapsed */
   defaultCollapsed?: boolean
   /** App name shown in sidebar header */
   appName?: string
-  /** Optional header content for the main area */
+  /** Optional header content for the main area topbar (left side) */
   mainHeader?: React.ReactNode
+  /** Content rendered in the artifact pane. May be null/undefined; the toggle button is always shown. */
+  artifactPanel?: React.ReactNode
+  /** Whether the artifact pane starts visible */
+  defaultArtifactVisible?: boolean
+  /** Called whenever the artifact pane is toggled */
+  onArtifactToggle?: (visible: boolean) => void
 }
 
 export function ThreeColumnLayout({
@@ -34,8 +40,18 @@ export function ThreeColumnLayout({
   defaultCollapsed = false,
   appName = 'Meso',
   mainHeader,
+  artifactPanel,
+  defaultArtifactVisible = false,
+  onArtifactToggle,
 }: ThreeColumnLayoutProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
+  const [artifactVisible, setArtifactVisible] = useState(defaultArtifactVisible)
+
+  const toggleArtifact = () => {
+    const next = !artifactVisible
+    setArtifactVisible(next)
+    onArtifactToggle?.(next)
+  }
 
   return (
     <div className="meso-layout">
@@ -82,8 +98,39 @@ export function ThreeColumnLayout({
 
       {/* Right main area */}
       <main className="meso-main">
-        {mainHeader && <div className="meso-main__header">{mainHeader}</div>}
-        <div className="meso-main__content">{children}</div>
+        {/* Topbar: always rendered so the artifact toggle is always visible */}
+        <div className="meso-main__header">
+          <div className="meso-main__header-content">{mainHeader}</div>
+          <button
+            className={`meso-artifact-toggle${artifactVisible ? ' meso-artifact-toggle--active' : ''}`}
+            onClick={toggleArtifact}
+            title={artifactVisible ? '关闭 Artifact' : '打开 Artifact'}
+            aria-label={artifactVisible ? '关闭 Artifact' : '打开 Artifact'}
+          >
+            {artifactVisible ? (
+              /* X / close icon */
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            ) : (
+              /* Panel / artifact icon */
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="14" y1="3" x2="14" y2="21"/>
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Body: chat + optional artifact pane */}
+        <div className="meso-main__content">
+          <div className="meso-main__chat">{children}</div>
+          {artifactVisible && (
+            <>
+              <div className="meso-artifact-divider" aria-hidden="true" />
+              <div className="meso-artifact-pane">{artifactPanel}</div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   )

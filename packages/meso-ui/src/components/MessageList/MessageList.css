@@ -21,6 +21,12 @@
   color: var(--color-text-muted);
 }
 
+.meso-message-list__empty--top {
+  align-items: flex-start;
+  height: auto;
+  padding-top: 48px;
+}
+
 .meso-message-list__live {
   display: flex;
   flex-direction: column;

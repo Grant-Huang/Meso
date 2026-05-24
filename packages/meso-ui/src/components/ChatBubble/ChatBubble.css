@@ -79,3 +79,85 @@
 .meso-bubble--user .meso-bubble__timestamp {
   text-align: right;
 }
+
+/* ── Markdown prose (scoped to .meso-bubble__md) ── */
+.meso-bubble__md { padding: 10px 13px; }
+
+.meso-bubble__md p { margin: 0 0 0.6em; }
+.meso-bubble__md p:last-child { margin-bottom: 0; }
+
+.meso-bubble__md h1,
+.meso-bubble__md h2,
+.meso-bubble__md h3,
+.meso-bubble__md h4 {
+  margin: 0.8em 0 0.3em;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.meso-bubble__md h1 { font-size: 1.15em; }
+.meso-bubble__md h2 { font-size: 1.05em; }
+.meso-bubble__md h3 { font-size: 1em; }
+.meso-bubble__md h4 { font-size: 0.95em; }
+
+.meso-bubble__md ul,
+.meso-bubble__md ol {
+  margin: 0.4em 0 0.6em;
+  padding-left: 1.4em;
+}
+.meso-bubble__md li { margin: 0.15em 0; }
+
+.meso-bubble__md code {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--color-bg-sidebar, rgba(0,0,0,0.06));
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+}
+
+.meso-bubble__md pre {
+  margin: 0.5em 0;
+  padding: 10px 12px;
+  background: var(--color-bg-sidebar, rgba(0,0,0,0.06));
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.meso-bubble__md pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.meso-bubble__md blockquote {
+  margin: 0.5em 0;
+  padding: 0.3em 0 0.3em 0.8em;
+  border-left: 3px solid var(--color-border, #ddd);
+  color: var(--color-text-secondary, #666);
+}
+
+.meso-bubble__md a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.meso-bubble__md table {
+  border-collapse: collapse;
+  font-size: 0.9em;
+  margin: 0.5em 0;
+  width: 100%;
+}
+.meso-bubble__md th,
+.meso-bubble__md td {
+  border: 1px solid var(--color-border, #ddd);
+  padding: 4px 8px;
+  text-align: left;
+}
+.meso-bubble__md th {
+  background: var(--color-bg-sidebar, rgba(0,0,0,0.04));
+  font-weight: 600;
+}
+
+.meso-bubble__md hr {
+  border: none;
+  border-top: 1px solid var(--color-border, #ddd);
+  margin: 0.8em 0;
+}

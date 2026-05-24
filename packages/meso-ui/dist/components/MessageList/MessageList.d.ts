@@ -26,11 +26,29 @@ export interface MessageListProps {
     onToolCancel?: (toolCallId: string) => void;
     /** Rendered when messages is empty and no streaming is active. */
     emptyState?: React.ReactNode;
+    /** Alignment of the empty state. Defaults to 'center'. Use 'top' for welcome screens that sit above the composer. */
+    emptyStateAlign?: 'center' | 'top';
     className?: string;
     /**
      * Render custom UI for extension events in arrival order.
      * Use this for domain-specific events that don't fit standard types.
      */
     renderExtension?: (event: ExtensionEvent) => React.ReactNode;
+    /**
+     * Sanitized HTML factory for Markdown rendering in assistant bubbles.
+     * When provided, assistant bubbles render content as Markdown.
+     * Must return sanitized HTML (e.g. marked + DOMPurify output).
+     */
+    renderMarkdown?: (source: string) => string;
+    /**
+     * Async Mermaid renderer passed to ArtifactPanel.
+     * Receives source, returns SVG string. Called once streaming is done.
+     */
+    renderMermaid?: (source: string) => Promise<string>;
+    /**
+     * Syntax highlighter passed to ArtifactPanel.
+     * Receives (code, lang), returns sanitized HTML. Called once streaming is done.
+     */
+    highlightCode?: (code: string, lang: string) => string;
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, className, renderExtension, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

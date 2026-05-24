@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工作流时序 — Meso Design System</title>
+  <script>
+    (function(){var t=localStorage.getItem('meso-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+  <link rel="stylesheet" href="../platform/meso-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      font-size:14px; line-height:1.6;
+      background:var(--color-bg); color:var(--color-text);
+      height:100vh; overflow-y:auto;
+    }
+    .page { padding:32px; max-width:760px; margin:0 auto; }
+    .page-title { font-size:15px; font-weight:650; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .page-subtitle { font-size:12px; color:var(--color-text-secondary); margin-bottom:28px; }
+    .section-header { display:flex; align-items:center; gap:10px; margin:24px 0 16px; }
+    .section-line { flex:1; height:1px; background:var(--color-border); }
+    .section-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--color-text-muted); white-space:nowrap; }
+    .demo-card {
+      background:var(--color-bg-white); border:1px solid var(--color-border);
+      border-radius:10px; padding:24px; margin-bottom:16px;
+    }
+    .doc-btn { position:fixed; top:10px; right:12px; text-decoration:none; font-size:16px; opacity:.5; z-index:100; transition:opacity .15s; line-height:1; }
+    .doc-btn:hover { opacity:1; }
+
+    /* Workflow panel */
+    .workflow-panel { background:#1a201c; border-radius:8px; padding:20px; }
+
+    /* Node layout */
+    .wf-nodes { display:flex; flex-direction:column; }
+    .wf-node-wrap { display:flex; align-items:flex-start; gap:14px; position:relative; }
+    .wf-connector-col { display:flex; flex-direction:column; align-items:center; width:22px; flex-shrink:0; padding-top:2px; }
+
+    .wf-dot {
+      width:18px; height:18px; border-radius:50%;
+      border:2px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      flex-shrink:0; z-index:1;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .wf-dot.done   { background:#1e4d33; border-color:#3d6b52; }
+    .wf-dot.active { background:#1a3a60; border-color:#3b7ecf; animation:wf-pulse 1.4s ease-in-out infinite; }
+    .wf-dot.error  { background:#4a1010; border-color:#b91c1c; }
+    .wf-dot.pending{ background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.10); }
+
+    @keyframes wf-pulse {
+      0%,100% { box-shadow:0 0 0 0 rgba(59,126,207,.5); }
+      50%      { box-shadow:0 0 0 6px rgba(59,126,207,0); }
+    }
+
+    .wf-vline {
+      width:1px; flex:1; min-height:16px;
+      background:rgba(255,255,255,.09); margin-top:3px;
+    }
+    .wf-vline.done { background:#3d6b52; }
+    .wf-node-wrap:last-child .wf-vline { display:none; }
+
+    .wf-node-body { flex:1; padding-bottom:18px; }
+    .wf-node-wrap:last-child .wf-node-body { padding-bottom:0; }
+
+    .wf-node-card {
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+      border-radius:7px; padding:9px 13px;
+      display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+    }
+    .wf-node-card.done   { border-color:rgba(61,107,82,.4); }
+    .wf-node-card.active { border-color:rgba(59,126,207,.45); background:rgba(26,58,96,.15); }
+    .wf-node-card.error  { border-color:rgba(185,28,28,.45); background:rgba(74,16,16,.15); }
+
+    .wf-node-name { flex:1; font-size:13px; font-weight:500; color:#b0bdb4; min-width:80px; }
+    .wf-node-card.done   .wf-node-name { color:#7ab494; }
+    .wf-node-card.active .wf-node-name { color:#80aee0; }
+    .wf-node-card.error  .wf-node-name { color:#f07070; }
+
+    .wf-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap;
+    }
+    .wf-badge.done    { background:rgba(30,77,51,.7); color:#6fcf97; }
+    .wf-badge.active  { background:rgba(26,58,96,.7); color:#80aee0; }
+    .wf-badge.pending { background:rgba(255,255,255,.06); color:#5a6370; }
+    .wf-badge.error   { background:rgba(74,16,16,.7); color:#f87171; }
+
+    .wf-duration { font-size:11px; color:#5a6370; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .wf-tool-tag {
+      font-size:10px; padding:1px 7px; border-radius:4px;
+      background:rgba(255,255,255,.05); color:#8892a0;
+      border:1px solid rgba(255,255,255,.07); font-family:monospace; white-space:nowrap;
+    }
+    .wf-node-meta { font-size:11px; color:#5a6370; margin-top:5px; }
+    .wf-node-meta.result { color:#5a9e72; font-family:monospace; font-size:10px; }
+    .wf-error-msg {
+      font-size:11px; color:#f07070; margin-top:5px;
+      display:flex; align-items:center; gap:5px;
+    }
+
+    /* Spin animation */
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .spin { animation:spin 1s linear infinite; flex-shrink:0; }
+
+    /* Parallel layout */
+    .wf-parallel-row { display:flex; gap:12px; margin:0 0 0 36px; }
+    .wf-branch { flex:1; }
+    .wf-branch-inner { display:flex; align-items:flex-start; gap:10px; }
+    .wf-branch-dot {
+      width:14px; height:14px; border-radius:50%; flex-shrink:0; margin-top:2px;
+      display:flex; align-items:center; justify-content:center;
+      background:#1e4d33; border:2px solid #3d6b52;
+    }
+    .wf-branch-card {
+      flex:1; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+      border-radius:7px; padding:10px 13px;
+    }
+    .wf-branch-card.done { border-color:rgba(61,107,82,.4); }
+    .wf-branch-label { font-size:10px; font-weight:600; color:#4a5568; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+    .wf-branch-name { font-size:13px; color:#7ab494; font-weight:500; }
+    .wf-branch-sub  { font-size:11px; color:#4a5568; margin-top:2px; }
+    .wf-branch-footer { margin-top:6px; display:flex; gap:6px; align-items:center; }
+
+    .wf-merge-connector {
+      margin:6px 0 0 36px; height:14px; position:relative;
+    }
+    .wf-merge-connector::before {
+      content:''; position:absolute; left:calc(25% - 0.5px);
+      width:1px; height:100%; background:rgba(61,107,82,.45);
+    }
+    .wf-merge-connector::after {
+      content:''; position:absolute; right:calc(25% - 0.5px);
+      width:1px; height:100%; background:rgba(61,107,82,.45);
+    }
+  </style>
+</head>
+<body>
+<a class="doc-btn" href="../help.html#streaming" target="_blank" title="查看文档">📖</a>
+<div class="page">
+
+  <div class="page-title">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="1.5" width="5" height="3.5" rx="1" fill="var(--color-accent)" opacity=".5"/>
+      <rect x="5.5" y="6" width="5" height="3.5" rx="1" fill="var(--color-accent)" opacity=".75"/>
+      <rect x="10" y="10.5" width="5" height="3.5" rx="1" fill="var(--color-accent)"/>
+      <line x1="6" y1="3.25" x2="8" y2="3.25" stroke="var(--color-accent)" stroke-width="1.2" opacity=".5"/>
+      <line x1="8" y1="3.25" x2="8" y2="7.75" stroke="var(--color-accent)" stroke-width="1.2" opacity=".6"/>
+      <line x1="8" y1="7.75" x2="10" y2="7.75" stroke="var(--color-accent)" stroke-width="1.2" opacity=".75"/>
+      <line x1="10" y1="7.75" x2="10" y2="12.25" stroke="var(--color-accent)" stroke-width="1.2"/>
+    </svg>
+    工作流时序
+  </div>
+  <div class="page-subtitle">WorkflowTimeline · 节点状态 · 并行编排 · 错误处理</div>
+
+  <!-- Section 1 -->
+  <div id="linear" class="section-header">
+    <div class="section-label">单次工作流运行</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="demo-card">
+    <div class="workflow-panel">
+      <div class="wf-nodes">
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot done"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="#6fcf97" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="wf-vline done"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card done">
+              <div class="wf-node-name">解析输入</div>
+              <span class="wf-duration">0.3s</span>
+              <span class="wf-badge done">已完成</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot done"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="#6fcf97" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="wf-vline done"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card done">
+              <div class="wf-node-name">调用工具A</div>
+              <span class="wf-tool-tag">search_knowledge</span>
+              <span class="wf-duration">1.1s</span>
+              <span class="wf-badge done">已完成</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot done"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="#6fcf97" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="wf-vline done"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card done">
+              <div class="wf-node-name">调用工具B</div>
+              <span class="wf-tool-tag">extract_findings</span>
+              <span class="wf-duration">2.4s</span>
+              <span class="wf-badge done">已完成</span>
+            </div>
+            <div class="wf-node-meta result">→ {"count": 5, "items": ["发现1", "发现2", "发现3", …]}</div>
+          </div>
+        </div>
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot active"></div>
+            <div class="wf-vline"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card active">
+              <div class="wf-node-name">汇总结果</div>
+              <svg class="spin" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="rgba(128,174,224,.25)" stroke-width="2"/><path d="M6.5 1.5a5 5 0 0 1 5 5" stroke="#80aee0" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="wf-badge active">运行中</span>
+            </div>
+            <div class="wf-node-meta">正在合并 5 条发现，生成摘要…</div>
+          </div>
+        </div>
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot pending"></div>
+            <div class="wf-vline"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card pending">
+              <div class="wf-node-name" style="color:#4a5568;">生成报告</div>
+              <span class="wf-badge pending">待执行</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div id="parallel" class="section-header">
+    <div class="section-label">并行 Agent 编排</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="demo-card">
+    <div class="workflow-panel">
+
+      <div class="wf-node-wrap">
+        <div class="wf-connector-col">
+          <div class="wf-dot done"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="#6fcf97" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="wf-vline done" style="min-height:12px;"></div>
+        </div>
+        <div class="wf-node-body">
+          <div class="wf-node-card done">
+            <div class="wf-node-name">拆解任务</div>
+            <span class="wf-duration">0.5s</span>
+            <span class="wf-badge done">已完成</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-parallel-row">
+        <div class="wf-branch">
+          <div class="wf-branch-inner">
+            <div class="wf-branch-dot"><svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.5 1.5 3-3" stroke="#6fcf97" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="wf-branch-card done">
+              <div class="wf-branch-label">并行分支 A</div>
+              <div class="wf-branch-name">Agent-文档分析</div>
+              <div class="wf-branch-sub">文档摘要 · 关键章节提取</div>
+              <div class="wf-branch-footer">
+                <span class="wf-duration">3.2s</span>
+                <span class="wf-badge done">已完成</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-branch">
+          <div class="wf-branch-inner">
+            <div class="wf-branch-dot"><svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.5 1.5 3-3" stroke="#6fcf97" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="wf-branch-card done">
+              <div class="wf-branch-label">并行分支 B</div>
+              <div class="wf-branch-name">Agent-代码审查</div>
+              <div class="wf-branch-sub">静态分析 · 安全漏洞扫描</div>
+              <div class="wf-branch-footer">
+                <span class="wf-duration">4.7s</span>
+                <span class="wf-badge done">已完成</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-merge-connector"></div>
+
+      <div class="wf-node-wrap" style="margin-top:6px;">
+        <div class="wf-connector-col">
+          <div class="wf-dot active"></div>
+          <div class="wf-vline"></div>
+        </div>
+        <div class="wf-node-body">
+          <div class="wf-node-card active">
+            <div class="wf-node-name">汇总节点</div>
+            <svg class="spin" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="rgba(128,174,224,.25)" stroke-width="2"/><path d="M6.5 1.5a5 5 0 0 1 5 5" stroke="#80aee0" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="wf-badge active">运行中</span>
+          </div>
+          <div class="wf-node-meta">合并两个分支输出 · 生成综合报告…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div id="error" class="section-header">
+    <div class="section-label">错误节点</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="demo-card">
+    <div class="workflow-panel">
+      <div class="wf-nodes">
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot done"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="#6fcf97" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="wf-vline done"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card done">
+              <div class="wf-node-name">任务拆解</div>
+              <span class="wf-duration">0.6s</span>
+              <span class="wf-badge done">已完成</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot error"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M2.5 2.5l4 4M6.5 2.5l-4 4" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="wf-vline"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card error">
+              <div class="wf-node-name">调用外部 API</div>
+              <span class="wf-tool-tag">http_request</span>
+              <span class="wf-badge error">出错</span>
+            </div>
+            <div class="wf-error-msg">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="#f87171" stroke-width="1.2"/><path d="M5.5 3v2.5" stroke="#f87171" stroke-width="1.2" stroke-linecap="round"/><circle cx="5.5" cy="8" r=".6" fill="#f87171"/></svg>
+              连接超时 (30s) — api.external-service.io:443
+            </div>
+          </div>
+        </div>
+
+        <div class="wf-node-wrap">
+          <div class="wf-connector-col">
+            <div class="wf-dot active"></div>
+            <div class="wf-vline"></div>
+          </div>
+          <div class="wf-node-body">
+            <div class="wf-node-card active">
+              <div class="wf-node-name">重试</div>
+              <svg class="spin" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="rgba(128,174,224,.25)" stroke-width="2"/><path d="M6.5 1.5a5 5 0 0 1 5 5" stroke="#80aee0" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="wf-badge active">运行中</span>
+            </div>
+            <div class="wf-node-meta">第 1 次重试 · 退避 2s · 最多 3 次</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const _h = location.hash.slice(1);
+  if (_h) { const _el = document.getElementById(_h); if (_el) setTimeout(() => _el.scrollIntoView({behavior:'smooth'}), 100); }
+  window.addEventListener('hashchange', () => { const _h2 = location.hash.slice(1); const _el2 = document.getElementById(_h2); if (_el2) _el2.scrollIntoView({behavior:'smooth'}); });
+</script>
+</body>
+</html>

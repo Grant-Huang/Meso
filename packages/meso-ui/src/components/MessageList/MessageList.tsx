@@ -38,18 +38,38 @@ export interface MessageListProps {
   onToolCancel?: (toolCallId: string) => void
   /** Rendered when messages is empty and no streaming is active. */
   emptyState?: React.ReactNode
+  /** Alignment of the empty state. Defaults to 'center'. Use 'top' for welcome screens that sit above the composer. */
+  emptyStateAlign?: 'center' | 'top'
   className?: string
   /**
    * Render custom UI for extension events in arrival order.
    * Use this for domain-specific events that don't fit standard types.
    */
   renderExtension?: (event: ExtensionEvent) => React.ReactNode
+  /**
+   * Sanitized HTML factory for Markdown rendering in assistant bubbles.
+   * When provided, assistant bubbles render content as Markdown.
+   * Must return sanitized HTML (e.g. marked + DOMPurify output).
+   */
+  renderMarkdown?: (source: string) => string
+  /**
+   * Async Mermaid renderer passed to ArtifactPanel.
+   * Receives source, returns SVG string. Called once streaming is done.
+   */
+  renderMermaid?: (source: string) => Promise<string>
+  /**
+   * Syntax highlighter passed to ArtifactPanel.
+   * Receives (code, lang), returns sanitized HTML. Called once streaming is done.
+   */
+  highlightCode?: (code: string, lang: string) => string
 }
 
 /** Map protocol lang string to ArtifactPanel type + language prop. */
 function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
   if (lang === 'html preview') return { type: 'html' }
   if (lang === 'mermaid') return { type: 'mermaid' }
+  if (lang === 'markdown') return { type: 'markdown' }
+  if (lang === 'table') return { type: 'table' }
   return { type: 'code', language: lang }
 }
 
@@ -61,8 +81,12 @@ export function MessageList({
   onToolConfirm,
   onToolCancel,
   emptyState,
+  emptyStateAlign = 'center',
   className,
   renderExtension,
+  renderMarkdown,
+  renderMermaid,
+  highlightCode,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -72,15 +96,16 @@ export function MessageList({
 
   const hasContent = messages.length > 0 || (streaming && streaming.status !== 'idle')
 
-  const allStagesDone = streaming
-    ? streaming.stages.every(s => s.state === 'done' || s.state === 'error')
-    : true
+  // Stages stay visible after completion so users can see what pipeline ran.
+  // The StageTimeline marks completed stages as 'done' rather than hiding them.
 
   return (
     <div className={`meso-message-list${className ? ` ${className}` : ''}`}>
       <div className="meso-message-list__inner">
         {!hasContent && emptyState && (
-          <div className="meso-message-list__empty">{emptyState}</div>
+          <div className={`meso-message-list__empty${emptyStateAlign === 'top' ? ' meso-message-list__empty--top' : ''}`}>
+            {emptyState}
+          </div>
         )}
 
         {messages.map((m) => (
@@ -89,6 +114,8 @@ export function MessageList({
             role={m.role}
             content={m.content}
             timestamp={m.timestamp}
+            markdown={m.role === 'assistant'}
+            renderMarkdown={renderMarkdown}
           />
         ))}
 
@@ -102,8 +129,8 @@ export function MessageList({
               </div>
             )}
 
-            {/* Pipeline stages */}
-            {streaming.stages.length > 0 && !allStagesDone && (
+            {/* Pipeline stages — always shown when present */}
+            {streaming.stages.length > 0 && (
               <StageTimeline
                 stages={streaming.stages.map((s): Stage => ({
                   id: s.name,
@@ -177,6 +204,8 @@ export function MessageList({
                   streaming.status === 'streaming' &&
                   streaming.artifactOrder.length === 0
                 }
+                markdown={true}
+                renderMarkdown={renderMarkdown}
               />
             )}
 
@@ -193,6 +222,9 @@ export function MessageList({
                   streaming={!art.done}
                   onCopy={onArtifactCopy}
                   onDownload={onArtifactDownload}
+                  renderMermaid={renderMermaid}
+                  highlightCode={highlightCode}
+                  renderMarkdown={renderMarkdown}
                 />
               )
             })}

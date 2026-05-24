@@ -14,7 +14,7 @@
   width: var(--sidebar-w, 145px);
   min-width: var(--sidebar-w, 145px);
   background: var(--color-bg);
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border-light);
   display: flex;
   flex-direction: column;
   transition: width 0.2s ease, min-width 0.2s ease;
@@ -151,7 +151,7 @@
   width: var(--session-col-w, 260px);
   min-width: var(--session-col-w, 260px);
   background: var(--color-bg-sidebar);
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border-light);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -168,18 +168,87 @@
 }
 
 .meso-main__header {
-  height: 52px;
+  height: 48px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 12px 0 20px;
   border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
-  gap: 10px;
+  gap: 8px;
 }
 
+.meso-main__header-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Artifact toggle button — always visible in topbar */
+.meso-artifact-toggle {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.meso-artifact-toggle:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+  color: var(--color-text);
+}
+
+.meso-artifact-toggle--active {
+  background: var(--nav-active-bg, rgba(61,107,82,0.14));
+  color: var(--color-accent);
+}
+
+/* Main body: flex row to host chat + artifact side by side */
 .meso-main__content {
   flex: 1;
+  display: flex;
   overflow: hidden;
+  min-height: 0;
+}
+
+.meso-main__chat {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Thin divider between chat and artifact */
+.meso-artifact-divider {
+  width: 1px;
+  background: var(--color-border-light);
+  flex-shrink: 0;
+}
+
+/* Artifact pane */
+.meso-artifact-pane {
+  width: 40%;
+  min-width: 200px;
+  max-width: 60%;
+  background: var(--color-bg-elevated, var(--color-bg));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  animation: meso-artifact-in 0.2s ease;
+}
+
+@keyframes meso-artifact-in {
+  from { opacity: 0; width: 0; }
+  to   { opacity: 1; width: 40%; }
 }
 
 /* ── Responsive breakpoints ── */

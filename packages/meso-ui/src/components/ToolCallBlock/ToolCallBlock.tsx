@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ToolCallState, ToolRisk, CapabilityProvider } from '../../runtime'
+import { ConfirmGate } from '../ConfirmGate'
 import './ToolCallBlock.css'
 
 export interface ToolCallBlockProps {
@@ -69,24 +70,12 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel }: ToolCallBlockPr
         </pre>
       )}
 
-      {status === 'awaiting_confirm' && (
-        <div className="meso-tool__confirm">
-          <span className="meso-tool__confirm-msg">此操作需要确认后执行</span>
-          <div className="meso-tool__confirm-actions">
-            <button
-              className="meso-tool__btn meso-tool__btn--cancel"
-              onClick={() => onCancel?.(call.id)}
-            >
-              取消
-            </button>
-            <button
-              className={`meso-tool__btn meso-tool__btn--confirm meso-tool__btn--${risk}`}
-              onClick={() => onConfirm?.(call.id)}
-            >
-              {risk === 'destructive' ? '确认执行（不可撤销）' : '确认'}
-            </button>
-          </div>
-        </div>
+      {status === 'awaiting_confirm' && onConfirm && onCancel && (
+        <ConfirmGate
+          toolCall={call}
+          onConfirm={onConfirm}
+          onCancel={onCancel}
+        />
       )}
 
       {(status === 'done' || status === 'error') && result && (

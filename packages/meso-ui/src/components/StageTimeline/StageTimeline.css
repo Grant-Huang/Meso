@@ -102,6 +102,12 @@
   background: var(--color-accent);
 }
 
+.meso-stage--error .meso-stage__dot {
+  border-color: var(--color-error);
+  background: var(--color-error);
+  color: #fff;
+}
+
 /* Label */
 .meso-stage__label {
   font-size: 13px;
@@ -119,6 +125,10 @@
   color: var(--color-text-muted);
   text-decoration: line-through;
   text-decoration-color: var(--color-border);
+}
+
+.meso-stage--error .meso-stage__label {
+  color: var(--color-error);
 }
 
 /* Compact label */

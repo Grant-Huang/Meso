@@ -115,8 +115,8 @@ export default function App() {
           </div>
         }
       >
-        {page === 'streaming'  && <StreamingPage  key={activeSessionId} />}
-        {page === 'live-chat'  && <LiveChatPage   key={activeSessionId} />}
+        {page === 'streaming'  && <StreamingPage  key={activeSessionId} sessionId={activeSessionId ?? ''} />}
+        {page === 'live-chat'  && <LiveChatPage   key={activeSessionId} sessionId={activeSessionId ?? ''} />}
         {page === 'typography' && <TypographyPage />}
         {page === 'components' && <ComponentsPage />}
         {page === 'memory'     && <MemoryPage />}

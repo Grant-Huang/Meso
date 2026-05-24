@@ -11,6 +11,9 @@ export {
   createInitialStreamState,
   applyEvent,
   parseSSELine,
+  isCompatibleVersion,
+  assertCompatibleVersion,
+  stagePayloadToStage,
 } from '@meso/types'
 
 export type {

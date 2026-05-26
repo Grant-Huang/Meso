@@ -113,13 +113,27 @@
     }
     .think-block.done { border-left-color: color-mix(in srgb, var(--color-border) 60%, transparent); }
     .think-header {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 8px;
       padding: 6px 10px; cursor: pointer; font-size: 12px;
       color: var(--color-text-muted); user-select: none;
     }
     .think-header:hover { color: var(--color-text); }
-    .think-chevron { font-size: 10px; transition: transform 0.2s; }
+    .think-chevron { font-size: 10px; transition: transform 0.2s; display: none; }
+    .think-block.done .think-chevron { display: inline; }
+    .think-block.done .think-loading { display: none; }
     .think-block.open .think-chevron { transform: rotate(90deg); }
+    /* Loading dots animation */
+    .think-loading { display: flex; align-items: center; flex-shrink: 0; }
+    .think-loading circle { transform-origin: center; animation: think-dot 1.5s ease-in-out infinite; }
+    .think-loading .d1 { animation-delay: 0s; }
+    .think-loading .d2 { animation-delay: 0.18s; }
+    .think-loading .d3 { animation-delay: 0.36s; }
+    .think-loading .d4 { animation-delay: 0.54s; }
+    .think-loading .d5 { animation-delay: 0.72s; }
+    @keyframes think-dot {
+      0%, 55%, 100% { opacity: var(--base-op, 0.25); }
+      27%            { opacity: 1; }
+    }
     .think-body {
       max-height: 0; overflow: hidden; transition: max-height 0.15s ease;
       padding: 0 10px; font-size: 12px; line-height: 1.6;
@@ -582,7 +596,17 @@ function appendUserBubble(text) {
 function appendAIBubble() {
   const row = document.createElement('div'); row.className = 'message-row'
   const thinkBlock = mkEl('div', 'think-block'); thinkBlock.style.display = 'none'
-  thinkBlock.innerHTML = '<div class="think-header" onclick="this.parentElement.classList.toggle(\'open\')"><span class="think-chevron">▶</span> <span class="think-label">思考中…</span></div><div class="think-body"></div>'
+  thinkBlock.innerHTML = '<div class="think-header" onclick="this.parentElement.classList.toggle(\'open\')">'
+    + '<svg class="think-loading" xmlns="http://www.w3.org/2000/svg" width="52" height="14" viewBox="0 45 120 30" aria-label="思考中">'
+    + '<circle class="d1" cx="14" cy="60" r="3"  fill="currentColor" style="--base-op:0.22"/>'
+    + '<circle class="d2" cx="30" cy="60" r="4.5" fill="currentColor" style="--base-op:0.38"/>'
+    + '<circle class="d3" cx="50" cy="60" r="6"   fill="currentColor" style="--base-op:0.56"/>'
+    + '<circle class="d4" cx="74" cy="60" r="7.5" fill="currentColor" style="--base-op:0.8"/>'
+    + '<circle class="d5" cx="102" cy="60" r="9"  fill="#E15A1F"      style="--base-op:1"/>'
+    + '</svg>'
+    + '<span class="think-chevron">▶</span>'
+    + '<span class="think-label">思考中…</span>'
+    + '</div><div class="think-body"></div>'
   const thinkBody = thinkBlock.querySelector('.think-body')
   const contentEl = mkEl('div', 'ai-content'); contentEl.dataset.raw = ''
   const cursorEl = mkEl('span', 'cursor')

@@ -1,0 +1,67 @@
+.meso-process-trace {
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.meso-process-trace__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: var(--color-bg-elevated);
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.meso-process-trace__header:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+}
+
+.meso-process-trace__chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.meso-process-trace__chevron--open {
+  transform: rotate(180deg);
+}
+
+.meso-process-trace__summary {
+  flex: 1;
+  font-weight: 500;
+}
+
+.meso-process-trace__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: meso-pt-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes meso-pt-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50%       { opacity: 1;   transform: scale(1.1); }
+}
+
+.meso-process-trace__body {
+  padding: 8px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--color-bg);
+}
+
+.meso-process-trace__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

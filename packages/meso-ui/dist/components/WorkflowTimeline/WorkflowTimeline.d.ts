@@ -5,5 +5,7 @@ export interface WorkflowTimelineProps {
     runs: WorkflowRunState[];
     /** Show run_id label when multiple runs are present. Default true. */
     showRunId?: boolean;
+    /** When true, render nothing. Allows parent to hide timeline without unmounting. */
+    hidden?: boolean;
 }
-export declare function WorkflowTimeline({ runs, showRunId }: WorkflowTimelineProps): import("react/jsx-runtime").JSX.Element | null;
+export declare function WorkflowTimeline({ runs, showRunId, hidden }: WorkflowTimelineProps): import("react/jsx-runtime").JSX.Element | null;

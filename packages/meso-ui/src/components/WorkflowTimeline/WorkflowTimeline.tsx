@@ -7,6 +7,8 @@ export interface WorkflowTimelineProps {
   runs: WorkflowRunState[]
   /** Show run_id label when multiple runs are present. Default true. */
   showRunId?: boolean
+  /** When true, render nothing. Allows parent to hide timeline without unmounting. */
+  hidden?: boolean
 }
 
 // ── Tree structure ──────────────────────────────────────────────────
@@ -186,8 +188,9 @@ function ParallelGroup({ nodes, isLast }: ParallelGroupProps) {
 
 // ── Main export ─────────────────────────────────────────────────────
 
-export function WorkflowTimeline({ runs, showRunId = true }: WorkflowTimelineProps) {
+export function WorkflowTimeline({ runs, showRunId = true, hidden }: WorkflowTimelineProps) {
   if (runs.length === 0) return null
+  if (hidden) return null
   const multiRun = runs.length > 1
 
   return (

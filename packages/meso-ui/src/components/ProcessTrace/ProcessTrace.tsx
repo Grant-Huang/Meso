@@ -3,7 +3,8 @@ import { ThinkBlock } from '../ThinkBlock'
 import { StageTimeline } from '../StageTimeline'
 import { ToolCallBlock } from '../ToolCallBlock'
 import { WorkflowTimeline } from '../WorkflowTimeline'
-import type { StreamState, Stage } from '../../runtime'
+import type { StreamState } from '../../runtime'
+import type { Stage } from '../StageTimeline'
 import './ProcessTrace.css'
 
 export interface ProcessTraceProps {

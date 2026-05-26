@@ -22,6 +22,10 @@ export interface ThreeColumnLayoutProps {
   defaultCollapsed?: boolean
   /** App name shown in sidebar header */
   appName?: string
+  /** Custom logo node replacing the default letter avatar (e.g. <MyMark size={26} />). */
+  sidebarLogo?: React.ReactNode
+  /** Custom title node replacing the default appName text (e.g. <MyWordmark size={15} />). */
+  sidebarTitle?: React.ReactNode
   /** Optional header content for the main area topbar (left side) */
   mainHeader?: React.ReactNode
   /** Content rendered in the artifact pane. May be null/undefined; the toggle button is always shown. */
@@ -49,6 +53,8 @@ export function ThreeColumnLayout({
   children,
   defaultCollapsed = false,
   appName = 'Meso',
+  sidebarLogo,
+  sidebarTitle,
   mainHeader,
   artifactPanel,
   defaultArtifactVisible = false,
@@ -75,8 +81,16 @@ export function ThreeColumnLayout({
       {/* Left sidebar */}
       <aside className={`meso-sidebar${collapsed ? ' meso-sidebar--collapsed' : ''}`}>
         <div className="meso-sidebar__header">
-          <div className="meso-sidebar__logo">{appName[0]}</div>
-          <span className="meso-sidebar__title">{appName}</span>
+          {sidebarLogo ? (
+            <div className="meso-sidebar__logo meso-sidebar__logo--custom">{sidebarLogo}</div>
+          ) : (
+            <div className="meso-sidebar__logo">{appName[0]}</div>
+          )}
+          {sidebarTitle ? (
+            <span className="meso-sidebar__title meso-sidebar__title--brand">{sidebarTitle}</span>
+          ) : (
+            <span className="meso-sidebar__title">{appName}</span>
+          )}
           <button
             className="meso-sidebar__toggle"
             onClick={() => { const next = !collapsed; setCollapsed(next); onCollapsedChange?.(next) }}

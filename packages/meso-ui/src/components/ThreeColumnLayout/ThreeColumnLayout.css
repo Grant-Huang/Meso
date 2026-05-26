@@ -84,9 +84,27 @@
   color: var(--color-text);
 }
 
+/* Custom brand logo/title — transparent bg, no fixed dimensions */
+.meso-sidebar__logo--custom {
+  background: transparent;
+  border-radius: 0;
+  width: auto;
+  height: auto;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* Brand title — inherits layout, no special styling needed beyond default */
+.meso-sidebar__title--brand {
+  display: flex;
+  align-items: center;
+}
+
 /* Collapsed state */
 .meso-sidebar--collapsed .meso-sidebar__title { opacity: 0; }
 .meso-sidebar--collapsed .meso-sidebar__logo { opacity: 0; width: 0; margin: 0; }
+.meso-sidebar--collapsed .meso-sidebar__logo--custom { opacity: 0; width: 0; min-width: 0; }
 .meso-sidebar--collapsed .meso-sidebar__header { justify-content: center; padding: 0; }
 .meso-sidebar--collapsed .meso-sidebar__toggle { width: 40px; height: 40px; }
 

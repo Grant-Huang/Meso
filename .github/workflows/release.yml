@@ -38,8 +38,8 @@ jobs:
       - name: Pack tarballs
         run: |
           mkdir -p dist-tarballs
-          pnpm --filter @meso/types pack --out-dir dist-tarballs
-          pnpm --filter @meso/ui pack --out-dir dist-tarballs
+          pnpm --filter @meso/types pack --pack-destination dist-tarballs
+          pnpm --filter @meso/ui    pack --pack-destination dist-tarballs
           ls dist-tarballs/
 
       - name: Publish to npm

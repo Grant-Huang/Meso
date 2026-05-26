@@ -36,8 +36,9 @@ jobs:
 
       - name: Smoke test (pack + install + vite build)
         run: |
-          cd packages/meso-types && pnpm pack --out-dir /tmp/tarballs
-          cd packages/meso-ui    && pnpm pack --out-dir /tmp/tarballs
+          mkdir -p /tmp/tarballs
+          pnpm --filter @meso/types pack --pack-destination /tmp/tarballs
+          pnpm --filter @meso/ui    pack --pack-destination /tmp/tarballs
           ls /tmp/tarballs/
           # Install into a minimal vite project and verify it builds
           mkdir -p /tmp/smoke && cd /tmp/smoke

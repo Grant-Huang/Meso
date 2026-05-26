@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>MESO · Splash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+  :root {
+    --ink:    #0A0A0B;
+    --paper:  #FAFAF7;
+    --night:  #0F0F11;
+    --muted:  #8b8985;
+    --accent: #E15A1F;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--night); color: var(--paper);
+    font-family: 'Geist', system-ui, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .stage {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--night);
+  }
+
+  /* Subtle scanline / grain — pure CSS so no extra request. */
+  .stage::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at center, rgba(225, 90, 31, 0.04), transparent 60%),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.012) 0 1px,
+        transparent 1px 3px
+      );
+    pointer-events: none;
+  }
+
+  /* Top-left meta label */
+  .meta {
+    position: fixed; top: 28px; left: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.22em;
+    color: var(--muted);
+    opacity: 0; animation: fadeIn 0.6s ease 0.1s forwards;
+  }
+  .meta-right {
+    position: fixed; top: 28px; right: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.22em;
+    color: var(--muted);
+    opacity: 0; animation: fadeIn 0.6s ease 0.1s forwards;
+  }
+
+  /* Stream dots */
+  .stream {
+    display: flex; align-items: center;
+    gap: 0;  /* manual positions via inline cx */
+    margin-bottom: 56px;
+  }
+
+  .dot {
+    background: var(--paper);
+    border-radius: 50%;
+    transform: scale(0.2);
+    opacity: 0;
+    animation: dotIn 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+  .dot.accent { background: var(--accent); }
+
+  @keyframes dotIn {
+    0%   { opacity: 0; transform: scale(0.2); }
+    60%  { opacity: 1; transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes wordIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .wordmark {
+    opacity: 0;
+    animation: wordIn 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    animation-delay: 1.2s;
+  }
+
+  .tagline {
+    margin-top: 24px; color: var(--muted);
+    font-size: 17px; letter-spacing: -0.005em;
+    opacity: 0;
+    animation: wordIn 0.7s ease forwards;
+    animation-delay: 1.55s;
+  }
+
+  .build {
+    position: fixed; bottom: 28px; left: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.22em;
+    color: var(--muted);
+    opacity: 0; animation: fadeIn 0.6s ease forwards;
+    animation-delay: 1.9s;
+  }
+  .progress {
+    position: fixed; bottom: 28px; right: 32px;
+    width: 220px; height: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    opacity: 0; animation: fadeIn 0.4s ease forwards;
+    animation-delay: 1.9s;
+  }
+  .progress::after {
+    content: ''; display: block; width: 0; height: 100%;
+    background: var(--accent);
+    animation: fill 2.2s cubic-bezier(0.4, 0, 0.2, 1) 2.0s forwards;
+  }
+  @keyframes fill { to { width: 100%; } }
+
+  /* Controls */
+  .controls {
+    position: fixed; top: 28px;
+    left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px;
+    opacity: 0;
+  }
+  .stage:hover .controls { opacity: 1; transition: opacity 0.2s; }
+  .controls button {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .controls button:hover { background: rgba(255,255,255,0.1); }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="meta">@MESO/UI &middot; STREAM</div>
+  <div class="meta-right">BOOT &middot; V1.0</div>
+
+  <div class="controls">
+    <button onclick="replay()">Replay</button>
+  </div>
+
+  <!-- Stream dots — drawn as positioned divs so they can use CSS animation per-dot -->
+  <svg width="360" height="64" viewBox="0 0 240 60" id="stream">
+    <circle cx="14"  cy="30" r="3"   fill="#FAFAF7" class="svgdot" style="--d:0.0s; opacity:0.22"/>
+    <circle cx="44"  cy="30" r="4.5" fill="#FAFAF7" class="svgdot" style="--d:0.15s; opacity:0.40"/>
+    <circle cx="84"  cy="30" r="6"   fill="#FAFAF7" class="svgdot" style="--d:0.30s; opacity:0.58"/>
+    <circle cx="136" cy="30" r="7.5" fill="#FAFAF7" class="svgdot" style="--d:0.45s; opacity:0.80"/>
+    <circle cx="204" cy="30" r="10"  fill="#E15A1F" class="svgdot accent" style="--d:0.60s; opacity:1"/>
+  </svg>
+
+  <!-- Wordmark: built from rects so it's font-independent and crisp -->
+  <svg class="wordmark" width="340" height="72" viewBox="0 0 114 24">
+    <g fill="#FAFAF7">
+      <rect x="0"   y="0" width="28" height="6"/>
+      <rect x="0"   y="0" width="6"  height="24"/>
+      <rect x="11"  y="0" width="6"  height="24"/>
+      <rect x="22"  y="0" width="6"  height="24"/>
+      <rect x="34"  y="0"  width="22" height="6"/>
+      <rect x="34"  y="0"  width="6"  height="24"/>
+      <rect x="34"  y="9"  width="22" height="6"/>
+      <rect x="50"  y="0"  width="6"  height="15"/>
+      <rect x="34"  y="18" width="22" height="6"/>
+      <rect x="62"  y="0"  width="22" height="6"/>
+      <rect x="62"  y="0"  width="6"  height="9"/>
+      <rect x="62"  y="9"  width="22" height="6"/>
+      <rect x="78"  y="9"  width="6"  height="9"/>
+      <rect x="62"  y="18" width="22" height="6"/>
+      <rect x="90"  y="0"  width="24" height="6"/>
+      <rect x="90"  y="18" width="24" height="6"/>
+      <rect x="90"  y="0"  width="6"  height="24"/>
+      <rect x="108" y="0"  width="6"  height="24"/>
+    </g>
+  </svg>
+
+  <div class="tagline">Streaming LLM conversation UI platform</div>
+
+  <div class="build">BUILD 1.0.0 &middot; PROTOCOL 1.0</div>
+  <div class="progress"></div>
+</div>
+
+<style>
+  .svgdot {
+    transform-origin: var(--cx, 0px) 30px;
+    transform-box: fill-box;
+    animation: dotInSvg 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0s) backwards;
+  }
+  @keyframes dotInSvg {
+    0%   { opacity: 0; transform: scale(0.25); }
+    60%  { opacity: 1; transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+</style>
+
+<script>
+  function replay() {
+    const stage = document.getElementById('stage');
+    const clone = stage.cloneNode(true);
+    stage.replaceWith(clone);
+    // re-bind handler on the cloned button
+    const btn = clone.querySelector('.controls button');
+    if (btn) btn.onclick = replay;
+  }
+</script>
+
+</body>
+</html>

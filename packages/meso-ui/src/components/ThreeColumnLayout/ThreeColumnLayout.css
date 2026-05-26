@@ -53,6 +53,13 @@
   transition: opacity 0.15s ease, width 0.2s ease, margin 0.2s ease;
 }
 
+.meso-sidebar__logo--custom {
+  background: transparent;
+  border-radius: 0;
+  width: 32px;
+  height: 32px;
+}
+
 .meso-sidebar__title {
   flex: 1;
   font-size: 14px;

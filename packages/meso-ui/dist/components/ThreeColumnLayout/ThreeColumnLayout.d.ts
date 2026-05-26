@@ -22,6 +22,11 @@ export interface ThreeColumnLayoutProps {
     defaultCollapsed?: boolean;
     /** App name shown in sidebar header */
     appName?: string;
+    /**
+     * Custom logo node shown in sidebar header.
+     * When provided, replaces the default letter-initial square.
+     */
+    logo?: React.ReactNode;
     /** Optional header content for the main area */
     mainHeader?: React.ReactNode;
     /** Content rendered in the artifact pane (right side of split layout) */
@@ -37,4 +42,4 @@ export interface ThreeColumnLayoutProps {
     /** localStorage key to persist split ratio; omit to skip persistence */
     splitRatioStorageKey?: string;
 }
-export declare function ThreeColumnLayout({ navItems, sidebarFooter, sessionColumn, sessionColumnVisible, children, defaultCollapsed, appName, mainHeader, artifactContent, splitMode, onSplitModeChange, defaultSplitRatio, onSplitRatioChange, splitRatioStorageKey, }: ThreeColumnLayoutProps): import("react/jsx-runtime").JSX.Element;
+export declare function ThreeColumnLayout({ navItems, sidebarFooter, sessionColumn, sessionColumnVisible, children, defaultCollapsed, appName, logo, mainHeader, artifactContent, splitMode, onSplitModeChange, defaultSplitRatio, onSplitRatioChange, splitRatioStorageKey, }: ThreeColumnLayoutProps): import("react/jsx-runtime").JSX.Element;

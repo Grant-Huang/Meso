@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#0F0F11"></rect>
+  <g transform="translate(96, 220) scale(2.4)">
+    <circle cx="14" cy="60" r="3" fill="#FAFAF7" opacity="0.18"></circle>
+  <circle cx="30" cy="60" r="4.5" fill="#FAFAF7" opacity="0.34"></circle>
+  <circle cx="50" cy="60" r="6" fill="#FAFAF7" opacity="0.52"></circle>
+  <circle cx="74" cy="60" r="7.5" fill="#FAFAF7" opacity="0.76"></circle>
+  <circle cx="102" cy="60" r="9" fill="#E15A1F" opacity="1"></circle>
+  </g>
+  <g transform="translate(96, 540)" font-family="Geist, system-ui, sans-serif" fill="#FAFAF7">
+    <text x="0" y="0" font-size="56" font-weight="600" letter-spacing="-0.03em">@meso/ui</text>
+    <text x="0" y="40" font-size="22" fill="#a8a59d">Streaming LLM UI platform · v1.0</text>
+  </g>
+  <g transform="translate(96, 96)" font-family="JetBrains Mono, monospace" fill="#6b6862">
+    <text x="0" y="0" font-size="14" letter-spacing="0.16em">@MESO/UI · BRAND SYSTEM</text>
+  </g>
+</svg>

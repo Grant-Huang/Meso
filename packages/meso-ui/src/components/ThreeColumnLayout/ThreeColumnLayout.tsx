@@ -24,6 +24,11 @@ export interface ThreeColumnLayoutProps {
   defaultCollapsed?: boolean
   /** App name shown in sidebar header */
   appName?: string
+  /**
+   * Custom logo node shown in sidebar header.
+   * When provided, replaces the default letter-initial square.
+   */
+  logo?: React.ReactNode
   /** Optional header content for the main area */
   mainHeader?: React.ReactNode
   /** Content rendered in the artifact pane (right side of split layout) */
@@ -66,6 +71,7 @@ export function ThreeColumnLayout({
   children,
   defaultCollapsed = false,
   appName = 'Meso',
+  logo,
   mainHeader,
   artifactContent,
   splitMode = false,
@@ -118,7 +124,9 @@ export function ThreeColumnLayout({
       {/* Left sidebar */}
       <aside className={`meso-sidebar${collapsed ? ' meso-sidebar--collapsed' : ''}`}>
         <div className="meso-sidebar__header">
-          <div className="meso-sidebar__logo">{appName[0]}</div>
+          <div className={`meso-sidebar__logo${logo ? ' meso-sidebar__logo--custom' : ''}`}>
+            {logo ?? appName[0]}
+          </div>
           <span className="meso-sidebar__title">{appName}</span>
           <button
             className="meso-sidebar__toggle"

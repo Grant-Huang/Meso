@@ -20,11 +20,17 @@
 ## 快速接入
 
 ```bash
-npm install @meso/ui
+npm install @meso/ui @meso/types
+# 或
+pnpm add @meso/ui @meso/types
 ```
+
+> **注意**：不推荐用 `github:#path:` 安装，会导致构建工具解析到 monorepo 根目录。
+> 详见 [消费指南](docs/consuming.md)。
 
 ```tsx
 import '@meso/ui/tokens.css'
+import '@meso/ui/style.css'
 import { ThreeColumnLayout, MessageList, useSSEStream } from '@meso/ui'
 
 export function App() {
@@ -177,6 +183,7 @@ pnpm --filter @meso/ui run build
 
 | 文档 | 内容 |
 |------|------|
+| [消费指南](docs/consuming.md) | npm/tarball/file: 安装方式对比、故障排查 |
 | [SSE 协议规范](docs/streaming-protocol.md) | 事件类型、信封格式、扩展机制 |
 | [接入指南](docs/integration-guide.md) | 从安装到首轮流式对话 |
 | [流式对话设计](docs/streaming-design.md) | 状态机与前端处理细节 |

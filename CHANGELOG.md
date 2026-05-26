@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [@meso/ui] 2.0.2 · [@meso/types] 1.0.1 — 2026-05-26
+
+### ADDED
+
+- `publishConfig.access: "public"` in both packages — scoped packages now publish correctly with `pnpm publish --access public`
+- `.github/workflows/ci.yml` — PR/push CI: build → test → pack smoke test (installs tarball into clean Vite project and verifies imports resolve)
+- `.github/workflows/release.yml` — tag-triggered: build → test → `pnpm publish` to npm → upload tarballs to GitHub Release
+- `docs/consuming.md` — installation guide covering npm/tarball/file: methods, anti-patterns, and troubleshooting
+- README: `pnpm add` command alongside `npm install`; note against `github:#path:` installs
+
+---
+
+---
+
 ## [@meso/ui] 2.0.1 · [@meso/types] 1.1.0 — 2026-05-24
 
 ### ADDED

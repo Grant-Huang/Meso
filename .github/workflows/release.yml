@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # for creating GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm --filter @meso/types run build
+          pnpm --filter @meso/ui run build
+
+      - name: Test packages
+        run: |
+          pnpm --filter @meso/types run test
+          pnpm --filter @meso/ui run test
+
+      - name: Pack tarballs
+        run: |
+          mkdir -p dist-tarballs
+          pnpm --filter @meso/types pack --pack-destination dist-tarballs
+          pnpm --filter @meso/ui    pack --pack-destination dist-tarballs
+          ls dist-tarballs/
+
+      - name: Publish to npm
+        run: |
+          pnpm --filter @meso/types publish --no-git-checks --access public
+          pnpm --filter @meso/ui publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release with tarballs
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-tarballs/*.tgz
+          generate_release_notes: true

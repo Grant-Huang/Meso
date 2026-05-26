@@ -1,0 +1,53 @@
+Business Source License 1.1
+
+Copyright (c) 2026 Grant Huang (jacer.huang@gmail.com)
+All Rights Reserved.
+
+Licensed Work:
+The Licensed Work is the software project known as "Meso",
+including all source code, configuration, workflows, prompts,
+documentation, schemas, APIs, and related assets contained in this repository.
+
+Licensor:
+Grant Huang (jacer.huang@gmail.com)
+
+Additional Use Grant:
+The Licensor grants you the right to:
+
+- View, study, and modify the source code
+- Use the software internally within your organization
+- Use the software for personal, educational, evaluation, research,
+  or non-production purposes
+- Deploy the software internally for testing or operational evaluation
+
+Restrictions:
+You may NOT:
+
+1. Provide the Licensed Work as a hosted or managed service
+   to third parties
+
+2. Offer a competing commercial product or SaaS platform
+   substantially derived from the Licensed Work
+
+3. Resell, sublicense, or commercially redistribute the Licensed Work
+   without written permission from the Licensor
+
+4. Remove copyright, attribution, or license notices
+
+5. Use the Licensed Work to train competing foundation models,
+   autonomous coding systems, or commercial AI orchestration platforms
+
+6. Use the Licensed Work in violation of applicable laws
+   or regulations
+
+Change Date:
+2029-01-01
+
+Change License:
+Apache License 2.0
+
+On the Change Date, or the fourth anniversary of each published version,
+whichever comes first, the Licensed Work will automatically become
+licensed under the Apache License 2.0.
+
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

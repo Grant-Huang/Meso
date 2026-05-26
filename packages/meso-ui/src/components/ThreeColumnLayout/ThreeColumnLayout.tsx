@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 import './ThreeColumnLayout.css'
 
 export interface NavItem {
@@ -15,124 +15,88 @@ export interface ThreeColumnLayoutProps {
   /** Content for the bottom of the sidebar (e.g. user avatar/menu) */
   sidebarFooter?: React.ReactNode
   /** Full content of the middle session column */
-  sessionColumn?: React.ReactNode
-  /** Whether the session column is visible */
-  sessionColumnVisible?: boolean
-  /** Main area content (chat pane) */
+  sessionColumn: React.ReactNode
+  /** Main area content (chat column) */
   children: React.ReactNode
   /** Whether sidebar starts collapsed */
   defaultCollapsed?: boolean
   /** App name shown in sidebar header */
   appName?: string
-  /**
-   * Custom logo node shown in sidebar header.
-   * When provided, replaces the default letter-initial square.
-   */
-  logo?: React.ReactNode
-  /** Optional header content for the main area */
+  /** Custom logo node replacing the default letter avatar (e.g. <MyMark size={26} />). */
+  sidebarLogo?: React.ReactNode
+  /** Custom title node replacing the default appName text (e.g. <MyWordmark size={15} />). */
+  sidebarTitle?: React.ReactNode
+  /** Optional header content for the main area topbar (left side) */
   mainHeader?: React.ReactNode
-  /** Content rendered in the artifact pane (right side of split layout) */
-  artifactContent?: React.ReactNode
-  /** Whether to show the split layout */
-  splitMode?: boolean
-  /** Callback when splitMode changes (e.g. user collapses artifact pane) */
-  onSplitModeChange?: (split: boolean) => void
-  /** Initial chat/artifact split ratio (0.4–0.8), default 0.6 */
-  defaultSplitRatio?: number
-  /** Callback when ratio changes after drag */
-  onSplitRatioChange?: (ratio: number) => void
-  /** localStorage key to persist split ratio; omit to skip persistence */
-  splitRatioStorageKey?: string
-}
-
-const RATIO_MIN = 0.4
-const RATIO_MAX = 0.8
-const RATIO_DEFAULT = 0.6
-
-function readStoredRatio(key: string | undefined, fallback: number): number {
-  if (!key) return fallback
-  try {
-    const v = parseFloat(localStorage.getItem(key) ?? '')
-    if (!isNaN(v) && v >= RATIO_MIN && v <= RATIO_MAX) return v
-  } catch {}
-  return fallback
-}
-
-function writeStoredRatio(key: string | undefined, ratio: number) {
-  if (!key) return
-  try { localStorage.setItem(key, String(ratio)) } catch {}
+  /** Content rendered in the artifact pane. May be null/undefined; the toggle button is always shown. */
+  artifactPanel?: React.ReactNode
+  /** Whether the artifact pane starts visible */
+  defaultArtifactVisible?: boolean
+  /** Called whenever the artifact pane is toggled */
+  onArtifactToggle?: (visible: boolean) => void
+  /** Controlled artifact pane visibility. When provided, overrides internal state. */
+  artifactVisible?: boolean
+  /** Hide the artifact toggle button. Default true (button visible). */
+  showArtifactToggle?: boolean
+  /** Hide the session column. Default true (column visible). */
+  showSessionColumn?: boolean
+  /** Max-width of the chat content area, e.g. 860 or "860px". */
+  contentMaxWidth?: number | string
+  /** Called when the sidebar collapsed state changes. */
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
 export function ThreeColumnLayout({
   navItems = [],
   sidebarFooter,
   sessionColumn,
-  sessionColumnVisible = true,
   children,
   defaultCollapsed = false,
   appName = 'Meso',
-  logo,
+  sidebarLogo,
+  sidebarTitle,
   mainHeader,
-  artifactContent,
-  splitMode = false,
-  onSplitModeChange,
-  defaultSplitRatio = RATIO_DEFAULT,
-  onSplitRatioChange,
-  splitRatioStorageKey,
+  artifactPanel,
+  defaultArtifactVisible = false,
+  onArtifactToggle,
+  artifactVisible,
+  showArtifactToggle = true,
+  showSessionColumn = true,
+  contentMaxWidth,
+  onCollapsedChange,
 }: ThreeColumnLayoutProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
-  const [ratio, setRatio] = useState(() =>
-    readStoredRatio(splitRatioStorageKey, defaultSplitRatio)
-  )
+  const [internalArtifactVisible, setInternalArtifactVisible] = useState(defaultArtifactVisible)
 
-  const dragging = useRef(false)
-  const mainRef = useRef<HTMLDivElement>(null)
+  const isArtifactVisible = artifactVisible !== undefined ? artifactVisible : internalArtifactVisible
 
-  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    dragging.current = true
-  }, [])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current || !mainRef.current) return
-    const rect = mainRef.current.getBoundingClientRect()
-    const raw = (e.clientX - rect.left) / rect.width
-    const clamped = Math.min(RATIO_MAX, Math.max(RATIO_MIN, raw))
-    setRatio(clamped)
-  }, [])
-
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current) return
-    dragging.current = false
-    e.currentTarget.releasePointerCapture(e.pointerId)
-    setRatio(prev => {
-      writeStoredRatio(splitRatioStorageKey, prev)
-      onSplitRatioChange?.(prev)
-      return prev
-    })
-  }, [splitRatioStorageKey, onSplitRatioChange])
-
-  // Persist when splitRatioStorageKey changes
-  useEffect(() => {
-    writeStoredRatio(splitRatioStorageKey, ratio)
-  }, [splitRatioStorageKey]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const showSplit = splitMode && !!artifactContent
+  const toggleArtifact = () => {
+    const next = !isArtifactVisible
+    if (artifactVisible === undefined) setInternalArtifactVisible(next)
+    onArtifactToggle?.(next)
+  }
 
   return (
     <div className="meso-layout">
       {/* Left sidebar */}
       <aside className={`meso-sidebar${collapsed ? ' meso-sidebar--collapsed' : ''}`}>
         <div className="meso-sidebar__header">
-          <div className={`meso-sidebar__logo${logo ? ' meso-sidebar__logo--custom' : ''}`}>
-            {logo ?? appName[0]}
-          </div>
-          <span className="meso-sidebar__title">{appName}</span>
+          {sidebarLogo ? (
+            <div className="meso-sidebar__logo meso-sidebar__logo--custom">{sidebarLogo}</div>
+          ) : (
+            <div className="meso-sidebar__logo">{appName[0]}</div>
+          )}
+          {sidebarTitle ? (
+            <span className="meso-sidebar__title meso-sidebar__title--brand">{sidebarTitle}</span>
+          ) : (
+            <span className="meso-sidebar__title">{appName}</span>
+          )}
           <button
             className="meso-sidebar__toggle"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => { const next = !collapsed; setCollapsed(next); onCollapsedChange?.(next) }}
             aria-label={collapsed ? '展开侧栏' : '收起侧栏'}
           >
+            {/* Hamburger icon */}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
               <line x1="2" y1="4" x2="14" y2="4"/>
               <line x1="2" y1="8" x2="14" y2="8"/>
@@ -159,66 +123,43 @@ export function ThreeColumnLayout({
       </aside>
 
       {/* Middle session column */}
-      {sessionColumn !== undefined && (
-        <div className={`meso-session-col${!sessionColumnVisible ? ' meso-session-col--hidden' : ''}`}>
-          {sessionColumn}
-        </div>
-      )}
+      {showSessionColumn !== false && <div className="meso-session-col">{sessionColumn}</div>}
 
       {/* Right main area */}
-      <main className="meso-main" ref={mainRef}>
-        {mainHeader && (
-          <div className="meso-main__header">
-            {mainHeader}
-            {artifactContent && (
-              <button
-                className="meso-main__artifact-toggle"
-                onClick={() => onSplitModeChange?.(!splitMode)}
-                aria-label={splitMode ? '收起预览' : '展开预览'}
-                title={splitMode ? '收起预览' : '展开预览'}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  {splitMode ? (
-                    // collapse: chevron right
-                    <polyline points="6,3 11,8 6,13"/>
-                  ) : (
-                    // expand: split columns icon
-                    <>
-                      <rect x="1" y="2" width="14" height="12" rx="1.5"/>
-                      <line x1="8" y1="2" x2="8" y2="14"/>
-                    </>
-                  )}
+      <main className="meso-main">
+        {/* Topbar: always rendered so the artifact toggle is always visible */}
+        <div className="meso-main__header">
+          <div className="meso-main__header-content">{mainHeader}</div>
+          {showArtifactToggle !== false && (
+            <button
+              className={`meso-artifact-toggle${isArtifactVisible ? ' meso-artifact-toggle--active' : ''}`}
+              onClick={toggleArtifact}
+              title={isArtifactVisible ? '关闭 Artifact' : '打开 Artifact'}
+              aria-label={isArtifactVisible ? '关闭 Artifact' : '打开 Artifact'}
+            >
+              {isArtifactVisible ? (
+                /* X / close icon */
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
-              </button>
-            )}
-          </div>
-        )}
+              ) : (
+                /* Panel / artifact icon */
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="14" y1="3" x2="14" y2="21"/>
+                </svg>
+              )}
+            </button>
+          )}
+        </div>
 
+        {/* Body: chat + optional artifact pane */}
         <div className="meso-main__content">
-          {showSplit ? (
+          <div className="meso-main__chat" style={contentMaxWidth ? { maxWidth: contentMaxWidth, margin: '0 auto', width: '100%' } : undefined}>{children}</div>
+          {isArtifactVisible && (
             <>
-              <div
-                className="meso-main__chat"
-                style={{ width: `${ratio * 100}%` }}
-              >
-                {children}
-              </div>
-
-              <div
-                className="meso-split-divider"
-                role="separator"
-                aria-label="拖动调整宽度"
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-              />
-
-              <div className="meso-main__artifact">
-                {artifactContent}
-              </div>
+              <div className="meso-artifact-divider" aria-hidden="true" />
+              <div className="meso-artifact-pane">{artifactPanel}</div>
             </>
-          ) : (
-            children
           )}
         </div>
       </main>

@@ -44,6 +44,29 @@ export function App() {
 
 后端只需按 [SSE 协议规范](docs/streaming-protocol.md) 发送事件流，无需部署平台代码。
 
+### 推荐集成路径
+
+| 场景 | 推荐方式 |
+|------|----------|
+| React 应用 | `useSSEStream` hook — 封装了 fetch、parseSSELine、applyEvent 和状态管理，开箱即用 |
+| 自定义 transport（WebSocket、轮询等） | `parseSSELine` + `applyEvent` — 只需对接数据来源，状态机行为与 hook 完全一致 |
+| 非 React 环境 | `import '@meso/ui/runtime'` 或直接 `@meso/types` — 零 React 依赖 |
+
+> **不推荐**：自行 `JSON.parse` SSE 数据并手写状态机。会遗漏 `[DONE]` 哨兵处理、
+> `schema_version` 兼容性检查和多 artifact 并发逻辑，形成平行维护负担。
+
+### 版本兼容性检查（可选但推荐）
+
+```tsx
+import { isCompatibleVersion, assertCompatibleVersion } from '@meso/ui'
+
+// 宽松模式：不兼容时静默跳过
+if (!isCompatibleVersion(event)) return
+
+// 严格模式：不兼容时抛出，适合开发/测试环境
+assertCompatibleVersion(event)  // throws: "Meso protocol version mismatch: ..."
+```
+
 ---
 
 ## 平台边界

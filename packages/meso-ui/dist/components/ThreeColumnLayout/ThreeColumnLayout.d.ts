@@ -13,33 +13,34 @@ export interface ThreeColumnLayoutProps {
     /** Content for the bottom of the sidebar (e.g. user avatar/menu) */
     sidebarFooter?: React.ReactNode;
     /** Full content of the middle session column */
-    sessionColumn?: React.ReactNode;
-    /** Whether the session column is visible */
-    sessionColumnVisible?: boolean;
-    /** Main area content (chat pane) */
+    sessionColumn: React.ReactNode;
+    /** Main area content (chat column) */
     children: React.ReactNode;
     /** Whether sidebar starts collapsed */
     defaultCollapsed?: boolean;
     /** App name shown in sidebar header */
     appName?: string;
-    /**
-     * Custom logo node shown in sidebar header.
-     * When provided, replaces the default letter-initial square.
-     */
-    logo?: React.ReactNode;
-    /** Optional header content for the main area */
+    /** Custom logo node replacing the default letter avatar (e.g. <MyMark size={26} />). */
+    sidebarLogo?: React.ReactNode;
+    /** Custom title node replacing the default appName text (e.g. <MyWordmark size={15} />). */
+    sidebarTitle?: React.ReactNode;
+    /** Optional header content for the main area topbar (left side) */
     mainHeader?: React.ReactNode;
-    /** Content rendered in the artifact pane (right side of split layout) */
-    artifactContent?: React.ReactNode;
-    /** Whether to show the split layout */
-    splitMode?: boolean;
-    /** Callback when splitMode changes (e.g. user collapses artifact pane) */
-    onSplitModeChange?: (split: boolean) => void;
-    /** Initial chat/artifact split ratio (0.4–0.8), default 0.6 */
-    defaultSplitRatio?: number;
-    /** Callback when ratio changes after drag */
-    onSplitRatioChange?: (ratio: number) => void;
-    /** localStorage key to persist split ratio; omit to skip persistence */
-    splitRatioStorageKey?: string;
+    /** Content rendered in the artifact pane. May be null/undefined; the toggle button is always shown. */
+    artifactPanel?: React.ReactNode;
+    /** Whether the artifact pane starts visible */
+    defaultArtifactVisible?: boolean;
+    /** Called whenever the artifact pane is toggled */
+    onArtifactToggle?: (visible: boolean) => void;
+    /** Controlled artifact pane visibility. When provided, overrides internal state. */
+    artifactVisible?: boolean;
+    /** Hide the artifact toggle button. Default true (button visible). */
+    showArtifactToggle?: boolean;
+    /** Hide the session column. Default true (column visible). */
+    showSessionColumn?: boolean;
+    /** Max-width of the chat content area, e.g. 860 or "860px". */
+    contentMaxWidth?: number | string;
+    /** Called when the sidebar collapsed state changes. */
+    onCollapsedChange?: (collapsed: boolean) => void;
 }
-export declare function ThreeColumnLayout({ navItems, sidebarFooter, sessionColumn, sessionColumnVisible, children, defaultCollapsed, appName, logo, mainHeader, artifactContent, splitMode, onSplitModeChange, defaultSplitRatio, onSplitRatioChange, splitRatioStorageKey, }: ThreeColumnLayoutProps): import("react/jsx-runtime").JSX.Element;
+export declare function ThreeColumnLayout({ navItems, sidebarFooter, sessionColumn, children, defaultCollapsed, appName, sidebarLogo, sidebarTitle, mainHeader, artifactPanel, defaultArtifactVisible, onArtifactToggle, artifactVisible, showArtifactToggle, showSessionColumn, contentMaxWidth, onCollapsedChange, }: ThreeColumnLayoutProps): import("react/jsx-runtime").JSX.Element;

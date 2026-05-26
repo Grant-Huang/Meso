@@ -26,12 +26,20 @@ export interface MessageListProps {
     onToolCancel?: (toolCallId: string) => void;
     /** Rendered when messages is empty and no streaming is active. */
     emptyState?: React.ReactNode;
+    /** Alignment of the empty state. Defaults to 'center'. Use 'top' for welcome screens that sit above the composer. */
+    emptyStateAlign?: 'center' | 'top';
     className?: string;
     /**
      * Render custom UI for extension events in arrival order.
      * Use this for domain-specific events that don't fit standard types.
      */
     renderExtension?: (event: ExtensionEvent) => React.ReactNode;
+    /**
+     * Custom renderer for the live execution section (stages, tools, think, workflows).
+     * When provided, replaces the default live trace rendering — use to embed ProcessTrace
+     * or any custom execution view without forking MessageList.
+     */
+    renderLiveTrace?: (stream: StreamState) => React.ReactNode;
     /**
      * Sanitized HTML factory for Markdown rendering in assistant bubbles.
      * When provided, assistant bubbles render content as Markdown.
@@ -49,4 +57,4 @@ export interface MessageListProps {
      */
     highlightCode?: (code: string, lang: string) => string;
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, className, renderExtension, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderLiveTrace, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

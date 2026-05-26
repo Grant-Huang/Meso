@@ -38,6 +38,18 @@ export type { ResourceReadBlockProps } from './components/ResourceReadBlock'
 export { ConfirmGate } from './components/ConfirmGate'
 export type { ConfirmGateProps } from './components/ConfirmGate'
 
+export { ChatComposer } from './components/ChatComposer'
+export type { ChatComposerProps } from './components/ChatComposer'
+
+export { ProcessTrace } from './components/ProcessTrace'
+export type { ProcessTraceProps } from './components/ProcessTrace'
+
+export { SidebarUserMenu } from './components/SidebarUserMenu'
+export type { SidebarUserMenuProps, SidebarMenuItemDef } from './components/SidebarUserMenu'
+
+export { ArtifactPaneShell } from './components/ArtifactPaneShell'
+export type { ArtifactPaneShellProps, ArtifactTab } from './components/ArtifactPaneShell'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
 export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'
@@ -51,6 +63,9 @@ export {
   parseSSELine,
   applyEvent,
   createInitialStreamState,
+  isCompatibleVersion,
+  assertCompatibleVersion,
+  stagePayloadToStage,
 } from './runtime'
 export type {
   CapabilityProvider,

@@ -17,13 +17,15 @@
       "require": "./dist/runtime.cjs",
       "types": "./dist/runtime/index.d.ts"
     },
-    "./tokens.css": "./dist/tokens.css"
+    "./tokens.css": "./dist/tokens.css",
+    "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",
+    "prepare": "pnpm run build",
     "dev": "vite build --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",

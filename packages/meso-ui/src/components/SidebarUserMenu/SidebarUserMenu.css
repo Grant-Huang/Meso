@@ -1,0 +1,143 @@
+.meso-user-menu {
+  position: relative;
+  padding: 6px;
+}
+
+.meso-user-menu__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.meso-user-menu__trigger:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+}
+
+.meso-user-menu__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.meso-user-menu__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  /* Hide when sidebar collapsed — parent adds meso-sidebar--collapsed class */
+  opacity: 1;
+  max-width: 120px;
+  transition: opacity 0.15s, max-width 0.2s;
+}
+
+/* When inside a collapsed sidebar, hide text */
+.meso-sidebar--collapsed .meso-user-menu__info {
+  opacity: 0;
+  max-width: 0;
+}
+
+.meso-user-menu__name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meso-user-menu__email {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Upward popup */
+.meso-user-menu__popup {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 6px;
+  right: 6px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.meso-user-menu__identity {
+  padding: 10px 12px 8px;
+}
+
+.meso-user-menu__identity-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.meso-user-menu__identity-email {
+  display: block;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.meso-user-menu__sep {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 2px 0;
+}
+
+.meso-user-menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.meso-user-menu__item:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+  color: var(--color-text);
+}
+
+.meso-user-menu__item--danger {
+  color: var(--color-error, #c0392b);
+}
+
+.meso-user-menu__item--danger:hover {
+  background: rgba(192,57,43,0.08);
+}
+
+.meso-user-menu__item-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}

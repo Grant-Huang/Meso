@@ -92,8 +92,14 @@ async def stream_with_tools():
 
 ```tsx
 import { useSSEStream } from '@meso/ui'
+import type { StreamCallbacks } from '@meso/ui'
 
-const { state, start, abort, reset } = useSSEStream('/api/chat/stream')
+const callbacks: StreamCallbacks = {
+  onDone: (finalState) => console.log('完成', finalState.textContent),
+  onToolCall: (call) => console.log('工具调用', call.name),
+}
+
+const { state, start, abort, reset } = useSSEStream('/api/chat/stream', callbacks)
 ```
 
 ### 返回值
@@ -130,16 +136,41 @@ start({
 ```typescript
 interface StreamState {
   status: 'idle' | 'streaming' | 'done' | 'error'
-  stages: { name: string; state: 'active' | 'done' | 'error' }[]
+
+  // 能力上下文（LLM 生成前设定）
+  availableCapabilities: CapabilitiesPayload | null
+  activeSoul:  SoulPayload | null
+  activeSkill: SkillPayload | null
+
+  // 阶段进度
+  stages: StagePayload[]
+
+  // 记忆
+  memorySnippets: MemorySnippet[]
+  memorySaved:    MemorySavedPayload[]
+
+  // 工具调用 & 资源读取
+  toolCalls:         Record<string, ToolCallState>
+  toolCallOrder:     string[]
+  resourceReads:     Record<string, ResourceReadState>
+  resourceReadOrder: string[]
+
+  // LLM 输出
   thinkContent: string
-  thinkDone: boolean
-  memorySnippets: { category: string; content: string }[]
-  textContent: string
-  artifacts: Record<string, { id: string; lang: string; content: string; done: boolean }>
+  thinkDone:    boolean
+  textContent:  string
+  artifacts:    Record<string, ArtifactState>
   artifactOrder: string[]
-  extensions: Record<string, ExtensionEvent[]>
+
+  // 工作流节点（开发者可观测）
+  workflowRuns:     Record<string, WorkflowRunState>
+  workflowRunOrder: string[]
+
+  // 扩展事件
+  extensions:   Record<string, ExtensionEvent[]>
   extensionLog: ExtensionEvent[]
-  error: string | null
+
+  errorMessage: string | null
 }
 ```
 
@@ -238,12 +269,12 @@ console.log(state.stages)      // [{ name: '检索知识', state: 'active' }]
 
 ### 契约测试 Fixture
 
-`packages/meso-ui/src/__fixtures__/` 提供标准 SSE 流样本，可用于回归测试：
+`packages/meso-types/src/__fixtures__/` 提供标准 SSE 流样本，可用于回归测试：
 
 ```typescript
 import { readFileSync } from 'fs'
 
-const fixture = readFileSync('packages/meso-ui/src/__fixtures__/full-stream.txt', 'utf8')
+const fixture = readFileSync('packages/meso-types/src/__fixtures__/full-stream.txt', 'utf8')
 const state = fixture.split('\n').reduce((s, line) => {
   const ev = parseSSELine(line)
   return ev ? applyEvent(s, ev) : s

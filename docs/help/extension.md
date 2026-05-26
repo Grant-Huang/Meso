@@ -6,7 +6,7 @@
 
 ## 为什么需要扩展事件
 
-平台内置 7 个标准事件（stage/memory/think/text/artifact/done/error），但业务场景必然有更多需求。扩展事件机制让你注入任意业务事件，前端通过 `renderExtension` prop 渲染，平台只负责透传和排序。
+平台内置 16 个标准事件（capabilities/soul/skill_active/stage/memory/memory_saved/tool_call/tool_result/resource_read/resource_content/think/text/artifact/workflow_node/done/error），但业务场景必然有更多需求。扩展事件机制让你注入任意业务事件，前端通过 `renderExtension` prop 渲染，平台只负责透传和排序。
 
 | 业务需求 | 建议 `name` |
 |---------|------------|

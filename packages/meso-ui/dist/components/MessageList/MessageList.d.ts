@@ -35,6 +35,12 @@ export interface MessageListProps {
      */
     renderExtension?: (event: ExtensionEvent) => React.ReactNode;
     /**
+     * Custom renderer for the live execution section (stages, tools, think, workflows).
+     * When provided, replaces the default live trace rendering — use to embed ProcessTrace
+     * or any custom execution view without forking MessageList.
+     */
+    renderLiveTrace?: (stream: StreamState) => React.ReactNode;
+    /**
      * Sanitized HTML factory for Markdown rendering in assistant bubbles.
      * When provided, assistant bubbles render content as Markdown.
      * Must return sanitized HTML (e.g. marked + DOMPurify output).
@@ -51,4 +57,4 @@ export interface MessageListProps {
      */
     highlightCode?: (code: string, lang: string) => string;
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderLiveTrace, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

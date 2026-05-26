@@ -1,0 +1,59 @@
+/* @meso/ui — public design tokens
+   These are the SemVer-stable variables consumed by every component.
+   Wire up via: import '@meso/ui/tokens.css'; */
+
+:root {
+  /* Surfaces */
+  --color-bg:           #FAFAF7;
+  --color-bg-elevated:  #FFFFFF;
+  --color-bg-white:     #FFFFFF;
+  --color-bg-sidebar:   #F4F1E8;
+
+  /* Text */
+  --color-text:           #0A0A0B;
+  --color-text-secondary: #3A3933;
+  --color-text-muted:     #6B6962;
+
+  /* Accent */
+  --color-accent:      #E15A1F;
+  --color-accent-dark: #B84614;
+
+  /* Borders */
+  --color-border:       #E3DFD6;
+  --color-border-light: #EFECE4;
+
+  /* Status */
+  --color-error:   #C4382B;
+  --color-warning: #C68B1E;
+  --color-success: #2E7D4F;
+  --color-info:    #2E5FA7;
+
+  /* Code surfaces */
+  --color-code-bg:   #F4F1E8;
+  --color-code-text: #0A0A0B;
+
+  /* Layout */
+  --sidebar-w:            240px;
+  --sidebar-w-collapsed:  64px;
+  --session-col-w:        280px;
+}
+
+[data-theme="dark"] {
+  --color-bg:           #0F0F11;
+  --color-bg-elevated:  #17171A;
+  --color-bg-white:     #1C1C20;
+  --color-bg-sidebar:   #0A0A0B;
+
+  --color-text:           #FAFAF7;
+  --color-text-secondary: #C8C5BD;
+  --color-text-muted:     #8B8985;
+
+  --color-accent:      #E87544;
+  --color-accent-dark: #C4571E;
+
+  --color-border:       #26262A;
+  --color-border-light: #1C1C20;
+
+  --color-code-bg:   #1C1C20;
+  --color-code-text: #FAFAF7;
+}

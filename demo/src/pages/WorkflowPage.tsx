@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { WorkflowTimeline, applyEvent, createInitialStreamState, parseSSELine } from '@meso/ui'
-import type { WorkflowRunState, StreamState } from '@meso/ui'
+import { WorkflowTimeline, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
+import type { WorkflowRunState, StreamState } from '@meso.ai/ui'
 
 // ── Static scenario definitions ───────────────────────────────────────────────
 

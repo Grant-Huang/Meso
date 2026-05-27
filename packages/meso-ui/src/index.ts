@@ -57,7 +57,7 @@ export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'
 export { useTheme } from './hooks/useTheme'
 export type { Theme } from './hooks/useTheme'
 
-// Runtime (also available as @meso/ui/runtime for React-free usage)
+// Runtime (also available as @meso.ai/ui/runtime for React-free usage)
 export {
   PROTOCOL_VERSION,
   parseSSELine,

@@ -59,8 +59,8 @@ async def stream_with_tool():
 通过 `MessageList` 的 `renderExtension` prop 渲染扩展事件 UI：
 
 ```tsx
-import { MessageList } from '@meso/ui'
-import type { ExtensionEvent } from '@meso/ui'
+import { MessageList } from '@meso.ai/ui'
+import type { ExtensionEvent } from '@meso.ai/ui'
 
 <MessageList
   messages={messages}
@@ -198,10 +198,10 @@ function renderExtension(event: ExtensionEvent) {
 
 ## 验证扩展事件（无 React）
 
-使用 `@meso/ui/runtime` 在 Node.js 中验证后端发送的扩展事件：
+使用 `@meso.ai/ui/runtime` 在 Node.js 中验证后端发送的扩展事件：
 
 ```typescript
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/ui/runtime'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/ui/runtime'
 
 const lines = [
   'data: {"type":"extension","schema_version":"1.0","payload":{"name":"tool_progress","data":{"status":"running"}}}',

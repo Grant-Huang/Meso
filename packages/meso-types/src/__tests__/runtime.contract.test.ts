@@ -1,5 +1,5 @@
 /**
- * Contract tests for @meso/types runtime.
+ * Contract tests for @meso.ai/types runtime.
  *
  * These tests are the ground truth for protocol compliance.
  * The fixture files (src/__fixtures__/) double as reference material

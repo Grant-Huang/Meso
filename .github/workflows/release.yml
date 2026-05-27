@@ -27,25 +27,25 @@ jobs:
 
       - name: Build packages
         run: |
-          pnpm --filter @meso/types run build
-          pnpm --filter @meso/ui run build
+          pnpm --filter @meso.ai/types run build
+          pnpm --filter @meso.ai/ui run build
 
       - name: Test packages
         run: |
-          pnpm --filter @meso/types run test
-          pnpm --filter @meso/ui run test
+          pnpm --filter @meso.ai/types run test
+          pnpm --filter @meso.ai/ui run test
 
       - name: Pack tarballs
         run: |
           mkdir -p dist-tarballs
-          pnpm --filter @meso/types pack --pack-destination dist-tarballs
-          pnpm --filter @meso/ui    pack --pack-destination dist-tarballs
+          pnpm --filter @meso.ai/types pack --pack-destination dist-tarballs
+          pnpm --filter @meso.ai/ui    pack --pack-destination dist-tarballs
           ls dist-tarballs/
 
       - name: Publish to npm
         run: |
-          pnpm --filter @meso/types publish --no-git-checks --access public
-          pnpm --filter @meso/ui publish --no-git-checks --access public
+          pnpm --filter @meso.ai/types publish --no-git-checks --access public
+          pnpm --filter @meso.ai/ui    publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

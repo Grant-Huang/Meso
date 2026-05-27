@@ -8,8 +8,8 @@
 **Meso** 是面向流式 LLM 交互的前端平台层，提供：
 
 - **SSE 事件协议**（版本化、可机器验证）
-- **可发布 React 组件库** `@meso/ui`（ESM + CJS + TypeScript 声明）
-- **无 React 依赖的运行时** `@meso/ui/runtime`（状态机 / 解析器）
+- **可发布 React 组件库** `@meso.ai/ui`（ESM + CJS + TypeScript 声明）
+- **无 React 依赖的运行时** `@meso.ai/ui/runtime`（状态机 / 解析器）
 - **设计规范**（布局、设计 token、主题）
 
 第三方应用负责：后端实现、鉴权、会话持久化、Tools/知识库/记忆等业务逻辑。  
@@ -20,18 +20,18 @@
 ## 快速接入
 
 ```bash
-npm install @meso/ui @meso/types
+npm install @meso.ai/ui @meso.ai/types
 # 或
-pnpm add @meso/ui @meso/types
+pnpm add @meso.ai/ui @meso.ai/types
 ```
 
 > **注意**：不推荐用 `github:#path:` 安装，会导致构建工具解析到 monorepo 根目录。
 > 详见 [消费指南](docs/consuming.md)。
 
 ```tsx
-import '@meso/ui/tokens.css'
-import '@meso/ui/style.css'
-import { ThreeColumnLayout, MessageList, useSSEStream } from '@meso/ui'
+import '@meso.ai/ui/tokens.css'
+import '@meso.ai/ui/style.css'
+import { ThreeColumnLayout, MessageList, useSSEStream } from '@meso.ai/ui'
 
 export function App() {
   const { state, start, abort } = useSSEStream('https://your-backend/stream')
@@ -56,7 +56,7 @@ export function App() {
 |------|----------|
 | React 应用 | `useSSEStream` hook — 封装了 fetch、parseSSELine、applyEvent 和状态管理，开箱即用 |
 | 自定义 transport（WebSocket、轮询等） | `parseSSELine` + `applyEvent` — 只需对接数据来源，状态机行为与 hook 完全一致 |
-| 非 React 环境 | `import '@meso/ui/runtime'` 或直接 `@meso/types` — 零 React 依赖 |
+| 非 React 环境 | `import '@meso.ai/ui/runtime'` 或直接 `@meso.ai/types` — 零 React 依赖 |
 
 > **不推荐**：自行 `JSON.parse` SSE 数据并手写状态机。会遗漏 `[DONE]` 哨兵处理、
 > `schema_version` 兼容性检查和多 artifact 并发逻辑，形成平行维护负担。
@@ -64,7 +64,7 @@ export function App() {
 ### 版本兼容性检查（可选但推荐）
 
 ```tsx
-import { isCompatibleVersion, assertCompatibleVersion } from '@meso/ui'
+import { isCompatibleVersion, assertCompatibleVersion } from '@meso.ai/ui'
 
 // 宽松模式：不兼容时静默跳过
 if (!isCompatibleVersion(event)) return
@@ -91,9 +91,9 @@ assertCompatibleVersion(event)  // throws: "Meso protocol version mismatch: ..."
 
 | 导入路径 | 内容 | React |
 |----------|------|-------|
-| `@meso/ui` | 全部组件 + Hook + 运行时类型 | ✅ |
-| `@meso/ui/runtime` | `parseSSELine` / `applyEvent` / `createInitialStreamState` | ❌ |
-| `@meso/ui/tokens.css` | CSS 变量，亮/暗双主题 | — |
+| `@meso.ai/ui` | 全部组件 + Hook + 运行时类型 | ✅ |
+| `@meso.ai/ui/runtime` | `parseSSELine` / `applyEvent` / `createInitialStreamState` | ❌ |
+| `@meso.ai/ui/tokens.css` | CSS 变量，亮/暗双主题 | — |
 
 ---
 
@@ -164,15 +164,15 @@ FOUC 防护（放在 `<head>` 内 `tokens.css` 之前）：
 
 ```bash
 # 先 types，再 ui
-pnpm --filter @meso/types run build
-pnpm --filter @meso/ui run build
+pnpm --filter @meso.ai/types run build
+pnpm --filter @meso.ai/ui run build
 ```
 
 ```json
 {
   "dependencies": {
-    "@meso/types": "file:../meso/packages/meso-types",
-    "@meso/ui":    "file:../meso/packages/meso-ui"
+    "@meso.ai/types": "file:../meso/packages/meso-types",
+    "@meso.ai/ui":    "file:../meso/packages/meso-ui"
   }
 }
 ```
@@ -197,4 +197,4 @@ pnpm --filter @meso/ui run build
 ## 版本管理
 
 遵循 [SemVer](https://semver.org/)：Patch = bug fix · Minor = 新功能（向后兼容）· Major = Breaking Changes。  
-协议层变更须先更新 `docs/streaming-protocol.md` 和契约测试 fixture，再发 `@meso/ui`。
+协议层变更须先更新 `docs/streaming-protocol.md` 和契约测试 fixture，再发 `@meso.ai/ui`。

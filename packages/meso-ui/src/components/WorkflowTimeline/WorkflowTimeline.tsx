@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { WorkflowRunState, WorkflowNodeRecord } from '@meso/types'
+import type { WorkflowRunState, WorkflowNodeRecord } from '@meso.ai/types'
 import './WorkflowTimeline.css'
 
 export interface WorkflowTimelineProps {

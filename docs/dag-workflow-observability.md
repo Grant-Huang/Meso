@@ -81,7 +81,7 @@ run.nodes               // Record<node_id, WorkflowNodeRecord>
 只读 UI 组件，数据来自事件流，不解析 YAML：
 
 ```tsx
-import { WorkflowTimeline } from '@meso/ui'
+import { WorkflowTimeline } from '@meso.ai/ui'
 
 // 从 StreamState 取出要展示的 run
 const runs = state.workflowRunOrder.map(id => state.workflowRuns[id])

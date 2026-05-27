@@ -11,8 +11,8 @@
 `MessageList` 是最核心的组件，同时接受已完成的历史消息和实时流式状态，内部自动完成所有子组件的编排：
 
 ```tsx
-import { useSSEStream, MessageList } from '@meso/ui'
-import type { Message } from '@meso/ui'
+import { useSSEStream, MessageList } from '@meso.ai/ui'
+import type { Message } from '@meso.ai/ui'
 
 function ChatArea() {
   const { state, start, abort, reset } = useSSEStream('/api/stream')
@@ -173,7 +173,7 @@ StageTimeline 在 `MessageList` 内部自动管理：
 ```tsx
 import {
   ChatBubble, ThinkBlock, StageTimeline, ArtifactPanel, useSSEStream
-} from '@meso/ui'
+} from '@meso.ai/ui'
 
 function CustomChat() {
   const { state, start, abort } = useSSEStream('/api/stream')

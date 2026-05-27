@@ -183,7 +183,7 @@ function y(r) {
 function w(r) {
   if (!y(r))
     throw new Error(
-      `Meso protocol version mismatch: runtime expects ${d}, received ${r.schema_version}. Upgrade @meso/types or your backend.`
+      `Meso protocol version mismatch: runtime expects ${d}, received ${r.schema_version}. Upgrade @meso.ai/types or your backend.`
     );
 }
 function R(r, e) {

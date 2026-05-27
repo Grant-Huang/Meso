@@ -66,9 +66,9 @@ ChatPane
     └── ComposerToolbar # 工具栏（知识库选择 / 技能选择 / 发送）
 ```
 
-### 2.3 UI 组件库（@meso/ui）
+### 2.3 UI 组件库（@meso.ai/ui）
 
-所有组件均从 `@meso/ui` 导出：
+所有组件均从 `@meso.ai/ui` 导出：
 
 | 组件 | 说明 | 驱动事件 |
 |------|------|----------|
@@ -206,7 +206,7 @@ data: {"type": "<event_type>", "schema_version": "1.0", "payload": {...}}\n\n
 ## 五、后端模块划分（参考实现，非规范）
 
 > ⚠️ **Non-normative / Demo only**
-> §5 至 §7 描述的是一种参考后端实现，不属于 `@meso/ui` 平台契约。
+> §5 至 §7 描述的是一种参考后端实现，不属于 `@meso.ai/ui` 平台契约。
 > 第三方可使用任意后端技术栈（Node.js、Go、Java 等），
 > 只需遵守 [`docs/streaming-protocol.md`](./streaming-protocol.md) 定义的 SSE 事件协议。
 

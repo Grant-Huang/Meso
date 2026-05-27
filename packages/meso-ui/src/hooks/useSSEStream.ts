@@ -43,7 +43,7 @@ export interface StreamCallbacks {
 /**
  * React hook wrapping the Meso SSE runtime.
  * For fetch-free usage (custom transports, Node.js), import directly from
- * @meso/ui/runtime: { parseSSELine, applyEvent, createInitialStreamState }
+ * @meso.ai/ui/runtime: { parseSSELine, applyEvent, createInitialStreamState }
  */
 export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
   const [state, setState] = useState<StreamState>(createInitialStreamState)

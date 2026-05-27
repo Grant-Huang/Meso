@@ -6,7 +6,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [@meso/ui] 2.0.2 · [@meso/types] 1.0.1 — 2026-05-26
+## [@meso.ai/ui] 2.0.2 · [@meso.ai/types] 1.0.1 — 2026-05-26
 
 ### ADDED
 
@@ -20,7 +20,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [@meso/ui] 2.0.1 · [@meso/types] 1.1.0 — 2026-05-24
+## [@meso.ai/ui] 2.0.1 · [@meso.ai/types] 1.1.0 — 2026-05-24
 
 ### ADDED
 
@@ -28,16 +28,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `assertCompatibleVersion(ev)` — throws with a descriptive message on version mismatch; use at the transport boundary for hard guarantees
 - `stagePayloadToStage(payload, id)` — official bridge from `StagePayload` (protocol) to `Stage` (UI component); eliminates per-consumer mapping boilerplate
 - `StageStatus` now includes `'error'`; `<StageTimeline>` renders error stages with a red ✕ icon and `--color-error` styling
-- `@meso/ui` exports `"./style.css": "./dist/style.css"` — consumers can now write `import '@meso/ui/style.css'` instead of the internal dist path
+- `@meso.ai/ui` exports `"./style.css": "./dist/style.css"` — consumers can now write `import '@meso.ai/ui/style.css'` instead of the internal dist path
 
 ### CHANGED
 
-- `@meso/types` promoted from `dependencies` to `peerDependencies` in `meso-ui/package.json`; consumers using `file:` paths must declare both packages explicitly (see README → Monorepo 外消费)
+- `@meso.ai/types` promoted from `dependencies` to `peerDependencies` in `meso-ui/package.json`; consumers using `file:` paths must declare both packages explicitly (see README → Monorepo 外消费)
 - Package manager migrated from npm to pnpm; lockfile is now `pnpm-lock.yaml`
 
 ---
 
-## [@meso/ui] 2.0.0 · [@meso/types] 1.0.0 — initial release
+## [@meso.ai/ui] 2.0.0 · [@meso.ai/types] 1.0.0 — initial release
 
 ### BREAKING (vs. pre-release)
 
@@ -47,9 +47,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### ADDED
 
-- `@meso/ui`: `ThreeColumnLayout`, `MessageList`, `ChatBubble`, `StageTimeline`, `ArtifactPanel`, `ThinkBlock`, `ToolCallBlock`, `SkillIndicator`, `ResourceReadBlock`, `ConfirmGate`, `SoulIndicator`, `StreamingCursor`
-- `@meso/ui`: `useSSEStream`, `useTheme`
-- `@meso/ui/runtime` — React-free entry point for `parseSSELine`, `applyEvent`, `createInitialStreamState`
-- `@meso/ui/tokens.css` — design token CSS variables + dark/light theme support
-- `@meso/types`: full SSE protocol v1.0 type definitions, `applyEvent`, `parseSSELine`, `createInitialStreamState`
+- `@meso.ai/ui`: `ThreeColumnLayout`, `MessageList`, `ChatBubble`, `StageTimeline`, `ArtifactPanel`, `ThinkBlock`, `ToolCallBlock`, `SkillIndicator`, `ResourceReadBlock`, `ConfirmGate`, `SoulIndicator`, `StreamingCursor`
+- `@meso.ai/ui`: `useSSEStream`, `useTheme`
+- `@meso.ai/ui/runtime` — React-free entry point for `parseSSELine`, `applyEvent`, `createInitialStreamState`
+- `@meso.ai/ui/tokens.css` — design token CSS variables + dark/light theme support
+- `@meso.ai/types`: full SSE protocol v1.0 type definitions, `applyEvent`, `parseSSELine`, `createInitialStreamState`
 - SSE protocol v1.0: versioned event envelope `{type, schema_version, payload}`

@@ -1,6 +1,6 @@
 # MESO — Brand Kit
 
-Brand system for **@meso/ui**, the streaming LLM conversation UI platform.
+Brand system for **@meso.ai/ui**, the streaming LLM conversation UI platform.
 
 > Direction selected: **STREAM** (with BRACE retained as alternate).
 
@@ -58,6 +58,6 @@ See `tokens.css`. Public-stable variables guaranteed under SemVer.
 ```md
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="brand/stream/banner-dark.svg" />
-  <img src="brand/stream/banner.svg" alt="@meso/ui — streaming LLM UI platform" />
+  <img src="brand/stream/banner.svg" alt="@meso.ai/ui — streaming LLM UI platform" />
 </picture>
 ```

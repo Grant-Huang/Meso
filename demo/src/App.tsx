@@ -1,4 +1,4 @@
-import { ThreeColumnLayout } from '@meso/ui'
+import { ThreeColumnLayout } from '@meso.ai/ui'
 import { useState, useEffect } from 'react'
 import { SessionList } from './components/SessionList'
 import type { Session } from './components/SessionList'

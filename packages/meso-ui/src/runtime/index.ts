@@ -1,10 +1,10 @@
 /**
- * Re-exports everything from @meso/types.
- * Implementation lives solely in @meso/types — do not duplicate here.
+ * Re-exports everything from @meso.ai/types.
+ * Implementation lives solely in @meso.ai/types — do not duplicate here.
  *
- * Consumers who don't need React can import from @meso/types directly
+ * Consumers who don't need React can import from @meso.ai/types directly
  * (zero-dep, smaller bundle). This re-export exists so that
- * `@meso/ui/runtime` continues to work as a convenience path.
+ * `@meso.ai/ui/runtime` continues to work as a convenience path.
  */
 export {
   PROTOCOL_VERSION,
@@ -14,7 +14,7 @@ export {
   isCompatibleVersion,
   assertCompatibleVersion,
   stagePayloadToStage,
-} from '@meso/types'
+} from '@meso.ai/types'
 
 export type {
   ProtocolVersion,
@@ -71,4 +71,4 @@ export type {
   ResourceReadState,
   WorkflowNodeRecord,
   WorkflowRunState,
-} from '@meso/types'
+} from '@meso.ai/types'

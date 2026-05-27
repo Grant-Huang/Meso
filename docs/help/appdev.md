@@ -16,7 +16,7 @@
          你的前端
          ├── @meso.ai/ui — ThreeColumnLayout / MessageList / ArtifactPanel
          ├── useSSEStream Hook — 连接后端 SSE 流
-         └── @meso/types — 协议解析 + 纯状态机（无 React 依赖）
+         └── @meso.ai/types — 协议解析 + 纯状态机（无 React 依赖）
 ```
 
 ---
@@ -43,7 +43,7 @@ POST /api/chat  { message, session_id, app_id }
 | 能力 | 平台提供 | 你来实现 |
 |------|---------|---------|
 | 流式渲染 UI | @meso.ai/ui 全部组件 | — |
-| SSE 协议解析 | @meso/types runtime | — |
+| SSE 协议解析 | @meso.ai/types runtime | — |
 | 布局 + 主题 | ThreeColumnLayout + CSS token | — |
 | LLM 调用 | — | 对接 OpenAI 兼容 API |
 | 记忆存储与召回 | — | 存储方案 + 检索逻辑 |
@@ -82,10 +82,10 @@ POST /api/chat  { message, session_id, app_id }
 
 ---
 
-## 用 @meso/types 验证后端（不启动前端）
+## 用 @meso.ai/types 验证后端（不启动前端）
 
 ```typescript
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 
 const lines = yourSseOutput.split('\n')
 const state = lines.reduce((s, line) => {

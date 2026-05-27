@@ -1,4 +1,4 @@
-import type { WorkflowRunState } from '@meso/types';
+import type { WorkflowRunState } from '@meso.ai/types';
 import './WorkflowTimeline.css';
 export interface WorkflowTimelineProps {
     /** One or more workflow runs to render. Use workflowRunOrder for deterministic order. */

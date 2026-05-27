@@ -54,7 +54,7 @@ import {
   PROTOCOL_VERSION,
 } from '@meso.ai/ui/runtime'
 // 或等价地：
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 ```
 
 ---
@@ -474,12 +474,12 @@ interface MemorySnippet {
 
 ---
 
-## 纯运行时函数（@meso/types）
+## 纯运行时函数（@meso.ai/types）
 
 可在 Node.js / 测试 / 边缘函数中使用，无 React 依赖：
 
 ```typescript
-import { parseSSELine, applyEvent, createInitialStreamState, PROTOCOL_VERSION } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState, PROTOCOL_VERSION } from '@meso.ai/types'
 
 // PROTOCOL_VERSION = "1.0"
 

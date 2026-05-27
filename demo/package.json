@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@meso/types": "workspace:*",
+    "@meso.ai/types": "workspace:*",
     "@meso.ai/ui": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

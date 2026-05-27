@@ -20,9 +20,9 @@
 ## 快速接入
 
 ```bash
-npm install @meso.ai/ui @meso/types
+npm install @meso.ai/ui @meso.ai/types
 # 或
-pnpm add @meso.ai/ui @meso/types
+pnpm add @meso.ai/ui @meso.ai/types
 ```
 
 > **注意**：不推荐用 `github:#path:` 安装，会导致构建工具解析到 monorepo 根目录。
@@ -56,7 +56,7 @@ export function App() {
 |------|----------|
 | React 应用 | `useSSEStream` hook — 封装了 fetch、parseSSELine、applyEvent 和状态管理，开箱即用 |
 | 自定义 transport（WebSocket、轮询等） | `parseSSELine` + `applyEvent` — 只需对接数据来源，状态机行为与 hook 完全一致 |
-| 非 React 环境 | `import '@meso.ai/ui/runtime'` 或直接 `@meso/types` — 零 React 依赖 |
+| 非 React 环境 | `import '@meso.ai/ui/runtime'` 或直接 `@meso.ai/types` — 零 React 依赖 |
 
 > **不推荐**：自行 `JSON.parse` SSE 数据并手写状态机。会遗漏 `[DONE]` 哨兵处理、
 > `schema_version` 兼容性检查和多 artifact 并发逻辑，形成平行维护负担。
@@ -164,14 +164,14 @@ FOUC 防护（放在 `<head>` 内 `tokens.css` 之前）：
 
 ```bash
 # 先 types，再 ui
-pnpm --filter @meso/types run build
+pnpm --filter @meso.ai/types run build
 pnpm --filter @meso.ai/ui run build
 ```
 
 ```json
 {
   "dependencies": {
-    "@meso/types": "file:../meso/packages/meso-types",
+    "@meso.ai/types": "file:../meso/packages/meso-types",
     "@meso.ai/ui":    "file:../meso/packages/meso-ui"
   }
 }

@@ -4,13 +4,13 @@
 
 ---
 
-## @meso/types：在 Node.js 中验证 SSE 输出
+## @meso.ai/types：在 Node.js 中验证 SSE 输出
 
 无需浏览器，纯 Node.js 测试后端发出的 SSE 流是否符合协议：
 
 ```typescript
 // backend.test.ts
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 import { describe, it, expect } from 'vitest'
 
 function replaySSE(raw: string) {
@@ -104,7 +104,7 @@ data: {"type":"done","schema_version":"1.0","payload":{}}
 ```typescript
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 
 function loadFixture(name: string) {
   const txt = readFileSync(join(__dirname, '__fixtures__', name + '.txt'), 'utf-8')
@@ -130,7 +130,7 @@ it('basic-stream snapshot', () => {
 ```typescript
 // __mocks__/@meso.ai/ui.ts
 import type { StreamState } from '@meso.ai/ui'
-import { createInitialStreamState } from '@meso/types'
+import { createInitialStreamState } from '@meso.ai/types'
 
 export const mockStreamState: StreamState = {
   ...createInitialStreamState(),

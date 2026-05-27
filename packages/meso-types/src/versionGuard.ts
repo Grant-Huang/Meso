@@ -19,7 +19,7 @@ export function assertCompatibleVersion(ev: SSEEvent): void {
   if (!isCompatibleVersion(ev)) {
     throw new Error(
       `Meso protocol version mismatch: runtime expects ${PROTOCOL_VERSION}, ` +
-      `received ${ev.schema_version}. Upgrade @meso/types or your backend.`
+      `received ${ev.schema_version}. Upgrade @meso.ai/types or your backend.`
     )
   }
 }

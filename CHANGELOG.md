@@ -6,7 +6,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [@meso.ai/ui] 2.0.2 · [@meso/types] 1.0.1 — 2026-05-26
+## [@meso.ai/ui] 2.0.2 · [@meso.ai/types] 1.0.1 — 2026-05-26
 
 ### ADDED
 
@@ -20,7 +20,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [@meso.ai/ui] 2.0.1 · [@meso/types] 1.1.0 — 2026-05-24
+## [@meso.ai/ui] 2.0.1 · [@meso.ai/types] 1.1.0 — 2026-05-24
 
 ### ADDED
 
@@ -32,12 +32,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### CHANGED
 
-- `@meso/types` promoted from `dependencies` to `peerDependencies` in `meso-ui/package.json`; consumers using `file:` paths must declare both packages explicitly (see README → Monorepo 外消费)
+- `@meso.ai/types` promoted from `dependencies` to `peerDependencies` in `meso-ui/package.json`; consumers using `file:` paths must declare both packages explicitly (see README → Monorepo 外消费)
 - Package manager migrated from npm to pnpm; lockfile is now `pnpm-lock.yaml`
 
 ---
 
-## [@meso.ai/ui] 2.0.0 · [@meso/types] 1.0.0 — initial release
+## [@meso.ai/ui] 2.0.0 · [@meso.ai/types] 1.0.0 — initial release
 
 ### BREAKING (vs. pre-release)
 
@@ -51,5 +51,5 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `@meso.ai/ui`: `useSSEStream`, `useTheme`
 - `@meso.ai/ui/runtime` — React-free entry point for `parseSSELine`, `applyEvent`, `createInitialStreamState`
 - `@meso.ai/ui/tokens.css` — design token CSS variables + dark/light theme support
-- `@meso/types`: full SSE protocol v1.0 type definitions, `applyEvent`, `parseSSELine`, `createInitialStreamState`
+- `@meso.ai/types`: full SSE protocol v1.0 type definitions, `applyEvent`, `parseSSELine`, `createInitialStreamState`
 - SSE protocol v1.0: versioned event envelope `{type, schema_version, payload}`

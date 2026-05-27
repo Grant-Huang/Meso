@@ -199,9 +199,9 @@ MCP `idempotentHint` 映射到 `annotations.idempotent`，前端目前不展示�
 
 ---
 
-## 九、协议包（@meso/types）
+## 九、协议包（@meso.ai/types）
 
-`@meso/types` 是零依赖的协议包，包含：
+`@meso.ai/types` 是零依赖的协议包，包含：
 
 | 模块 | 内容 |
 |------|------|
@@ -217,7 +217,7 @@ import {
   createInitialStreamState,
   PROTOCOL_VERSION,
 } from '@meso.ai/ui/runtime'
-// 或直接从 @meso/types（如果单独安装）
+// 或直接从 @meso.ai/types（如果单独安装）
 ```
 
 `applyEvent` 是纯函数（无 side effects），可在任何环境中使用：Node.js、浏览器、Deno、边缘函数。

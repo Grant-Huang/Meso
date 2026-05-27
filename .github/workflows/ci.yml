@@ -22,14 +22,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build @meso/types
-        run: pnpm --filter @meso/types run build
+      - name: Build @meso.ai/types
+        run: pnpm --filter @meso.ai/types run build
 
       - name: Build @meso.ai/ui
         run: pnpm --filter @meso.ai/ui run build
 
-      - name: Test @meso/types
-        run: pnpm --filter @meso/types run test
+      - name: Test @meso.ai/types
+        run: pnpm --filter @meso.ai/types run test
 
       - name: Test @meso.ai/ui
         run: pnpm --filter @meso.ai/ui run test
@@ -37,7 +37,7 @@ jobs:
       - name: Smoke test (pack + install + vite build)
         run: |
           mkdir -p /tmp/tarballs
-          pnpm --filter @meso/types pack --pack-destination /tmp/tarballs
+          pnpm --filter @meso.ai/types pack --pack-destination /tmp/tarballs
           pnpm --filter @meso.ai/ui    pack --pack-destination /tmp/tarballs
           ls /tmp/tarballs/
           # Install into a minimal vite project and verify it builds
@@ -48,7 +48,7 @@ jobs:
             "private": true,
             "type": "module",
             "dependencies": {
-              "@meso/types": "/tmp/tarballs/meso-types-1.0.0.tgz",
+              "@meso.ai/types": "/tmp/tarballs/meso.ai-types-1.0.0.tgz",
               "@meso.ai/ui": "/tmp/tarballs/meso.ai-ui-2.0.0.tgz",
               "react": "^18.3.1",
               "react-dom": "^18.3.1"

@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # for creating GitHub Release
+      id-token: write  # for OIDC trusted publishing to npm
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -46,10 +47,8 @@ jobs:
 
       - name: Publish to npm
         run: |
-          pnpm --filter @meso.ai/types publish --no-git-checks --access public
-          pnpm --filter @meso.ai/ui    publish --no-git-checks --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          pnpm --filter @meso.ai/types publish --no-git-checks --access public --provenance
+          pnpm --filter @meso.ai/ui    publish --no-git-checks --access public --provenance
 
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2

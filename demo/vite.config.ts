@@ -18,12 +18,12 @@ const MOCK_SCRIPT: [number, string][] = [
   [1000, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '流式优先的 LLM UI 平台，' } })],
   [1100, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '提供三大核心能力：\n\n' } })],
   [1200, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '1. **SSE 协议 v1.0** — 标准化流式事件格式\n' } })],
-  [1300, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '2. **`@meso/ui`** — React 组件库（MessageList、ThreeColumnLayout…）\n' } })],
+  [1300, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '2. **`@meso.ai/ui`** — React 组件库（MessageList、ThreeColumnLayout…）\n' } })],
   [1400, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '3. **`@meso/types`** — 零依赖运行时（parseSSELine、applyEvent）\n\n' } })],
   [1500, JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: '以下是一段示例代码：' } })],
   [1600, JSON.stringify({ type: 'artifact', schema_version: '1.0', payload: {
     id: 'a1', lang: 'typescript',
-    delta: 'import { useSSEStream, MessageList } from \'@meso/ui\'\n\nfunction ChatPage() {\n  const { state, start, reset } = useSSEStream(\'/api/stream\')\n',
+    delta: 'import { useSSEStream, MessageList } from \'@meso.ai/ui\'\n\nfunction ChatPage() {\n  const { state, start, reset } = useSSEStream(\'/api/stream\')\n',
     done: false,
   } })],
   [1700, JSON.stringify({ type: 'artifact', schema_version: '1.0', payload: {

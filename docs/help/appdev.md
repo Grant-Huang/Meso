@@ -14,7 +14,7 @@
          └── 工具执行器（Function Calling）
                       ↕  SSE 协议 v1.0（唯一接口契约）
          你的前端
-         ├── @meso/ui — ThreeColumnLayout / MessageList / ArtifactPanel
+         ├── @meso.ai/ui — ThreeColumnLayout / MessageList / ArtifactPanel
          ├── useSSEStream Hook — 连接后端 SSE 流
          └── @meso/types — 协议解析 + 纯状态机（无 React 依赖）
 ```
@@ -42,7 +42,7 @@ POST /api/chat  { message, session_id, app_id }
 
 | 能力 | 平台提供 | 你来实现 |
 |------|---------|---------|
-| 流式渲染 UI | @meso/ui 全部组件 | — |
+| 流式渲染 UI | @meso.ai/ui 全部组件 | — |
 | SSE 协议解析 | @meso/types runtime | — |
 | 布局 + 主题 | ThreeColumnLayout + CSS token | — |
 | LLM 调用 | — | 对接 OpenAI 兼容 API |

@@ -18,7 +18,7 @@ const RESULTS_MAP: Record<string, RecallResult[]> = {
   ],
   react: [
     { catLabel: '用户偏好', catBg: 'rgba(61,107,82,0.13)', catColor: 'var(--color-accent)', text: '偏好 TypeScript，使用 arrow functions 和 hooks，避免 class components。', source: 'preferences.md', score: '0.95', date: '2025-01-10' },
-    { catLabel: '项目背景', catBg: 'rgba(47,125,74,.12)', catColor: 'var(--color-success)', text: '当前项目：Meso，React 18 + Vite，使用 @meso/ui 组件库。', source: 'meso_context.md', score: '0.89', date: '2025-01-09' },
+    { catLabel: '项目背景', catBg: 'rgba(47,125,74,.12)', catColor: 'var(--color-success)', text: '当前项目：Meso，React 18 + Vite，使用 @meso.ai/ui 组件库。', source: 'meso_context.md', score: '0.89', date: '2025-01-09' },
   ],
 }
 

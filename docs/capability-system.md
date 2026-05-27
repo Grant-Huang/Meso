@@ -8,7 +8,7 @@
 
 **平台定义协议，应用定义实现，后端负责执行。**
 
-平台（`@meso/ui`）：
+平台（`@meso.ai/ui`）：
 - 定义所有能力类型的 SSE 事件格式
 - 维护 `StreamState` 中的能力状态
 - 渲染对应的 UI 组件
@@ -216,7 +216,7 @@ import {
   applyEvent,
   createInitialStreamState,
   PROTOCOL_VERSION,
-} from '@meso/ui/runtime'
+} from '@meso.ai/ui/runtime'
 // 或直接从 @meso/types（如果单独安装）
 ```
 

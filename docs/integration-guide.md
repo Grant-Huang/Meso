@@ -15,9 +15,9 @@
 ## 步骤 1：安装
 
 ```bash
-npm install @meso/ui
+npm install @meso.ai/ui
 # 或
-yarn add @meso/ui
+yarn add @meso.ai/ui
 ```
 
 peerDependencies：`react >= 18.0.0`，`react-dom >= 18.0.0`
@@ -29,7 +29,7 @@ peerDependencies：`react >= 18.0.0`，`react-dom >= 18.0.0`
 在应用入口（`main.tsx` / `_app.tsx`）导入设计 token：
 
 ```tsx
-import '@meso/ui/tokens.css'
+import '@meso.ai/ui/tokens.css'
 ```
 
 **FOUC 防护**（亮/暗主题切换时避免闪烁）—— 放在 HTML `<head>` 最前，token CSS 之前：
@@ -51,7 +51,7 @@ import '@meso/ui/tokens.css'
 ## 步骤 3：三栏布局
 
 ```tsx
-import { ThreeColumnLayout } from '@meso/ui'
+import { ThreeColumnLayout } from '@meso.ai/ui'
 
 function App() {
   return (
@@ -80,7 +80,7 @@ function App() {
 ## 步骤 4：接入 SSE 流
 
 ```tsx
-import { useSSEStream, MessageList } from '@meso/ui'
+import { useSSEStream, MessageList } from '@meso.ai/ui'
 
 function ChatPane() {
   const { state, start, abort, reset } = useSSEStream('https://your-api.com/stream')
@@ -199,11 +199,11 @@ function Composer({ onSend, disabled }: { onSend: (text: string) => void; disabl
 
 ```tsx
 // app/layout.tsx
-import '@meso/ui/tokens.css'
+import '@meso.ai/ui/tokens.css'
 
 // app/page.tsx
 'use client'
-import { useSSEStream } from '@meso/ui'
+import { useSSEStream } from '@meso.ai/ui'
 ```
 
 注意：`useSSEStream` 是 React Hook，须在 Client Component 中使用。
@@ -212,7 +212,7 @@ import { useSSEStream } from '@meso/ui'
 
 ```tsx
 // src/main.tsx
-import '@meso/ui/tokens.css'
+import '@meso.ai/ui/tokens.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
@@ -237,7 +237,7 @@ createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictM
 
 ```typescript
 // 仅使用协议解析和状态机，不依赖 React
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/ui/runtime'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/ui/runtime'
 
 const lines = sseResponseText.split('\n')
 const finalState = lines.reduce((state, line) => {

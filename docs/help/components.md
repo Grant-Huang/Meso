@@ -1,6 +1,6 @@
 # 组件 API 与类型
 
-`@meso/ui` 导出的全部组件、Hook 及 TypeScript 类型。所有组件支持明/暗双主题。
+`@meso.ai/ui` 导出的全部组件、Hook 及 TypeScript 类型。所有组件支持明/暗双主题。
 
 ---
 
@@ -24,7 +24,7 @@ import {
   ResourceReadBlock,
   useSSEStream,
   useTheme,
-} from '@meso/ui'
+} from '@meso.ai/ui'
 
 // 类型（仅类型）
 import type {
@@ -44,7 +44,7 @@ import type {
   SSEEvent,
   ThinkPayload,
   TextPayload,
-} from '@meso/ui'
+} from '@meso.ai/ui'
 
 // 纯运行时（无 React，可在 Node.js 使用）
 import {
@@ -52,7 +52,7 @@ import {
   applyEvent,
   createInitialStreamState,
   PROTOCOL_VERSION,
-} from '@meso/ui/runtime'
+} from '@meso.ai/ui/runtime'
 // 或等价地：
 import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
 ```
@@ -216,7 +216,7 @@ interface Stage {
 DAG 工作流可观测性组件，将 `workflow_node` 事件流渲染为带深度缩进的树形节点列表。
 
 ```tsx
-import { WorkflowTimeline } from '@meso/ui'
+import { WorkflowTimeline } from '@meso.ai/ui'
 
 <WorkflowTimeline
   runs={Object.values(state.workflowRuns)}
@@ -245,7 +245,7 @@ import { WorkflowTimeline } from '@meso/ui'
 展示单个工具调用的调用参数与执行结果，支持 `awaiting_confirm` 状态。
 
 ```tsx
-import { ToolCallBlock } from '@meso/ui'
+import { ToolCallBlock } from '@meso.ai/ui'
 
 {state.toolCallOrder.map(id => (
   <ToolCallBlock
@@ -270,7 +270,7 @@ import { ToolCallBlock } from '@meso/ui'
 危险操作的独立确认弹层，按 `risk` 字段渲染不同样式（safe / write / destructive）。
 
 ```tsx
-import { ConfirmGate } from '@meso/ui'
+import { ConfirmGate } from '@meso.ai/ui'
 
 <ConfirmGate
   toolCall={pendingCall}
@@ -292,7 +292,7 @@ import { ConfirmGate } from '@meso/ui'
 展示当前激活的 Soul（人格/角色）信息。
 
 ```tsx
-import { SoulIndicator } from '@meso/ui'
+import { SoulIndicator } from '@meso.ai/ui'
 
 {state.activeSoul && (
   <SoulIndicator soul={state.activeSoul} compact={false} />
@@ -311,7 +311,7 @@ import { SoulIndicator } from '@meso/ui'
 展示当前激活的 Skill（操作模式）信息。
 
 ```tsx
-import { SkillIndicator } from '@meso/ui'
+import { SkillIndicator } from '@meso.ai/ui'
 
 {state.activeSkill && (
   <SkillIndicator skill={state.activeSkill} />
@@ -329,7 +329,7 @@ import { SkillIndicator } from '@meso/ui'
 展示单个 MCP 资源读取的 URI、内容（可折叠）和状态。
 
 ```tsx
-import { ResourceReadBlock } from '@meso/ui'
+import { ResourceReadBlock } from '@meso.ai/ui'
 
 {state.resourceReadOrder.map(id => (
   <ResourceReadBlock key={id} resourceRead={state.resourceReads[id]} />

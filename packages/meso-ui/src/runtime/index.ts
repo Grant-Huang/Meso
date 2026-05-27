@@ -4,7 +4,7 @@
  *
  * Consumers who don't need React can import from @meso/types directly
  * (zero-dep, smaller bundle). This re-export exists so that
- * `@meso/ui/runtime` continues to work as a convenience path.
+ * `@meso.ai/ui/runtime` continues to work as a convenience path.
  */
 export {
   PROTOCOL_VERSION,

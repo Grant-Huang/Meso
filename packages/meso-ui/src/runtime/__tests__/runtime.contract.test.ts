@@ -1,11 +1,11 @@
 /**
- * Smoke test: verify @meso/ui/runtime re-exports from @meso/types correctly.
+ * Smoke test: verify @meso.ai/ui/runtime re-exports from @meso/types correctly.
  * Full contract tests (fixture → snapshot) live in packages/meso-types.
  */
 import { describe, it, expect } from 'vitest'
 import { parseSSELine, applyEvent, createInitialStreamState, PROTOCOL_VERSION } from '../index'
 
-describe('@meso/ui/runtime re-exports from @meso/types', () => {
+describe('@meso.ai/ui/runtime re-exports from @meso/types', () => {
   it('PROTOCOL_VERSION is exported', () => {
     expect(PROTOCOL_VERSION).toBe('1.0')
   })

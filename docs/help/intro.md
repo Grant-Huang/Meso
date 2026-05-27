@@ -11,7 +11,7 @@ Meso 不是一个普通的 UI 组件库。它是一个**以流式协议为核心
 │  记忆系统设计 · 应用插件 Manifest · 第三方扩展事件                  │
 ├─────────────────────────────────────────────────────────────────┤
 │  核心平台（已实现，稳定可用）                                        │
-│  SSE 协议 v1.0  ·  @meso/ui 组件  ·  @meso/types 运行时          │
+│  SSE 协议 v1.0  ·  @meso.ai/ui 组件  ·  @meso/types 运行时          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -19,7 +19,7 @@ Meso 不是一个普通的 UI 组件库。它是一个**以流式协议为核心
 
 ## 核心平台（已实现）
 
-这是 `@meso/ui` 和 `@meso/types` 两个包所覆盖的内容，是当前可生产使用的部分：
+这是 `@meso.ai/ui` 和 `@meso/types` 两个包所覆盖的内容，是当前可生产使用的部分：
 
 ### SSE 事件协议 v1.0
 
@@ -38,7 +38,7 @@ Meso 不是一个普通的 UI 组件库。它是一个**以流式协议为核心
 
 协议使用版本化信封 `{"type":"…","schema_version":"1.0","payload":{…}}`，Breaking 变更通过 major 版本管理。
 
-### @meso/ui — React 组件库
+### @meso.ai/ui — React 组件库
 
 ```tsx
 import {
@@ -51,7 +51,7 @@ import {
   StreamingCursor,    // 流式光标（独立）
   useSSEStream,       // SSE 客户端 Hook
   useTheme,           // 亮/暗主题切换
-} from '@meso/ui'
+} from '@meso.ai/ui'
 ```
 
 ### @meso/types — 零依赖运行时

@@ -157,4 +157,4 @@ def get_provider(app_manifest: AppManifest) -> LLMProvider:
         return OpenAICompatibleProvider(base_url=os.getenv("LLM_BASE_URL"), ...)
 ```
 
-平台（`@meso/ui`）对 Provider 实现完全透明，只关心 SSE 事件流。
+平台（`@meso.ai/ui`）对 Provider 实现完全透明，只关心 SSE 事件流。

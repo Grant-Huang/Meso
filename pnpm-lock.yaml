@@ -10,12 +10,12 @@ importers:
 
   demo:
     dependencies:
+      '@meso.ai/ui':
+        specifier: workspace:*
+        version: link:../packages/meso-ui
       '@meso/types':
         specifier: workspace:*
         version: link:../packages/meso-types
-      '@meso/ui':
-        specifier: workspace:*
-        version: link:../packages/meso-ui
       react:
         specifier: ^18.3.1
         version: 18.3.1

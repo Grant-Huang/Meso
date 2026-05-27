@@ -107,6 +107,6 @@ state.stages[n].state
 协议层 Breaking 变更须：
 1. 先更新 `docs/streaming-protocol.md`（单一事实来源）
 2. 更新契约测试 fixture
-3. 发布新版 `@meso/ui` / `@meso/types`
+3. 发布新版 `@meso.ai/ui` / `@meso/types`
 
 完整变更历史见 [CHANGELOG.md](../packages/meso-ui/CHANGELOG.md)。

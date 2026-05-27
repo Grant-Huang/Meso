@@ -128,8 +128,8 @@ it('basic-stream snapshot', () => {
 使用 `vi.mock`（Vitest）或 `jest.mock` 注入假状态：
 
 ```typescript
-// __mocks__/@meso/ui.ts
-import type { StreamState } from '@meso/ui'
+// __mocks__/@meso.ai/ui.ts
+import type { StreamState } from '@meso.ai/ui'
 import { createInitialStreamState } from '@meso/types'
 
 export const mockStreamState: StreamState = {
@@ -146,17 +146,17 @@ export const useSSEStream = vi.fn(() => ({
 }))
 
 // 其余组件从真实模块 re-export
-export * from '../node_modules/@meso/ui/dist/index.js'
+export * from '../node_modules/@meso.ai/ui/dist/index.js'
 ```
 
 在测试中控制状态：
 
 ```typescript
 import { render, screen, fireEvent } from '@testing-library/react'
-import { useSSEStream } from '@meso/ui'
+import { useSSEStream } from '@meso.ai/ui'
 import { ChatPage } from './ChatPage'
 
-vi.mock('@meso/ui')
+vi.mock('@meso.ai/ui')
 
 describe('ChatPage', () => {
   it('发送按钮在 streaming 时禁用', () => {

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { createInitialStreamState, applyEvent } from '@meso/types'
-import type { StreamState, StreamStatus } from '@meso/ui'
+import type { StreamState, StreamStatus } from '@meso.ai/ui'
 
 export interface LlmMessage {
   role: 'user' | 'assistant' | 'system'

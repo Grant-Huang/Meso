@@ -7,9 +7,9 @@
 ## 步骤一：安装
 
 ```bash
-npm install @meso/ui
+npm install @meso.ai/ui
 # 或
-yarn add @meso/ui
+yarn add @meso.ai/ui
 ```
 
 peerDependencies：`react >= 18`，`react-dom >= 18`
@@ -39,7 +39,7 @@ peerDependencies：`react >= 18`，`react-dom >= 18`
 **`main.tsx`**（Vite 项目在 JS 中引入 CSS）：
 
 ```tsx
-import '@meso/ui/tokens.css'   // 设计 token，全局引入一次
+import '@meso.ai/ui/tokens.css'   // 设计 token，全局引入一次
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -55,7 +55,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
 
 ```tsx
 // App.tsx
-import { ThreeColumnLayout, useTheme } from '@meso/ui'
+import { ThreeColumnLayout, useTheme } from '@meso.ai/ui'
 
 export function App() {
   const { theme, toggle } = useTheme()
@@ -90,7 +90,7 @@ export function App() {
 
 ```tsx
 // ChatPage.tsx
-import { useSSEStream, MessageList } from '@meso/ui'
+import { useSSEStream, MessageList } from '@meso.ai/ui'
 import { useState, useEffect } from 'react'
 
 export function ChatPage() {
@@ -225,7 +225,7 @@ def sse(obj):
 
 ```tsx
 // app/layout.tsx
-import '@meso/ui/tokens.css'
+import '@meso.ai/ui/tokens.css'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -245,5 +245,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```tsx
 // app/chat/page.tsx
 'use client'   // ← useSSEStream 是 React Hook，必须在 Client Component 中使用
-import { useSSEStream, MessageList } from '@meso/ui'
+import { useSSEStream, MessageList } from '@meso.ai/ui'
 ```

@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.1.0)'
+        required: true
+        default: 'v1.1.0'
 
 jobs:
   release:
@@ -53,5 +59,6 @@ jobs:
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: dist-tarballs/*.tgz
           generate_release_notes: true

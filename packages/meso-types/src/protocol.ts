@@ -319,6 +319,64 @@ export interface WorkflowNodePayload {
 /** Fine-grained workflow node progress — developer-facing, not shown to end users. */
 export type WorkflowNodeEvent = Envelope<'workflow_node', WorkflowNodePayload>
 
+// ── External tool definition (dev-time registration format) ─────────────────
+//
+// Tool authors write one ToolDefinition per tool (as a .json file or inline in
+// manifest.json). Backends read these at startup and translate them into ToolSpec
+// entries in the capabilities SSE event. This type is NOT an SSE event — it is
+// a config-file contract for development-time tool registration.
+//
+// Supported forms in manifest.json "tools" array:
+//   "search_knowledge"           → built-in tool ID (string)
+//   "./tools/my-tool.json"       → path to a ToolDefinition file (string)
+//   { schema_version: "1.0", … } → inline ToolDefinition (object)
+
+export interface ExternalToolAuth {
+  type: 'bearer' | 'api_key' | 'basic'
+  /** HTTP header to carry the credential (default: "Authorization"). */
+  header?: string
+  /** Name of the environment variable holding the secret, e.g. "${MY_API_KEY}". */
+  env?: string
+}
+
+export interface ToolDefinition {
+  schema_version: '1.0'
+  /**
+   * Stable unique identifier. Use dot-namespacing to avoid collisions,
+   * e.g. "acme.web_search", "myapp.export_docx".
+   */
+  id: string
+  /** Display name shown in UI and passed to the LLM. */
+  name: string
+  /** Semver — bump when input_schema or behaviour changes. */
+  version: string
+  description: string
+  risk?: ToolRisk
+  /**
+   * How the backend invokes this tool at runtime:
+   *   local — function in the same backend process
+   *   api   — HTTP endpoint (provide `endpoint`)
+   *   mcp   — via a named MCP server (prefer manifest mcp.servers instead)
+   */
+  provider: Extract<CapabilityProvider, 'local' | 'api' | 'mcp'>
+  /** Required when provider = "api". */
+  endpoint?: string
+  /** HTTP method for provider = "api" (default: "POST"). */
+  method?: 'GET' | 'POST'
+  auth?: ExternalToolAuth
+  /** JSON Schema describing the tool's input parameters. */
+  input_schema: {
+    type: 'object'
+    properties: Record<string, unknown>
+    required?: string[]
+    [key: string]: unknown
+  }
+  /** Free-form tags for filtering and grouping in tool-picker UI. */
+  tags?: string[]
+  /** Icon name (Ant Design icon or custom asset key). */
+  icon?: string
+}
+
 // ── Extension event ─────────────────────────────────────────────────────────
 //
 // Third-party backends use this channel for domain-specific events that don't

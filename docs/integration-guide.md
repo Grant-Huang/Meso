@@ -174,24 +174,204 @@ const stages = stagePayloads.map((p, i) => stagePayloadToStage(p, `stage-${i}`))
 
 ---
 
-## 步骤 7（可选）：工具调用与确认门
+## 步骤 7（可选）：工具集成
 
-如果后端使用 `tool_call` / `tool_result` 标准事件，传入确认回调即可：
+工具集成分四个环节：**定义工具 → 声明到 Manifest → 后端发 SSE 事件 → 前端接回调**。
+
+### 7.1 定义工具（ToolDefinition）
+
+在 `tools/` 目录下创建 JSON 描述文件（对应 `@meso.ai/types` 导出的 `ToolDefinition` 类型）：
+
+```json
+// tools/read-file.json
+{
+  "schema_version": "1.0",
+  "id": "myapp.read_file",
+  "name": "读取文件",
+  "version": "1.0.0",
+  "description": "读取指定路径的文件内容，返回文本",
+  "provider": "local",
+  "risk": "safe",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string", "description": "文件路径" }
+    },
+    "required": ["path"]
+  },
+  "tags": ["file", "read"]
+}
+```
+
+`risk` 枚举值的含义：
+
+| risk | 前端行为 |
+|------|---------|
+| `"safe"` | 直接执行，不弹确认 |
+| `"write"` | 显示操作提示，不强制确认 |
+| `"destructive"` | 渲染确认门（ConfirmGate），用户点击后才执行 |
+
+对于 HTTP 工具（`provider: "api"`），还需提供 `endpoint` 和可选的 `auth`：
+
+```json
+{
+  "schema_version": "1.0",
+  "id": "myorg.web_search",
+  "name": "网页搜索",
+  "version": "2.0.0",
+  "description": "搜索互联网获取最新信息",
+  "provider": "api",
+  "risk": "safe",
+  "endpoint": "http://localhost:8080/tools/web-search",
+  "method": "POST",
+  "auth": {
+    "type": "bearer",
+    "env": "${SEARCH_API_KEY}"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "limit": { "type": "integer", "default": 5 }
+    },
+    "required": ["query"]
+  }
+}
+```
+
+### 7.2 在 Manifest 中声明
+
+`tools` 字段接受三种形式，可混用：
+
+```json
+{
+  "tools": [
+    "search_knowledge",        // ① 内置工具 ID（字符串）
+    "./tools/read-file.json",  // ② 外部工具文件路径（./ 开头）
+    {                          // ③ 内联 ToolDefinition 对象
+      "schema_version": "1.0",
+      "id": "myapp.summarize",
+      "name": "生成摘要",
+      "version": "1.0.0",
+      "description": "对文本生成简短摘要",
+      "provider": "local",
+      "risk": "safe",
+      "input_schema": {
+        "type": "object",
+        "properties": { "text": { "type": "string" } },
+        "required": ["text"]
+      }
+    }
+  ]
+}
+```
+
+平台在启动时加载所有工具定义，合并后在 `capabilities` SSE 事件中一次性发给前端。
+
+### 7.3 后端发送 SSE 事件
+
+流式请求的完整工具事件序列：
+
+```python
+# Python / FastAPI 后端示例
+import json
+
+async def event_stream():
+    def sse(t, p):
+        return f'data: {json.dumps({"type":t,"schema_version":"1.0","payload":p})}\n\n'
+
+    # ① 流式开始时声明可用工具（前端据此渲染工具面板）
+    yield sse("capabilities", {"tools": [{
+        "name": "read_file",
+        "description": "读取文件内容",
+        "provider": "local",
+        "risk": "safe",
+        "input_schema": {
+            "type": "object",
+            "properties": {"path": {"type": "string"}},
+            "required": ["path"]
+        }
+    }]})
+
+    # ② LLM 决定调用工具 → 发 tool_call（前端渲染 ToolCallBlock）
+    yield sse("tool_call", {
+        "id": "tc-001",
+        "name": "read_file",
+        "args": {"path": "/docs/readme.md"},
+        "risk": "safe",    # safe → 前端直接展示；destructive → 等待用户确认
+        "provider": "local"
+    })
+
+    # ③ 执行工具，发送结果（前端更新 ToolCallBlock 状态）
+    result = run_tool("read_file", {"path": "/docs/readme.md"})
+    yield sse("tool_result", {
+        "tool_call_id": "tc-001",
+        "output": result,          # 序列化为字符串
+        "duration_ms": 28
+    })
+
+    # ④ 继续生成回复
+    yield sse("text", {"delta": "文件内容已读取。"})
+    yield sse("done", {})
+```
+
+**危险工具的后端流程**（`risk: "destructive"`）：
+
+1. 后端发 `tool_call`（带 `risk: "destructive"`）→ 暂停等待确认信号
+2. 前端渲染确认门，用户点击"确认"→ 前端 `POST /api/tool/confirm`
+3. 后端收到确认 → 执行工具 → 发 `tool_result` → 继续流式
+
+```python
+# 危险工具后端示例（需配合 POST /api/tool/confirm 接口）
+async def event_stream(session_id: str):
+    yield sse("tool_call", {
+        "id": "tc-del",
+        "name": "delete_file",
+        "args": {"path": "/tmp/cache.db"},
+        "risk": "destructive",
+        "provider": "local"
+    })
+
+    # 阻塞等待用户确认（实现由应用自己选择：Redis pub/sub、asyncio.Event 等）
+    confirmed = await wait_for_confirm(session_id, "tc-del", timeout=60)
+    if not confirmed:
+        yield sse("error", {"message": "用户已取消操作"})
+        return
+
+    yield sse("tool_result", {
+        "tool_call_id": "tc-del",
+        "output": "已删除 /tmp/cache.db（1.2 MB）",
+        "duration_ms": 45
+    })
+    yield sse("done", {})
+```
+
+### 7.4 前端接入
 
 ```tsx
 <MessageList
   messages={messages}
   streaming={state.status !== 'idle' ? state : undefined}
   onToolConfirm={(toolCallId) => {
-    fetch('/api/confirm-tool', { method: 'POST', body: JSON.stringify({ toolCallId }) })
+    // risk="destructive" 工具用户点击确认后触发
+    // 通知后端继续执行（后端解除等待，继续流式输出）
+    fetch('/api/tool/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ tool_call_id: toolCallId }),
+    })
   }}
   onToolCancel={(toolCallId) => {
-    fetch('/api/cancel-tool', { method: 'POST', body: JSON.stringify({ toolCallId }) })
+    // 用户取消：中止当前 SSE 流
+    abort()
   }}
 />
 ```
 
-当 `tool_call` 的 `risk` 为 `"destructive"` 时，平台自动渲染确认门，用户点击"确认执行"后才调用 `onToolConfirm`。
+`tool_call` 的 `risk` 字段控制前端行为：
+- `"safe"` / `"write"` → ToolCallBlock 立即显示执行状态，无需用户操作
+- `"destructive"` → 自动弹出 ConfirmGate，流式暂停，等用户点击"确认执行"
+
+> **交互 Demo**：在 Demo 应用中打开 **「工具集成」** 页面，可以看到安全工具自动执行、以及危险工具确认门的完整交互流程。
 
 ---
 
@@ -329,9 +509,12 @@ const finalState = lines.reduce((state, line) => {
 - [ ] `soul` 事件后 SoulIndicator 显示头像 + 特质标签
 - [ ] `skill_active` 事件后 SkillIndicator 显示技能名 + 焦点
 - [ ] `memory` 事件后记忆 chip 正确显示
+- [ ] `capabilities` 事件中 `tools` 数组正确声明（名称、风险、schema 完整）
 - [ ] `tool_call` 事件后 ToolCallBlock 显示 spinner
 - [ ] `tool_result` 事件后 ToolCallBlock 更新为 check / error
-- [ ] `risk: "destructive"` 工具触发确认门，点击确认后调用 `onToolConfirm`
+- [ ] `risk: "safe"` 工具直接执行，无确认门
+- [ ] `risk: "destructive"` 工具触发确认门，点击确认后调用 `onToolConfirm`，`tool_result` 到达后确认门消失
+- [ ] 工具执行失败（`tool_result` 含 `error` 字段）时 ToolCallBlock 显示错误状态
 - [ ] `resource_read` 后 ResourceReadBlock 显示 URI + spinner
 - [ ] `resource_content` 后 ResourceReadBlock 更新为内容可折叠展示
 - [ ] `workflow_node` 事件后 WorkflowTimeline 节点状态正确更新

@@ -33,7 +33,10 @@ const MANIFESTS: Record<AppId, object> = {
     name: '通用对话',
     icon: 'chat',
     skill: { system_prompt: '你是一个全能 AI 助手，支持聊天、分析、写作。' },
-    tools: ['web_search', 'calculator'],
+    tools: [
+      'web_search',                  // 内置工具 ID
+      './tools/calculator.json',     // 外部工具文件路径
+    ],
     memory: { recall_categories: ['preference', 'project', 'fact'], recall_top_k: 5 },
   },
   docreview: {
@@ -43,7 +46,20 @@ const MANIFESTS: Record<AppId, object> = {
     icon: 'file-search',
     ui: { composer_placeholder: '上传文档或输入审查要求…', split_mode_default: true },
     skill: { system_prompt: '你是一个专业的合同审查助手，关注法律风险和合规性。' },
-    tools: ['search_knowledge', 'extract_entities'],
+    tools: [
+      'search_knowledge',            // 内置工具 ID
+      './tools/extract-entities.json', // 外部工具文件路径
+      {                              // 内联 ToolDefinition
+        schema_version: '1.0',
+        id: 'docreview.export_docx',
+        name: '导出 Word',
+        version: '1.0.0',
+        description: '将审查结果导出为 .docx',
+        provider: 'local',
+        risk: 'write',
+        input_schema: { type: 'object', properties: { findings: { type: 'array' } }, required: ['findings'] },
+      },
+    ],
     knowledge: { enabled: true, index_dirs: ['legal-templates', 'company-policies'] },
     memory: { recall_categories: ['preference', 'project'], recall_top_k: 3 },
   },
@@ -54,7 +70,11 @@ const MANIFESTS: Record<AppId, object> = {
     icon: 'code',
     ui: { composer_placeholder: '粘贴代码或描述问题…' },
     skill: { system_prompt: '你是一名资深工程师，专注代码审查、重构建议与文档生成。' },
-    tools: ['run_code', 'search_docs', 'git_diff'],
+    tools: [
+      'run_code',                    // 内置工具 ID
+      './tools/git-diff.json',       // 外部工具文件路径
+      './tools/search-docs.json',
+    ],
     knowledge: { enabled: true, index_dirs: ['project_codebase'] },
     memory: { recall_categories: ['preference', 'project'], recall_top_k: 5 },
   },

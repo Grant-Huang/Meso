@@ -28,6 +28,8 @@ export type {
   ArtifactPayload,
   ToolRisk,
   ToolAnnotations,
+  ExternalToolAuth,
+  ToolDefinition,
   ToolCallEvent,
   ToolCallPayload,
   ToolResultEvent,

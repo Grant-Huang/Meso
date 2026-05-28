@@ -13,10 +13,11 @@ import { PluginPage } from './pages/PluginPage'
 import { DocGenPage } from './pages/DocGenPage'
 import { WorkflowPage } from './pages/WorkflowPage'
 import { QuickstartPage } from './pages/QuickstartPage'
+import { ToolsPage } from './pages/ToolsPage'
 
-type Page = 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart'
+type Page = 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools'
 
-const ALL_PAGES = new Set<Page>(['streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart'])
+const ALL_PAGES = new Set<Page>(['streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools'])
 
 const PAGE_SESSIONS: Record<Page, Session[]> = {
   streaming: [
@@ -36,6 +37,7 @@ const PAGE_SESSIONS: Record<Page, Session[]> = {
   ],
   workflow: [{ id: 'wf-1', title: 'DAG 工作流观测', lastTime: '今天' }],
   quickstart: [{ id: 'qs-1', title: '快速接入示例', lastTime: '今天' }],
+  tools: [{ id: 'tools-1', title: '工具集成 Demo', lastTime: '今天' }],
 }
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -49,6 +51,7 @@ const PAGE_TITLES: Record<Page, string> = {
   docgen: '文档生成器',
   workflow: 'DAG 工作流可观测性',
   quickstart: '快速接入示例',
+  tools: '工具集成',
 }
 
 // SVG icons
@@ -63,6 +66,7 @@ const Icons = {
   docgen: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="1" width="10" height="13" rx="1.5"/><line x1="4.5" y1="5" x2="9.5" y2="5"/><line x1="4.5" y1="7.5" x2="9.5" y2="7.5"/><line x1="4.5" y1="10" x2="7.5" y2="10"/><circle cx="13" cy="13" r="2.5" fill="var(--color-accent)" stroke="none"/><line x1="12" y1="13" x2="14" y2="13" stroke="white" strokeWidth="1.2"/><line x1="13" y1="12" x2="13" y2="14" stroke="white" strokeWidth="1.2"/></svg>,
   workflow: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="3" cy="3.5" r="1.5"/><circle cx="13" cy="3.5" r="1.5"/><circle cx="3" cy="12.5" r="1.5"/><circle cx="13" cy="12.5" r="1.5"/><circle cx="8" cy="8" r="1.5"/><line x1="4.5" y1="3.5" x2="6.5" y2="8"/><line x1="11.5" y1="3.5" x2="9.5" y2="8"/><line x1="6.5" y1="8" x2="4.5" y2="12.5"/><line x1="9.5" y1="8" x2="11.5" y2="12.5"/></svg>,
   quickstart: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
+  tools: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 2.5a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-1.5-.4L3 14l-1-1 6-6a3 3 0 0 1-.5-1.5 3 3 0 0 1 3-3z"/></svg>,
 }
 
 function getPageFromHash(): Page {
@@ -106,13 +110,14 @@ export default function App() {
     { id: 'docgen',      label: '文档生成',   icon: Icons.docgen,      active: page === 'docgen',      onClick: () => navigate('docgen') },
     { id: 'workflow',    label: 'DAG 工作流', icon: Icons.workflow,    active: page === 'workflow',    onClick: () => navigate('workflow') },
     { id: 'quickstart',  label: '接入示例',   icon: Icons.quickstart,  active: page === 'quickstart',  onClick: () => navigate('quickstart') },
+    { id: 'tools',       label: '工具集成',   icon: Icons.tools,       active: page === 'tools',       onClick: () => navigate('tools') },
   ]
 
   // LayoutPage manages its own full-height container
   if (page === 'layout') return <LayoutPage />
 
   // Static showcase pages don't need a session column "new" button
-  const isStaticPage = ['typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart'].includes(page)
+  const isStaticPage = ['typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools'].includes(page)
 
   return (
     <div style={{ height: '100vh' }}>
@@ -143,6 +148,7 @@ export default function App() {
         {page === 'docgen'     && <DocGenPage key={activeSessionId} />}
         {page === 'workflow'   && <WorkflowPage />}
         {page === 'quickstart' && <QuickstartPage />}
+        {page === 'tools'      && <ToolsPage />}
       </ThreeColumnLayout>
     </div>
   )

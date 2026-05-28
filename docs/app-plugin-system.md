@@ -102,9 +102,9 @@ apps/
   },
 
   "tools": [
-    "read_file",
     "search_knowledge",
-    "extract_findings"
+    "read_file",
+    "./tools/export-docx.json"
   ],
 
   "mcp": {
@@ -145,7 +145,7 @@ apps/
 | `skill.system_prompt_file` | — | 相对于 manifest.json 的路径 |
 | `skill.focus_points` | — | 可选的焦点列表（用户在 Composer 选择） |
 | `knowledge.index_dirs` | — | 相对路径列表，平台会索引这些目录 |
-| `tools` | — | 引用 platform tools registry 中的 tool id |
+| `tools` | — | 工具声明列表（字符串 ID、文件路径或内联 ToolDefinition，见第八节） |
 | `mcp.servers` | — | MCP 服务器列表，平台负责连接和代理 |
 | `memory.recall_categories` | — | 召回时过滤的记忆类别 |
 
@@ -261,7 +261,39 @@ App 启动 / 用户触发重建索引
 
 ## 八、Tools（工具）
 
+### 声明形式
+
+manifest `tools` 字段接受三种形式混合使用：
+
+```json
+"tools": [
+  "search_knowledge",             // 1. 内置工具 ID（字符串）
+  "./tools/export-docx.json",     // 2. 外部工具定义文件路径（字符串，./ 开头）
+  {                               // 3. 内联工具定义（ToolDefinition 对象）
+    "schema_version": "1.0",
+    "id": "acme.quick_summary",
+    "name": "快速摘要",
+    "version": "1.0.0",
+    "description": "对当前对话内容生成一句话摘要",
+    "provider": "local",
+    "risk": "safe",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "max_chars": { "type": "integer", "default": 120 }
+      }
+    }
+  }
+]
+```
+
+平台在启动时按顺序加载，最终合并为一份工具列表，通过 `capabilities` SSE 事件发送给前端。
+
+---
+
 ### 平台内置 Tools
+
+用字符串 ID 直接引用，无需任何额外配置：
 
 | Tool ID | 说明 | 风险 |
 |---------|------|------|
@@ -271,23 +303,47 @@ App 启动 / 用户触发重建索引
 | `extract_findings` | 从当前对话中提取结构化发现 | safe |
 | `write_file` | 写入文件（需显式权限） | write |
 
-### 自定义 Tools
+---
 
-App 可在 `apps/{app_id}/tools/` 目录下添加自定义 Tool：
+### 外部工具定义文件（ToolDefinition）
+
+外部工具通过一个 `.json` 文件描述自己的能力，放在 App 的 `tools/` 目录（或任意位置，manifest 中写相对路径）。
+
+**文件格式**（对应 `@meso.ai/types` 导出的 `ToolDefinition` 类型）：
+
+```json
+{
+  "schema_version": "1.0",
+  "id": "acme.export_docx",
+  "name": "导出 Word 文档",
+  "version": "1.2.0",
+  "description": "将审查结果导出为 .docx 格式，保留标题层级和表格",
+  "provider": "local",
+  "risk": "write",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "findings": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "发现的问题列表"
+      },
+      "output_path": {
+        "type": "string",
+        "description": "输出文件路径"
+      }
+    },
+    "required": ["findings", "output_path"]
+  },
+  "tags": ["export", "document"],
+  "icon": "FileWordOutlined"
+}
+```
+
+对应的后端实现文件（Python 示例）放在同目录即可，命名不限：
 
 ```python
 # apps/doc-reviewer/tools/export_docx.py
-
-TOOL_SPEC = {
-    "id": "export_docx",
-    "name": "导出 Word 文档",
-    "description": "将审查结果导出为 .docx 格式",
-    "risk": "write",
-    "parameters": {
-        "findings": {"type": "array", "description": "发现的问题列表"},
-        "output_path": {"type": "string", "description": "输出路径"}
-    }
-}
 
 async def execute(findings: list, output_path: str) -> dict:
     # 实现导出逻辑
@@ -295,7 +351,77 @@ async def execute(findings: list, output_path: str) -> dict:
     return {"success": True, "path": output_path}
 ```
 
-平台在启动时扫描并注册所有 App 的自定义 Tools。
+**字段说明：**
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `schema_version` | 必填 | 固定为 `"1.0"` |
+| `id` | 必填 | 唯一标识，建议用点分命名空间（`namespace.tool_name`）避免冲突 |
+| `name` | 必填 | 显示名称，也传给 LLM 用于工具选择 |
+| `version` | 必填 | Semver，input_schema 或行为变更时递增 |
+| `description` | 必填 | 工具说明，影响 LLM 的工具选择决策 |
+| `provider` | 必填 | `"local"` / `"api"` / `"mcp"` |
+| `risk` | — | `"safe"` / `"write"` / `"destructive"`，默认 `"safe"` |
+| `endpoint` | 条件必填 | `provider="api"` 时必填，HTTP URL |
+| `method` | — | `"GET"` / `"POST"`，默认 `"POST"` |
+| `auth` | — | 认证配置，见下 |
+| `input_schema` | 必填 | JSON Schema（type 必须为 `"object"`） |
+| `tags` | — | 分类标签，用于工具选择器 UI 的筛选 |
+| `icon` | — | Ant Design 图标名或自定义资源 key |
+
+---
+
+### HTTP 工具（provider: "api"）
+
+当工具以独立 HTTP 服务形式提供时：
+
+```json
+{
+  "schema_version": "1.0",
+  "id": "myorg.web_search",
+  "name": "网页搜索",
+  "version": "2.0.0",
+  "description": "搜索互联网获取最新信息",
+  "provider": "api",
+  "risk": "safe",
+  "endpoint": "http://localhost:8080/tools/web-search",
+  "method": "POST",
+  "auth": {
+    "type": "bearer",
+    "env": "${SEARCH_API_KEY}"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "搜索词" },
+      "limit": { "type": "integer", "default": 5 }
+    },
+    "required": ["query"]
+  },
+  "tags": ["search", "web"]
+}
+```
+
+`auth.env` 中的 `${VAR_NAME}` 占位符由平台在运行时从环境变量中读取。
+
+---
+
+### 跨 App 共享工具
+
+如果多个 App 需要共享同一批工具，可以建立共享目录，各 App 用相对路径引用：
+
+```
+apps/
+├── shared-tools/
+│   ├── web-search.json
+│   └── code-executor.json
+├── doc-reviewer/
+│   └── manifest.json   → "tools": ["../shared-tools/web-search.json"]
+└── code-assistant/
+    └── manifest.json   → "tools": ["../shared-tools/web-search.json", "../shared-tools/code-executor.json"]
+```
+
+平台对同一个 `id` 的工具定义只加载一次，重复引用不会注册两次。
 
 ---
 

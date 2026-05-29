@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.1.0)'
+        required: true
+        default: 'v1.1.0'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # for creating GitHub Release
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm --filter @meso.ai/types run build
+          pnpm --filter @meso.ai/ui run build
+
+      - name: Test packages
+        run: |
+          pnpm --filter @meso.ai/types run test
+          pnpm --filter @meso.ai/ui run test
+
+      - name: Pack tarballs
+        run: |
+          mkdir -p dist-tarballs
+          pnpm --filter @meso.ai/types pack --pack-destination dist-tarballs
+          pnpm --filter @meso.ai/ui    pack --pack-destination dist-tarballs
+          ls dist-tarballs/
+
+      - name: Publish to npm
+        run: |
+          pnpm --filter @meso.ai/types publish --no-git-checks --access public
+          pnpm --filter @meso.ai/ui    publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release with tarballs
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: dist-tarballs/*.tgz
+          generate_release_notes: true

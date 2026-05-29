@@ -1,5 +1,5 @@
-import { MessageList } from '@meso/ui'
-import type { Message } from '@meso/ui'
+import { MessageList } from '@meso.ai/ui'
+import type { Message } from '@meso.ai/ui'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Composer } from '../components/Composer'
 import { useLlmStream } from '../hooks/useLlmStream'

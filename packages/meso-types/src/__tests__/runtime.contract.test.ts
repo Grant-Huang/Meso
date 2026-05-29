@@ -1,5 +1,5 @@
 /**
- * Contract tests for @meso/types runtime.
+ * Contract tests for @meso.ai/types runtime.
  *
  * These tests are the ground truth for protocol compliance.
  * The fixture files (src/__fixtures__/) double as reference material
@@ -264,6 +264,36 @@ describe('applyEvent', () => {
     expect(s.availableCapabilities?.tools?.[0].provider).toBe('mcp')
   })
 
+  it('capabilities: stores tool risk and input_schema', () => {
+    const s = applyEvent(streaming, {
+      type: 'capabilities', schema_version: '1.0',
+      payload: {
+        tools: [{
+          name: 'read_file',
+          provider: 'local' as const,
+          risk: 'safe' as const,
+          input_schema: {
+            type: 'object',
+            properties: { path: { type: 'string', description: '文件路径' } },
+            required: ['path'],
+          },
+        }],
+      },
+    })
+    const tool = s.availableCapabilities?.tools?.[0]
+    expect(tool?.risk).toBe('safe')
+    expect(tool?.input_schema?.required).toEqual(['path'])
+    expect((tool?.input_schema?.properties as Record<string, unknown>)?.path).toMatchObject({ type: 'string' })
+  })
+
+  it('capabilities: stores destructive tool risk', () => {
+    const s = applyEvent(streaming, {
+      type: 'capabilities', schema_version: '1.0',
+      payload: { tools: [{ name: 'delete_file', provider: 'local' as const, risk: 'destructive' as const }] },
+    })
+    expect(s.availableCapabilities?.tools?.[0].risk).toBe('destructive')
+  })
+
   it('soul: sets activeSoul', () => {
     const s = applyEvent(streaming, {
       type: 'soul', schema_version: '1.0',
@@ -413,5 +443,96 @@ describe('zero React dependency', () => {
     const event = parseSSELine(line)
     const state = applyEvent(createInitialStreamState(), event!)
     expect(state.textContent).toBe('ok')
+  })
+})
+
+// ── ToolDefinition export contract ──────────────────────────────────────────
+//
+// ToolDefinition is a dev-time config type (not an SSE event).
+// These tests verify it is exported correctly and has the expected shape.
+
+import type { ToolDefinition, ExternalToolAuth } from '../index'
+
+describe('ToolDefinition', () => {
+  it('local tool: required fields accepted', () => {
+    const td: ToolDefinition = {
+      schema_version: '1.0',
+      id: 'myapp.read_file',
+      name: '读取文件',
+      version: '1.0.0',
+      description: '读取指定路径的文件内容',
+      provider: 'local',
+      risk: 'safe',
+      input_schema: {
+        type: 'object',
+        properties: { path: { type: 'string', description: '文件路径' } },
+        required: ['path'],
+      },
+    }
+    expect(td.schema_version).toBe('1.0')
+    expect(td.provider).toBe('local')
+    expect(td.input_schema.required).toEqual(['path'])
+  })
+
+  it('api tool: endpoint and auth accepted', () => {
+    const auth: ExternalToolAuth = { type: 'bearer', env: '${SEARCH_API_KEY}' }
+    const td: ToolDefinition = {
+      schema_version: '1.0',
+      id: 'myorg.web_search',
+      name: '网页搜索',
+      version: '2.0.0',
+      description: '搜索互联网获取最新信息',
+      provider: 'api',
+      risk: 'safe',
+      endpoint: 'http://localhost:8080/tools/search',
+      method: 'POST',
+      auth,
+      input_schema: {
+        type: 'object',
+        properties: { query: { type: 'string' }, limit: { type: 'integer' } },
+        required: ['query'],
+      },
+      tags: ['search', 'web'],
+    }
+    expect(td.endpoint).toBe('http://localhost:8080/tools/search')
+    expect(td.auth?.type).toBe('bearer')
+    expect(td.auth?.env).toBe('${SEARCH_API_KEY}')
+    expect(td.tags).toContain('search')
+  })
+
+  it('destructive tool: risk field accepted', () => {
+    const td: ToolDefinition = {
+      schema_version: '1.0',
+      id: 'myapp.delete_file',
+      name: '删除文件',
+      version: '1.0.0',
+      description: '永久删除指定文件',
+      provider: 'local',
+      risk: 'destructive',
+      input_schema: {
+        type: 'object',
+        properties: { path: { type: 'string' } },
+        required: ['path'],
+      },
+    }
+    expect(td.risk).toBe('destructive')
+  })
+
+  it('input_schema allows additional JSON Schema keywords', () => {
+    const td: ToolDefinition = {
+      schema_version: '1.0',
+      id: 'myapp.search',
+      name: '搜索',
+      version: '1.0.0',
+      description: '搜索知识库',
+      provider: 'local',
+      input_schema: {
+        type: 'object',
+        properties: { q: { type: 'string' }, limit: { type: 'integer', default: 5 } },
+        required: ['q'],
+        additionalProperties: false,
+      },
+    }
+    expect(td.input_schema.additionalProperties).toBe(false)
   })
 })

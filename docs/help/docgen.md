@@ -95,7 +95,7 @@ Meso 前端的 `useSSEStream` + `MessageList` 开箱即用，`ArtifactPanel` 会
 前端无需任何修改，直接把 `useSSEStream` 指向文档生成器的地址即可：
 
 ```tsx
-import { useSSEStream, MessageList } from '@meso/ui'
+import { useSSEStream, MessageList } from '@meso.ai/ui'
 
 const { state, start } = useSSEStream('http://localhost:8001/generate')
 

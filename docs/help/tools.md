@@ -91,8 +91,8 @@ async def stream_with_tools():
 连接后端 SSE 流的核心 Hook，封装了 `fetch + ReadableStream`。
 
 ```tsx
-import { useSSEStream } from '@meso/ui'
-import type { StreamCallbacks } from '@meso/ui'
+import { useSSEStream } from '@meso.ai/ui'
+import type { StreamCallbacks } from '@meso.ai/ui'
 
 const callbacks: StreamCallbacks = {
   onDone: (finalState) => console.log('完成', finalState.textContent),
@@ -192,7 +192,7 @@ idle ──start()──▶ streaming ──done 事件──▶ done
 亮/暗主题切换，状态持久化到 `localStorage`。
 
 ```tsx
-import { useTheme } from '@meso/ui'
+import { useTheme } from '@meso.ai/ui'
 
 const { theme, toggle } = useTheme()
 // theme: 'light' | 'dark'
@@ -203,12 +203,12 @@ const { theme, toggle } = useTheme()
 
 ---
 
-## @meso/ui/runtime — 无 React 运行时
+## @meso.ai/ui/runtime — 无 React 运行时
 
 在 Node.js、边缘函数或测试环境中验证后端输出，无需启动前端。
 
 ```bash
-npm install @meso/ui
+npm install @meso.ai/ui
 ```
 
 ```typescript
@@ -217,7 +217,7 @@ import {
   applyEvent,
   createInitialStreamState,
   PROTOCOL_VERSION,
-} from '@meso/ui/runtime'
+} from '@meso.ai/ui/runtime'
 ```
 
 ### parseSSELine(line)
@@ -245,7 +245,7 @@ const state1 = applyEvent(state0, { type: 'text', payload: { delta: 'hello' } })
 ### 验证后端输出（完整示例）
 
 ```typescript
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/ui/runtime'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/ui/runtime'
 
 const sseOutput = `
 data: {"type":"stage","schema_version":"1.0","payload":{"name":"检索知识","state":"active"}}

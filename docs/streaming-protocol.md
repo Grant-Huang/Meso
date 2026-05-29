@@ -527,7 +527,7 @@ The same `node_id` may arrive multiple times (`active` → `done`). Each event
 ### Rendering
 
 ```tsx
-import { WorkflowTimeline } from '@meso/ui'
+import { WorkflowTimeline } from '@meso.ai/ui'
 
 const runs = state.workflowRunOrder.map(id => state.workflowRuns[id])
 <WorkflowTimeline runs={runs} />
@@ -703,8 +703,8 @@ packages/meso-types/src/__fixtures__/
 
 Third-party backend authors can validate their output by replaying these fixtures through:
 ```typescript
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/ui/runtime'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/ui/runtime'
 ```
 
-No React required. The runtime package is also importable as `@meso/ui/runtime` for
+No React required. The runtime package is also importable as `@meso.ai/ui/runtime` for
 zero-React validation scripts.

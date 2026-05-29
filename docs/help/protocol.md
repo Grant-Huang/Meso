@@ -171,7 +171,7 @@ data: {"type":"done","schema_version":"1.0","payload":{}}
 
 ## parseSSELine 行为规范
 
-`@meso/types` 导出的 `parseSSELine(line)` 函数处理以下输入：
+`@meso.ai/types` 导出的 `parseSSELine(line)` 函数处理以下输入：
 
 | 输入 | 返回 | 说明 |
 |------|------|------|
@@ -185,12 +185,12 @@ data: {"type":"done","schema_version":"1.0","payload":{}}
 
 ---
 
-## 用 @meso/types 验证后端输出
+## 用 @meso.ai/types 验证后端输出
 
 无需浏览器和 React，在 Node.js / CI 中直接验证 SSE 流：
 
 ```typescript
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 
 const sseOutput = `
 data: {"type":"text","schema_version":"1.0","payload":{"delta":"hello"}}

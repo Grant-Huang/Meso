@@ -1,4 +1,4 @@
-import { useTheme } from '@meso/ui'
+import { useTheme } from '@meso.ai/ui'
 
 export function SidebarFooter() {
   const { theme, toggle } = useTheme()

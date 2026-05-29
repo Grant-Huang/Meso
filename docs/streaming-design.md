@@ -285,7 +285,7 @@ interface StreamCallbacks {
 ## 六、后端流式生成（参考实现，非规范）
 
 > ⚠️ **Non-normative / Demo only**
-> 以下后端结构为参考实现，不属于 `@meso/ui` 平台契约。
+> 以下后端结构为参考实现，不属于 `@meso.ai/ui` 平台契约。
 > 第三方可使用任意后端技术栈，只需遵守 `docs/streaming-protocol.md` 定义的 SSE 协议。
 
 核心实现在 `backend/core/streaming.py`，提供：

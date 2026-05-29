@@ -102,8 +102,8 @@ stage: "搜索网络" → done
 ### 基本用法
 
 ```tsx
-import { WorkflowTimeline } from '@meso/ui'
-import { useSSEStream } from '@meso/ui'
+import { WorkflowTimeline } from '@meso.ai/ui'
+import { useSSEStream } from '@meso.ai/ui'
 
 function DevPanel() {
   const { state } = useSSEStream('/api/chat/stream')

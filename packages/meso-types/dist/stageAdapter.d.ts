@@ -1,7 +1,7 @@
 import type { StagePayload } from './protocol';
 /**
  * UI Stage shape — mirrors StageTimeline component props.
- * Defined here so the adapter can be used without importing @meso/ui.
+ * Defined here so the adapter can be used without importing @meso.ai/ui.
  */
 export interface Stage {
     id: string;

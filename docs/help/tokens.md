@@ -1,6 +1,6 @@
 # 设计系统
 
-所有视觉 token 来自 `@meso/ui/tokens.css`，双主题通过 `data-theme` 属性切换。
+所有视觉 token 来自 `@meso.ai/ui/tokens.css`，双主题通过 `data-theme` 属性切换。
 
 ---
 
@@ -8,12 +8,12 @@
 
 ```tsx
 // main.tsx（Vite / Next.js / CRA）
-import '@meso/ui/tokens.css'
+import '@meso.ai/ui/tokens.css'
 ```
 
 ```html
 <!-- 或在 HTML 中直接引用 -->
-<link rel="stylesheet" href="node_modules/@meso/ui/dist/tokens.css" />
+<link rel="stylesheet" href="node_modules/@meso.ai/ui/dist/tokens.css" />
 ```
 
 > **FOUC 防护脚本**需放在 tokens.css 加载之前，详见 [快速接入 步骤二](#quickstart)。

@@ -46,7 +46,7 @@ yield sse({"type":"text","schema_version":"1.0","payload":{"delta":"搜索到以
 ## 前端：通过 renderExtension 渲染
 
 ```tsx
-import type { ExtensionEvent } from '@meso/ui'
+import type { ExtensionEvent } from '@meso.ai/ui'
 
 <MessageList
   messages={messages}

@@ -1,6 +1,6 @@
 {
-  "name": "@meso/types",
-  "version": "1.0.0",
+  "name": "@meso.ai/types",
+  "version": "1.1.0",
   "description": "Meso SSE protocol types and pure runtime functions — zero dependencies",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -16,6 +16,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",
     "dev": "vite build --watch",

@@ -4,13 +4,13 @@
 
 ---
 
-## @meso/types：在 Node.js 中验证 SSE 输出
+## @meso.ai/types：在 Node.js 中验证 SSE 输出
 
 无需浏览器，纯 Node.js 测试后端发出的 SSE 流是否符合协议：
 
 ```typescript
 // backend.test.ts
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 import { describe, it, expect } from 'vitest'
 
 function replaySSE(raw: string) {
@@ -104,7 +104,7 @@ data: {"type":"done","schema_version":"1.0","payload":{}}
 ```typescript
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { parseSSELine, applyEvent, createInitialStreamState } from '@meso/types'
+import { parseSSELine, applyEvent, createInitialStreamState } from '@meso.ai/types'
 
 function loadFixture(name: string) {
   const txt = readFileSync(join(__dirname, '__fixtures__', name + '.txt'), 'utf-8')
@@ -128,9 +128,9 @@ it('basic-stream snapshot', () => {
 使用 `vi.mock`（Vitest）或 `jest.mock` 注入假状态：
 
 ```typescript
-// __mocks__/@meso/ui.ts
-import type { StreamState } from '@meso/ui'
-import { createInitialStreamState } from '@meso/types'
+// __mocks__/@meso.ai/ui.ts
+import type { StreamState } from '@meso.ai/ui'
+import { createInitialStreamState } from '@meso.ai/types'
 
 export const mockStreamState: StreamState = {
   ...createInitialStreamState(),
@@ -146,17 +146,17 @@ export const useSSEStream = vi.fn(() => ({
 }))
 
 // 其余组件从真实模块 re-export
-export * from '../node_modules/@meso/ui/dist/index.js'
+export * from '../node_modules/@meso.ai/ui/dist/index.js'
 ```
 
 在测试中控制状态：
 
 ```typescript
 import { render, screen, fireEvent } from '@testing-library/react'
-import { useSSEStream } from '@meso/ui'
+import { useSSEStream } from '@meso.ai/ui'
 import { ChatPage } from './ChatPage'
 
-vi.mock('@meso/ui')
+vi.mock('@meso.ai/ui')
 
 describe('ChatPage', () => {
   it('发送按钮在 streaming 时禁用', () => {

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `@meso/ui` will be documented here.
+All notable changes to `@meso.ai/ui` will be documented here.
 Follows [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
 ## [2.0.0] - 2026-05-20
@@ -46,7 +46,7 @@ Import map updated; if you pin to specific dist paths, update them.
   with `schema_version` and versioned payload envelope
 - **Extension event mechanism**: `type: "extension"` with `payload.name` + `payload.data`
   — third-party backends use this without forking the platform runtime
-- **`@meso/ui/runtime`** export — React-free pure functions for custom transports:
+- **`@meso.ai/ui/runtime`** export — React-free pure functions for custom transports:
   - `parseSSELine(line)` — parses one SSE data line; handles `[DONE]`, bad JSON, comments
   - `applyEvent(state, event)` — pure state machine reducer
   - `createInitialStreamState()` — factory for initial StreamState
@@ -56,7 +56,7 @@ Import map updated; if you pin to specific dist paths, update them.
   single response to contain multiple code/HTML/chart panels rendered in order
 - **Contract tests**: fixture SSE streams (`src/__fixtures__/*.txt`) → `applyEvent` →
   snapshot comparison; third parties can use these fixtures to validate their backends
-- **`PROTOCOL_VERSION`** constant exported from both `@meso/ui` and `@meso/ui/runtime`
+- **`PROTOCOL_VERSION`** constant exported from both `@meso.ai/ui` and `@meso.ai/ui/runtime`
 
 ### Fixed
 

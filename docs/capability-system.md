@@ -8,7 +8,7 @@
 
 **平台定义协议，应用定义实现，后端负责执行。**
 
-平台（`@meso/ui`）：
+平台（`@meso.ai/ui`）：
 - 定义所有能力类型的 SSE 事件格式
 - 维护 `StreamState` 中的能力状态
 - 渲染对应的 UI 组件
@@ -199,9 +199,9 @@ MCP `idempotentHint` 映射到 `annotations.idempotent`，前端目前不展示�
 
 ---
 
-## 九、协议包（@meso/types）
+## 九、协议包（@meso.ai/types）
 
-`@meso/types` 是零依赖的协议包，包含：
+`@meso.ai/types` 是零依赖的协议包，包含：
 
 | 模块 | 内容 |
 |------|------|
@@ -216,8 +216,8 @@ import {
   applyEvent,
   createInitialStreamState,
   PROTOCOL_VERSION,
-} from '@meso/ui/runtime'
-// 或直接从 @meso/types（如果单独安装）
+} from '@meso.ai/ui/runtime'
+// 或直接从 @meso.ai/types（如果单独安装）
 ```
 
 `applyEvent` 是纯函数（无 side effects），可在任何环境中使用：Node.js、浏览器、Deno、边缘函数。

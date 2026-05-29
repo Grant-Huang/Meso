@@ -1,5 +1,5 @@
 {
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @meso.ai/types run build && pnpm --filter @meso.ai/ui run build && pnpm --filter @meso/demo run build",
   "outputDirectory": "demo/dist",
   "framework": null

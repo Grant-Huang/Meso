@@ -44,14 +44,16 @@ jobs:
           ls /tmp/tarballs/
           # Install into a minimal vite project and verify it builds
           mkdir -p /tmp/smoke && cd /tmp/smoke
-          cat > package.json << 'EOF'
+          TYPES_TGZ=$(ls /tmp/tarballs/meso.ai-types-*.tgz | head -1)
+          UI_TGZ=$(ls /tmp/tarballs/meso.ai-ui-*.tgz | head -1)
+          cat > package.json << EOF
           {
             "name": "smoke",
             "private": true,
             "type": "module",
             "dependencies": {
-              "@meso.ai/types": "/tmp/tarballs/meso.ai-types-1.0.0.tgz",
-              "@meso.ai/ui": "/tmp/tarballs/meso.ai-ui-2.0.0.tgz",
+              "@meso.ai/types": "$TYPES_TGZ",
+              "@meso.ai/ui": "$UI_TGZ",
               "react": "^18.3.1",
               "react-dom": "^18.3.1"
             },

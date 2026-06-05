@@ -1,5 +1,10 @@
 {
   "buildCommand": "pnpm --filter @meso.ai/types run build && pnpm --filter @meso.ai/ui run build && pnpm --filter @meso/demo run build",
   "outputDirectory": "demo/dist",
-  "framework": null
+  "framework": null,
+  "build": {
+    "env": {
+      "ENABLE_EXPERIMENTAL_COREPACK": "1"
+    }
+  }
 }

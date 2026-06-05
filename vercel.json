@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm install -g pnpm@8 && COREPACK_ENABLE_STRICT=0 pnpm install --no-frozen-lockfile",
-  "buildCommand": "COREPACK_ENABLE_STRICT=0 pnpm --filter @meso.ai/types run build && COREPACK_ENABLE_STRICT=0 pnpm --filter @meso.ai/ui run build && COREPACK_ENABLE_STRICT=0 pnpm --filter @meso/demo run build",
+  "installCommand": "corepack enable && corepack prepare pnpm@10.33.0 --activate && pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm --filter @meso.ai/types run build && pnpm --filter @meso.ai/ui run build && pnpm --filter @meso/demo run build",
   "outputDirectory": "demo/dist",
   "framework": null
 }

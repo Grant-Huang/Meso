@@ -1,10 +1,6 @@
 {
+  "installCommand": "npm install -g pnpm@10 && COREPACK_ENABLE_STRICT=0 pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm --filter @meso.ai/types run build && pnpm --filter @meso.ai/ui run build && pnpm --filter @meso/demo run build",
   "outputDirectory": "demo/dist",
-  "framework": null,
-  "build": {
-    "env": {
-      "ENABLE_EXPERIMENTAL_COREPACK": "1"
-    }
-  }
+  "framework": null
 }

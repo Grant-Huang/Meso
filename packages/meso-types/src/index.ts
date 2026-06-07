@@ -53,6 +53,7 @@ export type {
   StreamState,
   StreamStatus,
   ArtifactState,
+  ArtifactDef,
   ToolCallStatus,
   ToolCallState,
   ResourceReadStatus,
@@ -60,7 +61,11 @@ export type {
   WorkflowNodeRecord,
   WorkflowRunState,
 } from './streamState'
-export { createInitialStreamState } from './streamState'
+export {
+  createInitialStreamState,
+  createStreamStateWithArtifacts,
+  streamStateHasArtifacts,
+} from './streamState'
 
 export { applyEvent } from './applyEvent'
 export { parseSSELine } from './parseSSELine'

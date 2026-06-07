@@ -47,6 +47,12 @@ export interface MessageListProps {
      */
     renderMarkdown?: (source: string) => string;
     /**
+     * Artifact lang values to suppress from inline rendering (e.g. graph types
+     * that should only appear in a side panel). Artifacts with a matching lang
+     * are excluded from the message list; pass them to ArtifactPanel separately.
+     */
+    hiddenArtifactLangs?: string[];
+    /**
      * Async Mermaid renderer passed to ArtifactPanel.
      * Receives source, returns SVG string. Called once streaming is done.
      */
@@ -57,4 +63,4 @@ export interface MessageListProps {
      */
     highlightCode?: (code: string, lang: string) => string;
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderLiveTrace, renderMarkdown, renderMermaid, highlightCode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderLiveTrace, renderMarkdown, renderMermaid, highlightCode, hiddenArtifactLangs, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

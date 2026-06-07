@@ -40,7 +40,9 @@ export interface ThreeColumnLayoutProps {
     showSessionColumn?: boolean;
     /** Max-width of the chat content area, e.g. 860 or "860px". */
     contentMaxWidth?: number | string;
+    /** Width of the artifact panel when visible, e.g. 480 or "480px". Defaults to 40% of main area. */
+    artifactPanelWidth?: number | string;
     /** Called when the sidebar collapsed state changes. */
     onCollapsedChange?: (collapsed: boolean) => void;
 }
-export declare function ThreeColumnLayout({ navItems, sidebarFooter, sessionColumn, children, defaultCollapsed, appName, sidebarLogo, sidebarTitle, mainHeader, artifactPanel, defaultArtifactVisible, onArtifactToggle, artifactVisible, showArtifactToggle, showSessionColumn, contentMaxWidth, onCollapsedChange, }: ThreeColumnLayoutProps): import("react/jsx-runtime").JSX.Element;
+export declare function ThreeColumnLayout({ navItems, sidebarFooter, sessionColumn, children, defaultCollapsed, appName, sidebarLogo, sidebarTitle, mainHeader, artifactPanel, defaultArtifactVisible, onArtifactToggle, artifactVisible, showArtifactToggle, showSessionColumn, contentMaxWidth, artifactPanelWidth, onCollapsedChange, }: ThreeColumnLayoutProps): import("react/jsx-runtime").JSX.Element;

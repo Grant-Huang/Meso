@@ -9,6 +9,8 @@
 export {
   PROTOCOL_VERSION,
   createInitialStreamState,
+  createStreamStateWithArtifacts,
+  streamStateHasArtifacts,
   applyEvent,
   parseSSELine,
   isCompatibleVersion,
@@ -65,6 +67,7 @@ export type {
   StreamState,
   StreamStatus,
   ArtifactState,
+  ArtifactDef,
   ToolCallStatus,
   ToolCallState,
   ResourceReadStatus,

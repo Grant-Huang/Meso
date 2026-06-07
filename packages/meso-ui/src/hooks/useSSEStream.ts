@@ -14,6 +14,7 @@ import type {
   ResourceReadPayload,
   ResourceContentPayload,
   ArtifactState,
+  ExtensionEvent,
 } from '../runtime'
 
 
@@ -36,6 +37,8 @@ export interface StreamCallbacks {
   onResourceRead?: (read: ResourceReadPayload) => void
   onResourceContent?: (content: ResourceContentPayload) => void
   onArtifact?: (artifact: ArtifactState) => void
+  /** Fired for every extension (domain-specific) event, in arrival order. */
+  onExtensionEvent?: (event: ExtensionEvent) => void
   onError?: (message: string, code?: string) => void
   onDone?: (finalState: StreamState) => void
 }
@@ -123,6 +126,7 @@ export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
                 if (art) cb.onArtifact?.(art)
                 break
               }
+              case 'extension': cb.onExtensionEvent?.(event); break
               case 'error': cb.onError?.(event.payload.message, event.payload.code); break
               case 'done':  cb.onDone?.(next); break
             }

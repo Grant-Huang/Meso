@@ -1,4 +1,4 @@
-import type { StreamState, StagePayload, MemorySnippet, MemorySavedPayload, CapabilitiesPayload, SoulPayload, SkillPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ArtifactState } from '../runtime';
+import type { StreamState, StagePayload, MemorySnippet, MemorySavedPayload, CapabilitiesPayload, SoulPayload, SkillPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ArtifactState, ExtensionEvent } from '../runtime';
 export interface StreamOptions {
     method?: 'GET' | 'POST';
     headers?: Record<string, string>;
@@ -17,6 +17,8 @@ export interface StreamCallbacks {
     onResourceRead?: (read: ResourceReadPayload) => void;
     onResourceContent?: (content: ResourceContentPayload) => void;
     onArtifact?: (artifact: ArtifactState) => void;
+    /** Fired for every extension (domain-specific) event, in arrival order. */
+    onExtensionEvent?: (event: ExtensionEvent) => void;
     onError?: (message: string, code?: string) => void;
     onDone?: (finalState: StreamState) => void;
 }

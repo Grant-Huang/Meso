@@ -149,3 +149,45 @@ export function createInitialStreamState(): StreamState {
     errorMessage: null,
   }
 }
+
+/**
+ * Returns true if the state contains at least one artifact with non-empty content.
+ * Pass `excludeLangs` to skip specific lang values (e.g. internal graph types).
+ */
+export function streamStateHasArtifacts(
+  state: StreamState,
+  options?: { excludeLangs?: string[] },
+): boolean {
+  const excluded = new Set(options?.excludeLangs ?? [])
+  return state.artifactOrder.some((id) => {
+    const art = state.artifacts[id]
+    return art != null && !excluded.has(art.lang) && Boolean(art.content.trim())
+  })
+}
+
+/** Minimal artifact definition for constructing a StreamState from stored data. */
+export interface ArtifactDef {
+  id: string
+  lang: string
+  content: string
+}
+
+/**
+ * Constructs a completed StreamState containing only the given artifacts.
+ * Use this instead of manually spreading `createInitialStreamState()` when
+ * restoring saved artifacts (e.g. persisted review content, session replay).
+ */
+export function createStreamStateWithArtifacts(artifacts: ArtifactDef[]): StreamState {
+  const artifactRecord: Record<string, ArtifactState> = {}
+  const artifactOrder: string[] = []
+  for (const def of artifacts) {
+    artifactRecord[def.id] = { id: def.id, lang: def.lang, content: def.content, done: true }
+    artifactOrder.push(def.id)
+  }
+  return {
+    ...createInitialStreamState(),
+    status: 'done',
+    artifacts: artifactRecord,
+    artifactOrder,
+  }
+}

@@ -60,6 +60,7 @@
   --sidebar-w:            145px;
   --sidebar-w-collapsed:  52px;
   --session-col-w:        260px;
+  --artifact-pane-w:      40%;
 
   /* Misc [internal] */
   --splitter-hover:       #9cb8a8;

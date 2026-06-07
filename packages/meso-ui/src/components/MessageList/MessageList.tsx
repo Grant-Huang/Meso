@@ -59,6 +59,12 @@ export interface MessageListProps {
    */
   renderMarkdown?: (source: string) => string
   /**
+   * Artifact lang values to suppress from inline rendering (e.g. graph types
+   * that should only appear in a side panel). Artifacts with a matching lang
+   * are excluded from the message list; pass them to ArtifactPanel separately.
+   */
+  hiddenArtifactLangs?: string[]
+  /**
    * Async Mermaid renderer passed to ArtifactPanel.
    * Receives source, returns SVG string. Called once streaming is done.
    */
@@ -94,6 +100,7 @@ export function MessageList({
   renderMarkdown,
   renderMermaid,
   highlightCode,
+  hiddenArtifactLangs,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -221,6 +228,7 @@ export function MessageList({
                 {streaming.artifactOrder.map(id => {
                   const art = streaming.artifacts[id]
                   if (!art) return null
+                  if (hiddenArtifactLangs?.includes(art.lang)) return null
                   const { type, language } = langToArtifactType(art.lang)
                   return (
                     <ArtifactPanel

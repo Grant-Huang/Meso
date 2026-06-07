@@ -82,3 +82,22 @@ export interface StreamState {
     errorMessage: string | null;
 }
 export declare function createInitialStreamState(): StreamState;
+/**
+ * Returns true if the state contains at least one artifact with non-empty content.
+ * Pass `excludeLangs` to skip specific lang values (e.g. internal graph types).
+ */
+export declare function streamStateHasArtifacts(state: StreamState, options?: {
+    excludeLangs?: string[];
+}): boolean;
+/** Minimal artifact definition for constructing a StreamState from stored data. */
+export interface ArtifactDef {
+    id: string;
+    lang: string;
+    content: string;
+}
+/**
+ * Constructs a completed StreamState containing only the given artifacts.
+ * Use this instead of manually spreading `createInitialStreamState()` when
+ * restoring saved artifacts (e.g. persisted review content, session replay).
+ */
+export declare function createStreamStateWithArtifacts(artifacts: ArtifactDef[]): StreamState;

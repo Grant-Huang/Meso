@@ -53,8 +53,20 @@ jobs:
 
       - name: Publish to npm (OIDC Trusted Publishing)
         run: |
-          cd packages/meso-types && npm publish --access public --provenance
-          cd ../../packages/meso-ui && npm publish --access public --provenance
+          publish_pkg() {
+            local pkg_dir=$1
+            cd "$pkg_dir"
+            local name=$(node -p "require('./package.json').name")
+            local version=$(node -p "require('./package.json').version")
+            if npm view "$name@$version" version &>/dev/null 2>&1; then
+              echo "⏭ $name@$version already published, skipping"
+            else
+              npm publish --access public --provenance
+            fi
+            cd -
+          }
+          publish_pkg packages/meso-types
+          publish_pkg packages/meso-ui
 
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2

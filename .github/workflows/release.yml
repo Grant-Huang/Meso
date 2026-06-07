@@ -7,15 +7,16 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v1.1.0)'
+        description: 'Release tag (e.g. v1.2.0)'
         required: true
-        default: 'v1.1.0'
+        default: 'v1.2.0'
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # for creating GitHub Release
+      id-token: write  # for OIDC Trusted Publishing to npm
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -28,8 +29,6 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - run: pnpm install --frozen-lockfile
 
@@ -50,12 +49,10 @@ jobs:
           pnpm --filter @meso.ai/ui    pack --pack-destination dist-tarballs
           ls dist-tarballs/
 
-      - name: Publish to npm
+      - name: Publish to npm (OIDC Trusted Publishing)
         run: |
-          pnpm --filter @meso.ai/types publish --no-git-checks --access public
-          pnpm --filter @meso.ai/ui    publish --no-git-checks --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          pnpm --filter @meso.ai/types publish --no-git-checks --access public --provenance
+          pnpm --filter @meso.ai/ui    publish --no-git-checks --access public --provenance
 
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2

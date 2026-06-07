@@ -28,6 +28,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
 
@@ -52,6 +53,8 @@ jobs:
         run: |
           cd packages/meso-types && npm publish --access public --provenance
           cd ../../packages/meso-ui && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2

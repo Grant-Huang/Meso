@@ -56,7 +56,7 @@
   padding: 8px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   background: var(--color-bg);
 }
 

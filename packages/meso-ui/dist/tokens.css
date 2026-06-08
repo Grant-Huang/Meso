@@ -62,6 +62,9 @@
   --session-col-w:        260px;
   --artifact-pane-w:      40%;
 
+  /* Trace content [stable] — shared font size for ThinkBlock / WorkflowTimeline / StageTimeline */
+  --meso-trace-font-size: 12px;
+
   /* Misc [internal] */
   --splitter-hover:       #9cb8a8;
 

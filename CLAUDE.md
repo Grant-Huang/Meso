@@ -202,6 +202,54 @@ Smoke test 用 glob 查找 tarball（`meso.ai-types-*.tgz`），不要写死版�
 
 ---
 
+## 发布流程（npm OIDC Trusted Publishing）
+
+发布触发方式：推送 `v*.*.*` tag，或在 GitHub Actions 页面手动触发 Release workflow。
+
+### 版本 bump 步骤
+
+```bash
+# 修改两个包的 package.json 版本号（minor = 新功能，patch = bug fix）
+# packages/meso-types/package.json  → version: "x.y.z"
+# packages/meso-ui/package.json     → version: "x.y.z"
+
+pnpm --filter @meso.ai/types run build
+pnpm --filter @meso.ai/ui run build
+
+git add packages/meso-types/package.json packages/meso-ui/package.json packages/*/dist
+git commit -m "chore(release): bump @meso.ai/types@x.y.z and @meso.ai/ui@x.y.z"
+git push origin main
+
+git tag vx.y.z
+git push origin vx.y.z   # 触发 Release workflow
+```
+
+### OIDC Trusted Publishing 配置要点
+
+发包使用 npm OIDC Trusted Publishing（无 token），配置在 `.github/workflows/release.yml`。
+
+**前提条件（缺任何一项都会失败）：**
+
+| 条件 | 说明 |
+|------|------|
+| npm ≥ 11.5.1 | Node 22 自带 npm 10，**不支持** OIDC 握手；workflow 里加了 `npm install -g npm@latest` 解决 |
+| `id-token: write` 权限 | job 级别声明，让 GitHub 签发 OIDC token |
+| `registry-url` 但无 `NODE_AUTH_TOKEN` | setup-node 写入 `.npmrc` 让 npm 知道目标注册表；不设 token 才会走 OIDC |
+| `package.json` 有 `repository.url` | npm 用它验证 provenance 来源；缺失报 422 |
+| Trusted Publisher 仓库名大小写正确 | npmjs.com 配置里填 `Meso`（不是 `MESO`），大小写敏感 |
+| 包在 npm 上已存在 | 全新包第一次发布须手动 `npm publish` 创建，之后才能走 OIDC |
+
+**常见报错速查：**
+
+| 报错 | 原因 | 解决 |
+|------|------|------|
+| `404 Not Found - PUT …` | npm 10 不做 OIDC 握手，或 Trusted Publisher 仓库名大小写错误 | 确认 npm ≥ 11.5.1；检查 npmjs.com Trusted Publisher 里 Repository 字段大小写 |
+| `ENEEDAUTH` | 没有 `registry-url`，npm 找不到注册表配置 | 在 setup-node 加 `registry-url: https://registry.npmjs.org` |
+| `422 … repository.url is ""` | `package.json` 缺 `repository` 字段 | 加 `"repository": { "type": "git", "url": "https://github.com/Grant-Huang/Meso.git" }` |
+| `E403 Two-factor authentication required` | 用了 automation token，账号开启了 2FA | 换 OIDC Trusted Publishing 或带 bypass 2FA 的 granular token |
+
+---
+
 ## 分支策略
 
 - `main`：受保护，只通过 PR 合入

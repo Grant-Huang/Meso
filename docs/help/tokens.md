@@ -101,6 +101,41 @@ function toggleTheme() {
 
 ---
 
+## 字体尺寸 Scale（[stable]，v2.1+）
+
+`--meso-fs-*` token 为平台标准字体尺寸，组件内部使用，也可在应用 CSS 中引用：
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `--meso-fs-caption` | 12px | 角标、标签、执行摘要行 |
+| `--meso-fs-body` | 14px | 正文内容 |
+| `--meso-fs-title` | 15px | 卡片/区块标题 |
+| `--meso-fs-section` | 18px | 页面级区块标题 |
+
+**派生 token（组件内部）：**
+
+| Token | 值 | 说明 |
+|-------|-----|------|
+| `--meso-trace-font-size` | `var(--meso-fs-caption)` | ProcessTrace 等执行区组件字号，跟随 caption scale |
+
+---
+
+## 间距 Scale（[stable]，v2.1+）
+
+`--meso-space-*` 以 4px 为基准单位，组件内部使用，也可在应用 CSS 中引用：
+
+| Token | 值 | 用途示例 |
+|-------|-----|---------|
+| `--meso-space-1` | 4px | icon 与文字的内间距 |
+| `--meso-space-2` | 8px | 组件内子元素间距 |
+| `--meso-space-3` | 12px | 组件内部 padding |
+| `--meso-space-4` | 16px | 卡片/块级组件 padding |
+| `--meso-space-5` | 20px | 区块间距 |
+| `--meso-space-6` | 24px | 大间距、节标题下方 |
+| `--meso-indent` | 16px | 树形缩进（LogLine、WorkflowTimeline）|
+
+---
+
 ## 内部 Token（[internal]）
 
 不纳入 SemVer，可随时调整，**不建议在应用 CSS 中引用**：
@@ -125,16 +160,16 @@ function toggleTheme() {
 font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 ```
 
-| 用途 | 字号 | 字重 | 行高 |
-|------|------|------|------|
-| 正文内容 | 14px | 400 | 1.75 |
-| 消息气泡 | 14px | 400 | 1.75 |
+| 用途 | 字号 token | 字重 | 行高 |
+|------|-----------|------|------|
+| 正文内容 | `--meso-fs-body`（14px）| 400 | 1.75 |
+| 消息气泡 | `--meso-fs-body`（14px）| 400 | 1.75 |
 | 次要文本、标签 | 13px | 400 | 1.5 |
-| 小字/角标 | 12px | 400 | — |
+| 小字/角标/执行区 | `--meso-fs-caption`（12px）| 400 | — |
 | 标题 H1 | 26px | 700 | 1.2 |
-| 标题 H2 | 18px | 650 | 1.3 |
-| 标题 H3 | 15px | 600 | 1.4 |
-| 导航项 | 13px | 400（激活时 600） | — |
+| 标题 H2 | `--meso-fs-section`（18px）| 650 | 1.3 |
+| 标题 H3 | `--meso-fs-title`（15px）| 600 | 1.4 |
+| 导航项 | 13px | 400（激活时 600）| — |
 | 代码块 | 12.5px | 400 | 1.65 |
 | 代码字体 | `"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace` | — | — |
 
@@ -164,7 +199,7 @@ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", san
   border: 1px solid var(--color-border);
   border-radius: 10px;
   color: var(--color-text);
-  padding: 16px;
+  padding: var(--meso-space-4);
 }
 
 .card:hover {
@@ -176,9 +211,10 @@ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", san
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 6px 16px;
+  padding: var(--meso-space-1) var(--meso-space-4);
   cursor: pointer;
   transition: background 0.12s;
+  font-size: var(--meso-fs-body);
 }
 
 .primary-button:hover {
@@ -188,6 +224,11 @@ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", san
 .primary-button:disabled {
   background: var(--color-border);
   cursor: not-allowed;
+}
+
+.caption-label {
+  font-size: var(--meso-fs-caption);
+  color: var(--color-text-muted);
 }
 ```
 
@@ -200,12 +241,10 @@ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", san
   color: var(--color-success);
   border-radius: 20px;
   padding: 2px 8px;
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
 }
 
-/* 深色主题下 rgba 颜色也自动通过 token 变化 */
 [data-theme="dark"] .status-badge {
-  /* token 已切换，无需额外规则 */
   background: rgba(95, 190, 133, 0.12);
 }
 ```
@@ -236,7 +275,7 @@ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", san
 
 | 类型 | 示例 | 保证 |
 |------|------|------|
-| **稳定**（可在应用 CSS 中引用）| `.meso-layout` `.meso-bubble` `.meso-artifact` `.meso-stages` `.meso-think-block` | 纳入 SemVer，变更须 CHANGELOG |
+| **稳定**（可在应用 CSS 中引用）| `.meso-layout` `.meso-bubble` `.meso-artifact` `.meso-stages` `.meso-think-block` `.meso-log-line` `.meso-status-icon` | 纳入 SemVer，变更须 CHANGELOG |
 | **内部**（不保证跨版本稳定）| `.meso-layout__sidebar-toggle-icon` `.meso-artifact__tab-strip--scroll` | 可随时调整 |
 
 [配色系统演示](demo:../color-palette.html)

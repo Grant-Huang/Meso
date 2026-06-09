@@ -26,11 +26,21 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 
 | 事件 | 触发时机 | UI 效果 |
 |------|---------|---------|
+| `capabilities` | 本次会话能力清单 | 应用可按需展示可用能力 |
+| `soul` | 激活的 Soul/人格 | SoulIndicator 显示 |
+| `skill_active` | 激活的 Skill/工作模式 | SkillIndicator 显示 |
 | `stage` | 流水线阶段开始/完成 | StageTimeline 动画 |
+| `phase` | 一级流水线阶段（含 per-phase think 流）| 可渲染 PhaseRecord |
 | `memory` | 记忆召回完成 | Memory 芯片显示 |
+| `memory_saved` | 记忆已持久化 | 可选 UI 提示 |
 | `think` | LLM 推理过程（增量）| ThinkBlock 展开/折叠 |
 | `text` | 正文生成（增量）| ChatBubble 逐字显示 |
 | `artifact` | 代码/图表/HTML（增量）| ArtifactPanel 弹出 |
+| `tool_call` | 工具调用发起 | ToolCallBlock 出现 |
+| `tool_result` | 工具调用结果 | ToolCallBlock 更新 |
+| `resource_read` | MCP 资源读取发起 | ResourceReadBlock 出现 |
+| `resource_content` | MCP 资源内容到达 | ResourceReadBlock 更新 |
+| `workflow_node` | DAG 工作流节点状态 | WorkflowTimeline 更新 |
 | `done` | 流正常结束 | 光标消失，状态变 done |
 | `error` | 错误提前终止 | 错误提示，状态变 error |
 | `extension` | 第三方扩展事件 | 由 `renderExtension` 自定义渲染 |
@@ -53,18 +63,62 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 
 ---
 
-## memory — 记忆召回结果
+## phase — 一级流水线阶段（v2.1+）
+
+`phase` 是比 `stage` 更丰富的流水线阶段原语，支持：
+- **per-phase think 流**（通过 `think.phase_id` 路由）
+- 完成时携带 `pinned_think`（冻结快照，防止 streaming→done 内容闪烁）
+- 结构化 `body`（JSON 字符串，如分析结果、中间产物）
+- 精确时间戳
 
 ```json
-{"type":"memory","schema_version":"1.0","payload":{
-  "snippets":[
-    {"category":"preference","content":"偏好 TypeScript，arrow functions"},
-    {"category":"project","content":"当前项目使用 React 18 + Vite"}
-  ]
+{"type":"phase","schema_version":"1.0","payload":{"id":"understand","name":"理解需求","state":"running"}}
+{"type":"think","schema_version":"1.0","payload":{"delta":"用户想要简洁答案","done":false,"phase_id":"understand"}}
+{"type":"think","schema_version":"1.0","payload":{"delta":"","done":true,"phase_id":"understand"}}
+{"type":"phase","schema_version":"1.0","payload":{
+  "id":"understand","name":"理解需求","state":"done",
+  "pinned_think":"用户想要简洁答案",
+  "body":"{\"intent\":\"factual\",\"tone\":\"concise\"}",
+  "started_at":1749433200000,"ended_at":1749433201800
 }}
 ```
 
-整体替换（非增量），通常在生成正文前发送一次。`memorySnippets` 是数组，每项含 `category` 和 `content`。
+| payload 字段 | 类型 | 必填 | 说明 |
+|-------------|------|------|------|
+| `id` | string | ✅ | 阶段唯一标识（字母数字下划线），同一 id 的后发事件覆盖前态 |
+| `name` | string | ✅ | 可读阶段名称，用于 UI 显示 |
+| `state` | `"pending"` \| `"running"` \| `"done"` \| `"error"` | ✅ | 生命周期状态 |
+| `body` | string | — | JSON 字符串，阶段结构化产出（如分析意图、提取结果等）|
+| `pinned_think` | string | — | 完成时提供的冻结推理快照，优先于流式内容渲染，防止 flash |
+| `started_at` | number | — | 毫秒时间戳 |
+| `ended_at` | number | — | 毫秒时间戳 |
+
+**典型后端序列（Python）：**
+
+```python
+# 阶段开始
+yield phase_event(id="understand", name="理解需求", state="running")
+
+# 阶段独立 think 流（phase_id 路由到阶段，不影响顶层 thinkContent）
+yield think_event(delta="分析用户意图...", phase_id="understand")
+yield think_event(delta="需要简洁回答", phase_id="understand", done=True)
+
+# 阶段完成，携带冻结快照和结构化产出
+yield phase_event(
+    id="understand", name="理解需求", state="done",
+    pinned_think="分析用户意图...需要简洁回答",
+    body=json.dumps({"intent": "factual", "tone": "concise"}),
+)
+```
+
+**`phase` vs `stage` 的选择：**
+
+| 场景 | 推荐 |
+|------|------|
+| 简单进度条（几个步骤名称）| `stage` |
+| 需要 per-phase think 流 | `phase` |
+| 阶段有结构化输出需要传递给前端 | `phase` |
+| LangGraph / Temporal 等复杂 DAG | `workflow_node` |
 
 ---
 
@@ -77,6 +131,18 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 ```
 
 `delta` 追加到 `thinkContent`。`done:true` 触发 ThinkBlock 自动折叠（默认 1.5s 延迟）。
+
+**per-phase 路由（v2.1+）**：当 `phase_id` 字段存在时，`delta` 路由到 `phases[phase_id].thinkContent`，不影响顶层 `thinkContent`：
+
+```json
+{"type":"think","schema_version":"1.0","payload":{"delta":"分析意图…","done":false,"phase_id":"understand"}}
+```
+
+| payload 字段 | 类型 | 说明 |
+|-------------|------|------|
+| `delta` | string | 推理文本片段，追加到目标 thinkContent |
+| `done` | boolean | `true` 时标记推理结束，触发自动折叠 |
+| `phase_id` | string | （v2.1+）存在时路由到指定 phase；phase 不存在则忽略 |
 
 ---
 
@@ -103,27 +169,104 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 | `lang` | 语言/类型。`"html preview"` → iframe 渲染；`"mermaid"` → 图表；其余 → 代码高亮 |
 | `done` | `true` 时触发最终语法高亮 / 图表渲染 |
 
-一次对话可有多个 artifact，按 `artifactOrder` 数组顺序渲染。
+---
+
+## tool_call — 工具调用发起
+
+```json
+{"type":"tool_call","schema_version":"1.0","payload":{
+  "id":"tc_1",
+  "name":"web_search",
+  "description":"搜索网页",
+  "arguments":{"query":"Meso platform"},
+  "annotations":{"risk":"safe"}
+}}
+```
+
+| payload 字段 | 类型 | 必填 | 说明 |
+|-------------|------|------|------|
+| `id` | string | ✅ | 全局唯一，与 `tool_result.tool_call_id` 对应 |
+| `name` | string | ✅ | 工具名称 |
+| `description` | string | — | 工具描述，显示在 ToolCallBlock 中 |
+| `arguments` | object | — | 调用参数 |
+| `annotations.risk` | `"safe"` \| `"write"` \| `"destructive"` | — | `write`/`destructive` 触发 ConfirmGate |
+| `groupId` | string | — | （v2.1+）同组工具调用的稳定 group id（如子话题 id、并行搜索批次）|
+| `groupKind` | string | — | （v2.1+）语义分类（如 `"subtopic"`、`"parallel_search"`）|
+
+**`groupId` / `groupKind` 的用途：**
+
+消除文本解析 `(1/4)` 式编号的脆弱做法，后端直接标注：
+
+```json
+{"payload":{"id":"tc_1","name":"search","groupId":"batch_a","groupKind":"parallel_search"}}
+{"payload":{"id":"tc_2","name":"search","groupId":"batch_a","groupKind":"parallel_search"}}
+{"payload":{"id":"tc_3","name":"search","groupId":"batch_a","groupKind":"parallel_search"}}
+```
+
+前端按 `groupId` 分组渲染，无需解析名称：
+
+```ts
+const groups = state.toolCallOrder.reduce((acc, id) => {
+  const tc = state.toolCalls[id]
+  const key = tc.groupId ?? id
+  ;(acc[key] ??= []).push(tc)
+  return acc
+}, {} as Record<string, ToolCallState[]>)
+```
 
 ---
 
-## done — 流正常结束
+## tool_result — 工具调用结果
+
+```json
+{"type":"tool_result","schema_version":"1.0","payload":{
+  "tool_call_id":"tc_1",
+  "content":"搜索结果：…",
+  "error":null
+}}
+```
+
+| payload 字段 | 说明 |
+|-------------|------|
+| `tool_call_id` | 对应 `tool_call.id` |
+| `content` | 结果内容（文本或 JSON 字符串）|
+| `error` | 非 null 时 ToolCallBlock 显示错误状态 |
+
+---
+
+## resource_read / resource_content — MCP 资源读取
+
+```json
+{"type":"resource_read","schema_version":"1.0","payload":{"id":"r1","uri":"file:///src/main.ts","description":"读取主文件"}}
+{"type":"resource_content","schema_version":"1.0","payload":{"resource_read_id":"r1","contents":[{"uri":"file:///src/main.ts","text":"..."}]}}
+```
+
+---
+
+## memory — 记忆召回结果
+
+```json
+{"type":"memory","schema_version":"1.0","payload":{
+  "snippets":[
+    {"category":"preference","content":"偏好 TypeScript，arrow functions"},
+    {"category":"project","content":"当前项目使用 React 18 + Vite"}
+  ]
+}}
+```
+
+整体替换（非增量），通常在生成正文前发送一次。
+
+---
+
+## done / error
 
 ```json
 {"type":"done","schema_version":"1.0","payload":{}}
-```
 
-与 `error` 互斥。收到后 parser 停止处理后续行，光标消失，状态变 `done`。
-
----
-
-## error — 错误
-
-```json
 {"type":"error","schema_version":"1.0","payload":{"message":"上游服务超时","code":"UPSTREAM_TIMEOUT"}}
 ```
 
-与 `done` 互斥。`code` 为机器可读错误码（可选）。前端处理见 [错误处理](#error-handling)。
+与彼此互斥。`error.code` 为机器可读错误码（可选）。
 
 ---
 
@@ -142,6 +285,8 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 ---
 
 ## 完整序列示例
+
+### 基础序列
 
 ```
 data: {"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"active"}}
@@ -163,6 +308,26 @@ data: {"type":"text","schema_version":"1.0","payload":{"delta":"以下是代码�
 data: {"type":"artifact","schema_version":"1.0","payload":{"id":"a1","lang":"python","delta":"def hello():\n    print('hi')\n","done":true}}
 
 data: {"type":"stage","schema_version":"1.0","payload":{"name":"生成回复","state":"done"}}
+
+data: {"type":"done","schema_version":"1.0","payload":{}}
+```
+
+### 多阶段 phase 序列（v2.1+）
+
+```
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"understand","name":"理解需求","state":"running"}}
+
+data: {"type":"think","schema_version":"1.0","payload":{"delta":"用户需要简洁回答","done":false,"phase_id":"understand"}}
+
+data: {"type":"think","schema_version":"1.0","payload":{"delta":"","done":true,"phase_id":"understand"}}
+
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"understand","name":"理解需求","state":"done","pinned_think":"用户需要简洁回答"}}
+
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回复","state":"running"}}
+
+data: {"type":"text","schema_version":"1.0","payload":{"delta":"这是最终答案"}}
+
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回复","state":"done"}}
 
 data: {"type":"done","schema_version":"1.0","payload":{}}
 ```

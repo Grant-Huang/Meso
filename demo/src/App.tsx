@@ -14,10 +14,13 @@ import { DocGenPage } from './pages/DocGenPage'
 import { WorkflowPage } from './pages/WorkflowPage'
 import { QuickstartPage } from './pages/QuickstartPage'
 import { ToolsPage } from './pages/ToolsPage'
+import PersonaPage from './pages/PersonaPage'
+import ResourcesPage from './pages/ResourcesPage'
+import ExtensionPage from './pages/ExtensionPage'
 
-type Page = 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools'
+type Page = 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools' | 'persona' | 'resources' | 'extension'
 
-const ALL_PAGES = new Set<Page>(['streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools'])
+const ALL_PAGES = new Set<Page>(['streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'])
 
 const PAGE_SESSIONS: Record<Page, Session[]> = {
   streaming: [
@@ -38,6 +41,9 @@ const PAGE_SESSIONS: Record<Page, Session[]> = {
   workflow: [{ id: 'wf-1', title: 'DAG 工作流观测', lastTime: '今天' }],
   quickstart: [{ id: 'qs-1', title: '快速接入示例', lastTime: '今天' }],
   tools: [{ id: 'tools-1', title: '工具集成 Demo', lastTime: '今天' }],
+  persona: [{ id: 'persona-1', title: 'Soul · Skill 演示', lastTime: '今天' }],
+  resources: [{ id: 'res-1', title: 'MCP 资源读取', lastTime: '今天' }],
+  extension: [{ id: 'ext-1', title: 'Extension Events', lastTime: '今天' }],
 }
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -52,6 +58,9 @@ const PAGE_TITLES: Record<Page, string> = {
   workflow: 'DAG 工作流可观测性',
   quickstart: '快速接入示例',
   tools: '工具集成',
+  persona: 'Soul · Skill · Capabilities',
+  resources: 'MCP Resource Reads',
+  extension: 'Extension Events',
 }
 
 // SVG icons
@@ -67,6 +76,9 @@ const Icons = {
   workflow: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="3" cy="3.5" r="1.5"/><circle cx="13" cy="3.5" r="1.5"/><circle cx="3" cy="12.5" r="1.5"/><circle cx="13" cy="12.5" r="1.5"/><circle cx="8" cy="8" r="1.5"/><line x1="4.5" y1="3.5" x2="6.5" y2="8"/><line x1="11.5" y1="3.5" x2="9.5" y2="8"/><line x1="6.5" y1="8" x2="4.5" y2="12.5"/><line x1="9.5" y1="8" x2="11.5" y2="12.5"/></svg>,
   quickstart: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
   tools: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 2.5a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-1.5-.4L3 14l-1-1 6-6a3 3 0 0 1-.5-1.5 3 3 0 0 1 3-3z"/></svg>,
+  persona: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="5.5" r="3"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/></svg>,
+  resources: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4" opacity=".6"/><line x1="5" y1="8" x2="11" y2="8" opacity=".7"/><line x1="5" y1="11" x2="9" y2="11" opacity=".7"/></svg>,
+  extension: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2" opacity=".6"/><rect x="2" y="9" width="5" height="5" rx="1.2" opacity=".6"/><path d="M9 11.5h4M11 9.5v4" strokeWidth="1.8"/></svg>,
 }
 
 function getPageFromHash(): Page {
@@ -111,13 +123,16 @@ export default function App() {
     { id: 'workflow',    label: 'DAG 工作流', icon: Icons.workflow,    active: page === 'workflow',    onClick: () => navigate('workflow') },
     { id: 'quickstart',  label: '接入示例',   icon: Icons.quickstart,  active: page === 'quickstart',  onClick: () => navigate('quickstart') },
     { id: 'tools',       label: '工具集成',   icon: Icons.tools,       active: page === 'tools',       onClick: () => navigate('tools') },
+    { id: 'persona',     label: 'Soul / Skill', icon: Icons.persona,   active: page === 'persona',     onClick: () => navigate('persona') },
+    { id: 'resources',   label: 'MCP 资源',   icon: Icons.resources,   active: page === 'resources',   onClick: () => navigate('resources') },
+    { id: 'extension',   label: 'Extension',  icon: Icons.extension,   active: page === 'extension',   onClick: () => navigate('extension') },
   ]
 
   // LayoutPage manages its own full-height container
   if (page === 'layout') return <LayoutPage />
 
   // Static showcase pages don't need a session column "new" button
-  const isStaticPage = ['typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools'].includes(page)
+  const isStaticPage = ['typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'].includes(page)
 
   return (
     <div style={{ height: '100vh' }}>
@@ -149,6 +164,9 @@ export default function App() {
         {page === 'workflow'   && <WorkflowPage />}
         {page === 'quickstart' && <QuickstartPage />}
         {page === 'tools'      && <ToolsPage />}
+        {page === 'persona'    && <PersonaPage />}
+        {page === 'resources'  && <ResourcesPage />}
+        {page === 'extension'  && <ExtensionPage />}
       </ThreeColumnLayout>
     </div>
   )

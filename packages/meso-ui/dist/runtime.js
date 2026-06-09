@@ -42,7 +42,7 @@ function O(e) {
     artifactOrder: a
   };
 }
-function _(e, t) {
+function g(e, t) {
   switch (t.type) {
     case "capabilities":
       return { ...e, availableCapabilities: t.payload };
@@ -65,13 +65,13 @@ function _(e, t) {
     case "skill_active":
       return { ...e, activeSkill: t.payload };
     case "tool_call": {
-      const { id: a } = t.payload;
+      const { id: a, groupId: n, groupKind: r } = t.payload;
       return {
         ...e,
         toolCallOrder: e.toolCallOrder.includes(a) ? e.toolCallOrder : [...e.toolCallOrder, a],
         toolCalls: {
           ...e.toolCalls,
-          [a]: { call: t.payload, status: "pending" }
+          [a]: { call: t.payload, status: "pending", groupId: n, groupKind: r }
         }
       };
     }
@@ -123,7 +123,7 @@ function _(e, t) {
     case "text":
       return { ...e, textContent: e.textContent + t.payload.delta };
     case "artifact": {
-      const { id: a, lang: n, delta: r, done: d } = t.payload, s = e.artifacts[a], i = e.artifactOrder.includes(a) ? e.artifactOrder : [...e.artifactOrder, a];
+      const { id: a, lang: n, delta: r, done: d } = t.payload, o = e.artifacts[a], i = e.artifactOrder.includes(a) ? e.artifactOrder : [...e.artifactOrder, a];
       return {
         ...e,
         artifactOrder: i,
@@ -132,14 +132,14 @@ function _(e, t) {
           [a]: {
             id: a,
             lang: n,
-            content: ((s == null ? void 0 : s.content) ?? "") + r,
+            content: ((o == null ? void 0 : o.content) ?? "") + r,
             done: d ?? !1
           }
         }
       };
     }
     case "workflow_node": {
-      const { run_id: a, node_id: n, parent_id: r, name: d, state: s, started_at: i, duration_ms: c, metadata: u } = t.payload, o = e.workflowRuns[a] ?? { nodes: {}, nodeOrder: [] }, p = o.nodeOrder.includes(n) ? o.nodeOrder : [...o.nodeOrder, n];
+      const { run_id: a, node_id: n, parent_id: r, name: d, state: o, started_at: i, duration_ms: c, metadata: u } = t.payload, s = e.workflowRuns[a] ?? { nodes: {}, nodeOrder: [] }, p = s.nodeOrder.includes(n) ? s.nodeOrder : [...s.nodeOrder, n];
       return {
         ...e,
         workflowRunOrder: e.workflowRunOrder.includes(a) ? e.workflowRunOrder : [...e.workflowRunOrder, a],
@@ -148,8 +148,8 @@ function _(e, t) {
           [a]: {
             run_id: a,
             nodes: {
-              ...o.nodes,
-              [n]: { node_id: n, run_id: a, parent_id: r, name: d, state: s, started_at: i, duration_ms: c, metadata: u }
+              ...s.nodes,
+              [n]: { node_id: n, run_id: a, parent_id: r, name: d, state: o, started_at: i, duration_ms: c, metadata: u }
             },
             nodeOrder: p
           }
@@ -179,7 +179,7 @@ function _(e, t) {
       return e;
   }
 }
-function w(e) {
+function _(e) {
   if (!e.startsWith("data: ")) return null;
   const t = e.slice(6).trim();
   if (t === "[DONE]")
@@ -198,7 +198,7 @@ function f(e) {
   const [t] = l.split(".").map(Number), [a] = (e.schema_version ?? "").split(".").map(Number);
   return a === t;
 }
-function g(e) {
+function w(e) {
   if (!f(e))
     throw new Error(
       `Meso protocol version mismatch: runtime expects ${l}, received ${e.schema_version}. Upgrade @meso.ai/types or your backend.`
@@ -213,12 +213,12 @@ function k(e, t) {
 }
 export {
   l as PROTOCOL_VERSION,
-  _ as applyEvent,
-  g as assertCompatibleVersion,
+  g as applyEvent,
+  w as assertCompatibleVersion,
   y as createInitialStreamState,
   O as createStreamStateWithArtifacts,
   f as isCompatibleVersion,
-  w as parseSSELine,
+  _ as parseSSELine,
   k as stagePayloadToStage,
   m as streamStateHasArtifacts
 };

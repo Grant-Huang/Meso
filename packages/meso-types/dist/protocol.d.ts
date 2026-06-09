@@ -186,6 +186,14 @@ export interface ToolCallPayload {
     server?: string;
     /** Optional MCP-originated behaviour hints for UI rendering. */
     annotations?: ToolAnnotations;
+    /**
+     * Groups this call with related calls under the same logical operation.
+     * Use a stable id (e.g. subtopic id) so the frontend can route tool steps
+     * to the correct UI container without text parsing.
+     */
+    groupId?: string;
+    /** Semantic kind of the group (e.g. "subtopic", "parallel_search"). */
+    groupKind?: string;
 }
 /** LLM decided to call a tool — emitted before execution starts. */
 export type ToolCallEvent = Envelope<'tool_call', ToolCallPayload>;

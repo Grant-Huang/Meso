@@ -3,7 +3,19 @@ import './ThinkBlock.css'
 
 export interface ThinkBlockProps {
   content: string
+  /**
+   * Frozen snapshot of the content taken when streaming ended.
+   * When provided and streaming is false, this is displayed instead of
+   * `content` — preventing a flash if `content` changes after stream end.
+   */
+  pinnedContent?: string
   streaming?: boolean
+  /**
+   * Whether the parent conversation turn is still streaming.
+   * When it transitions false → false, the user's manual fold/unfold intent
+   * is reset so the next turn starts with the system default.
+   */
+  turnStreaming?: boolean
   /**
    * Delay in ms before auto-collapsing when streaming ends.
    * Pass null to disable auto-collapse. Default 1500.
@@ -26,7 +38,9 @@ export interface ThinkBlockProps {
 
 export function ThinkBlock({
   content,
+  pinnedContent,
   streaming = false,
+  turnStreaming,
   autoCollapseDelay = 1500,
   defaultOpen = true,
   open,
@@ -46,6 +60,7 @@ export function ThinkBlock({
   const isOpen = isControlled ? open! : (userIntent !== null ? userIntent : systemOpen)
 
   const prevStreaming = useRef(streaming)
+  const prevTurnStreaming = useRef(turnStreaming)
 
   const handleToggle = () => {
     const next = !isOpen
@@ -60,7 +75,7 @@ export function ThinkBlock({
     if (prevStreaming.current && !streaming) {
       const timer = setTimeout(() => {
         if (!isControlled) setSystemOpen(false)
-        // Only fire onOpenChange if user hasn't overridden the collapse
+        // Only fire onOpenChange if user hasn't overridden
         if (userIntentRef.current === null) onOpenChange?.(false)
       }, autoCollapseDelay)
       return () => clearTimeout(timer)
@@ -68,6 +83,16 @@ export function ThinkBlock({
     prevStreaming.current = streaming
   }, [streaming, autoCollapseDelay, collapseWhen, isControlled, onOpenChange])
 
+  // Reset user intent when the turn ends so the next turn starts fresh
+  useEffect(() => {
+    if (turnStreaming === undefined) return
+    if (prevTurnStreaming.current && !turnStreaming) {
+      setUserIntent(null)
+    }
+    prevTurnStreaming.current = turnStreaming
+  }, [turnStreaming])
+
+  const displayContent = (!streaming && pinnedContent !== undefined) ? pinnedContent : content
   const label = isOpen ? '思考过程' : summary
 
   return (
@@ -85,7 +110,7 @@ export function ThinkBlock({
       </button>
       <div className="meso-think__body">
         <div className="meso-think__content">
-          {content}
+          {displayContent}
           {streaming && (
             <span className="meso-think__cursor" aria-hidden="true">▋</span>
           )}

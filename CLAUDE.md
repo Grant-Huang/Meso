@@ -173,6 +173,31 @@ CSS token 文件：`packages/meso-ui/src/tokens.css`（亮色 + 暗色）。所�
 - `applyEvent.ts`（状态机分支）
 - `runtime.contract.test.ts`（协议契约测试）
 
+### Streaming → done 渲染路径必须同源
+
+> **原则**：streaming 与 done 必须共用同一渲染路径。done 不是"换组件"，是"同组件的不同 prop 状态"。
+
+常见违反模式（务必避免）：
+- 流式中内容在 `<ThinkBlock>` 渲染，done 后又写入 `<div class="body-text">` 重渲一遍
+- 用 `opts.streaming` 分支决定是否写 body——导致同一内容在两种容器里呈现，用户看到明显"刷新"
+
+正确做法：
+- 使用 `ThinkBlock` 的 `pinnedContent` prop 冻结快照，done 后显示快照而不是切换组件
+- 或只设 `streaming={false}` 让组件自然进入完成态，不替换 DOM 节点
+
+### 折叠状态的 userIntent 模式
+
+可折叠组件中，用户点击优先于系统自动行为：
+
+```ts
+// null = 跟随系统默认；true/false = 用户已明确操作
+const [userIntent, setUserIntent] = useState<boolean | null>(null)
+const open = userIntent !== null ? userIntent : systemOpen
+```
+
+使用 `useFoldState({ system, resetOnTurnStart })` hook 可直接获得此行为。
+轮次结束（`turnStreaming` 变为 false）时重置 intent，让下一轮回到系统默认。
+
 ### 测试
 
 - `@meso.ai/types`：`src/__tests__/runtime.contract.test.ts`（61 个协议契约测试）

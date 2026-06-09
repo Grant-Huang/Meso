@@ -22,6 +22,12 @@ export interface StreamOptions {
   method?: 'GET' | 'POST'
   headers?: Record<string, string>
   body?: Record<string, unknown>
+  /**
+   * Inactivity watchdog timeout in ms. If no data is received for this
+   * duration the stream is aborted and the state is set to 'error'.
+   * Default 120000 (2 min). Pass null to disable.
+   */
+  watchdogMs?: number | null
 }
 
 /** Lifecycle callbacks fired after each matching SSE event is applied to state. */
@@ -75,6 +81,21 @@ export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
     let current = initial
 
     const method = options?.method ?? (options?.body ? 'POST' : 'GET')
+    const watchdogMs = options?.watchdogMs === undefined ? 120_000 : options.watchdogMs
+
+    // Inactivity watchdog — reset on every received chunk
+    let watchdogTimer: ReturnType<typeof setTimeout> | null = null
+    const clearWatchdog = () => { if (watchdogTimer) clearTimeout(watchdogTimer) }
+    const resetWatchdog = () => {
+      clearWatchdog()
+      if (watchdogMs == null) return
+      watchdogTimer = setTimeout(() => {
+        ctrl.abort()
+        const msg = `SSE stream timed out after ${watchdogMs}ms of inactivity`
+        setState(prev => ({ ...prev, status: 'error', errorMessage: msg }))
+        callbacksRef.current?.onError?.(msg, 'WATCHDOG_TIMEOUT')
+      }, watchdogMs)
+    }
 
     try {
       const resp = await fetch(url, {
@@ -93,9 +114,13 @@ export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
       const decoder = new TextDecoder()
       let buffer = ''
 
+      resetWatchdog()
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
+
+        resetWatchdog()
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() ?? ''
@@ -132,7 +157,10 @@ export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
             }
           }
 
-          if (event.type === 'done' || event.type === 'error') return
+          if (event.type === 'done' || event.type === 'error') {
+            clearWatchdog()
+            return
+          }
         }
       }
     } catch (err) {
@@ -140,6 +168,8 @@ export function useSSEStream(url: string, callbacks?: StreamCallbacks) {
       const msg = (err as Error).message
       setState(prev => ({ ...prev, status: 'error', errorMessage: msg }))
       callbacksRef.current?.onError?.(msg)
+    } finally {
+      clearWatchdog()
     }
   }, [url])
 

@@ -62,8 +62,22 @@
   --session-col-w:        260px;
   --artifact-pane-w:      40%;
 
-  /* Trace content [stable] — shared font size for ThinkBlock / WorkflowTimeline / StageTimeline */
-  --meso-trace-font-size: 12px;
+  /* Type scale [stable] */
+  --meso-fs-caption: 12px;
+  --meso-fs-body:    14px;
+  --meso-fs-title:   15px;
+  --meso-fs-section: 18px;
+
+  /* Spacing scale [stable] — 4px base unit */
+  --meso-space-1: 4px;
+  --meso-space-2: 8px;
+  --meso-space-3: 12px;
+  --meso-space-4: 16px;
+  --meso-space-6: 24px;
+  --meso-indent:  16px;
+
+  /* Trace content [stable] — derived from type scale */
+  --meso-trace-font-size: var(--meso-fs-caption);
 
   /* Misc [internal] */
   --splitter-hover:       #9cb8a8;

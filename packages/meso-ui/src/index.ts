@@ -50,12 +50,18 @@ export type { SidebarUserMenuProps, SidebarMenuItemDef } from './components/Side
 export { ArtifactPaneShell } from './components/ArtifactPaneShell'
 export type { ArtifactPaneShellProps, ArtifactTab } from './components/ArtifactPaneShell'
 
+export { StatusIcon } from './components/StatusIcon'
+export type { StatusIconProps, StatusIconStatus } from './components/StatusIcon'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
 export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'
 
 export { useTheme } from './hooks/useTheme'
 export type { Theme } from './hooks/useTheme'
+
+export { useFoldState } from './hooks/useFoldState'
+export type { FoldStateOptions, FoldState } from './hooks/useFoldState'
 
 // Runtime (also available as @meso.ai/ui/runtime for React-free usage)
 export {

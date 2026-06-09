@@ -35,25 +35,34 @@ export function ThinkBlock({
   summary = '已思考',
 }: ThinkBlockProps) {
   const isControlled = open !== undefined
-  const [internalOpen, setInternalOpen] = useState(defaultOpen)
-  const isOpen = isControlled ? open! : internalOpen
+
+  // System open state — managed by auto-collapse timer
+  const [systemOpen, setSystemOpen] = useState(defaultOpen)
+  // User intent: null = follow system; true/false = user has explicitly toggled
+  const [userIntent, setUserIntent] = useState<boolean | null>(null)
+  const userIntentRef = useRef<boolean | null>(null)
+  userIntentRef.current = userIntent
+
+  const isOpen = isControlled ? open! : (userIntent !== null ? userIntent : systemOpen)
+
   const prevStreaming = useRef(streaming)
 
   const handleToggle = () => {
     const next = !isOpen
-    if (!isControlled) setInternalOpen(next)
+    if (!isControlled) setUserIntent(next)
     onOpenChange?.(next)
   }
 
+  // Auto-collapse: updates system default; user intent overrides it
   useEffect(() => {
     if (collapseWhen === 'never') return
     if (autoCollapseDelay === null) return
     if (prevStreaming.current && !streaming) {
-      const delay = autoCollapseDelay
       const timer = setTimeout(() => {
-        if (!isControlled) setInternalOpen(false)
-        onOpenChange?.(false)
-      }, delay)
+        if (!isControlled) setSystemOpen(false)
+        // Only fire onOpenChange if user hasn't overridden the collapse
+        if (userIntentRef.current === null) onOpenChange?.(false)
+      }, autoCollapseDelay)
       return () => clearTimeout(timer)
     }
     prevStreaming.current = streaming

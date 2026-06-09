@@ -1,0 +1,56 @@
+.meso-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.meso-status-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Running — accent color, spin + pulse */
+.meso-status-icon--running {
+  color: var(--color-accent);
+}
+
+.meso-status-icon__spin {
+  animation: meso-si-spin 1.2s linear infinite;
+  transform-origin: 8px 8px;
+}
+
+.meso-status-icon__pulse {
+  animation: meso-si-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes meso-si-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes meso-si-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+/* Done — success green */
+.meso-status-icon--done {
+  color: var(--color-success);
+}
+
+/* Error — error red */
+.meso-status-icon--error {
+  color: var(--color-error);
+}
+
+/* Pending — muted border only */
+.meso-status-icon--pending {
+  color: var(--color-border);
+}
+
+/* Warning — warning amber */
+.meso-status-icon--warning {
+  color: var(--color-warning);
+}

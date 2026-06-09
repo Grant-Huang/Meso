@@ -33,6 +33,10 @@ export interface ToolCallState {
   call: ToolCallPayload
   result?: ToolResultPayload
   status: ToolCallStatus
+  /** Mirrors ToolCallPayload.groupId — promoted for convenient filtering. */
+  groupId?: string
+  /** Mirrors ToolCallPayload.groupKind — promoted for convenient filtering. */
+  groupKind?: string
 }
 
 export type ResourceReadStatus = 'pending' | 'done' | 'error'

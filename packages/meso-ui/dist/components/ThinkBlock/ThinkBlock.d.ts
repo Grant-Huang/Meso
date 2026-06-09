@@ -1,7 +1,19 @@
 import './ThinkBlock.css';
 export interface ThinkBlockProps {
     content: string;
+    /**
+     * Frozen snapshot of the content taken when streaming ended.
+     * When provided and streaming is false, this is displayed instead of
+     * `content` — preventing a flash if `content` changes after stream end.
+     */
+    pinnedContent?: string;
     streaming?: boolean;
+    /**
+     * Whether the parent conversation turn is still streaming.
+     * When it transitions false → false, the user's manual fold/unfold intent
+     * is reset so the next turn starts with the system default.
+     */
+    turnStreaming?: boolean;
     /**
      * Delay in ms before auto-collapsing when streaming ends.
      * Pass null to disable auto-collapse. Default 1500.
@@ -21,4 +33,4 @@ export interface ThinkBlockProps {
     /** Label shown in the header when collapsed. Default "已思考". */
     summary?: string;
 }
-export declare function ThinkBlock({ content, streaming, autoCollapseDelay, defaultOpen, open, onOpenChange, collapseWhen, summary, }: ThinkBlockProps): import("react/jsx-runtime").JSX.Element;
+export declare function ThinkBlock({ content, pinnedContent, streaming, turnStreaming, autoCollapseDelay, defaultOpen, open, onOpenChange, collapseWhen, summary, }: ThinkBlockProps): import("react/jsx-runtime").JSX.Element;

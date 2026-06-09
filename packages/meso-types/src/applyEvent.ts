@@ -35,7 +35,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       return { ...state, activeSkill: event.payload }
 
     case 'tool_call': {
-      const { id } = event.payload
+      const { id, groupId, groupKind } = event.payload
       return {
         ...state,
         toolCallOrder: state.toolCallOrder.includes(id)
@@ -43,7 +43,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           : [...state.toolCallOrder, id],
         toolCalls: {
           ...state.toolCalls,
-          [id]: { call: event.payload, status: 'pending' },
+          [id]: { call: event.payload, status: 'pending', groupId, groupKind },
         },
       }
     }

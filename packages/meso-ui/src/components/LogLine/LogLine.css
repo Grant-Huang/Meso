@@ -1,0 +1,74 @@
+.meso-log-line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--meso-space-1, 4px);
+}
+
+.meso-log-line__row {
+  display: flex;
+  align-items: center;
+  gap: var(--meso-space-2, 8px);
+  min-height: 20px;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: 0 -4px;
+}
+
+.meso-log-line__row--clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.meso-log-line__row--clickable:hover {
+  background: var(--nav-hover-bg, rgba(61,107,82,0.09));
+}
+
+.meso-log-line__row--clickable:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.meso-log-line__icon {
+  flex-shrink: 0;
+}
+
+.meso-log-line__primary {
+  font-size: var(--meso-fs-caption, 12px);
+  color: var(--color-text-secondary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meso-log-line__outcome {
+  font-size: var(--meso-fs-caption, 12px);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meso-log-line__chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.meso-log-line__chevron--open {
+  transform: rotate(180deg);
+}
+
+.meso-log-line__detail {
+  margin: 0;
+  padding: var(--meso-space-2, 8px) var(--meso-space-3, 12px);
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  border-radius: 4px;
+  font-size: var(--meso-fs-caption, 12px);
+  font-family: var(--font-mono, monospace);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  overflow-x: auto;
+}

@@ -65,13 +65,13 @@ function w(r, o) {
     case "skill_active":
       return { ...r, activeSkill: o.payload };
     case "tool_call": {
-      const { id: e } = o.payload;
+      const { id: e, groupId: a, groupKind: n } = o.payload;
       return {
         ...r,
         toolCallOrder: r.toolCallOrder.includes(e) ? r.toolCallOrder : [...r.toolCallOrder, e],
         toolCalls: {
           ...r.toolCalls,
-          [e]: { call: o.payload, status: "pending" }
+          [e]: { call: o.payload, status: "pending", groupId: a, groupKind: n }
         }
       };
     }
@@ -198,13 +198,13 @@ function y(r) {
   const [o] = s.split(".").map(Number), [e] = (r.schema_version ?? "").split(".").map(Number);
   return e === o;
 }
-function k(r) {
+function g(r) {
   if (!y(r))
     throw new Error(
       `Meso protocol version mismatch: runtime expects ${s}, received ${r.schema_version}. Upgrade @meso.ai/types or your backend.`
     );
 }
-function C(r, o) {
+function k(r, o) {
   return {
     id: o,
     label: r.name,
@@ -214,11 +214,11 @@ function C(r, o) {
 export {
   s as PROTOCOL_VERSION,
   w as applyEvent,
-  k as assertCompatibleVersion,
+  g as assertCompatibleVersion,
   f as createInitialStreamState,
   O as createStreamStateWithArtifacts,
   y as isCompatibleVersion,
   R as parseSSELine,
-  C as stagePayloadToStage,
+  k as stagePayloadToStage,
   m as streamStateHasArtifacts
 };

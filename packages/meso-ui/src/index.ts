@@ -53,6 +53,9 @@ export type { ArtifactPaneShellProps, ArtifactTab } from './components/ArtifactP
 export { StatusIcon } from './components/StatusIcon'
 export type { StatusIconProps, StatusIconStatus } from './components/StatusIcon'
 
+export { LogLine } from './components/LogLine'
+export type { LogLineProps } from './components/LogLine'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
 export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'

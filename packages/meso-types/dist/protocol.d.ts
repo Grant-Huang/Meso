@@ -42,6 +42,12 @@ export interface ThinkPayload {
     delta: string;
     /** true on the final think chunk — triggers auto-collapse in ThinkBlock. */
     done?: boolean;
+    /**
+     * When present, routes this chunk to a specific phase's thinkContent
+     * rather than the top-level StreamState.thinkContent.
+     * The phase must have been created via a prior phase event.
+     */
+    phase_id?: string;
 }
 /** Incremental reasoning text. */
 export type ThinkEvent = Envelope<'think', ThinkPayload>;
@@ -301,6 +307,31 @@ export interface ToolDefinition {
     /** Icon name (Ant Design icon or custom asset key). */
     icon?: string;
 }
+export type PhaseState = 'pending' | 'running' | 'done' | 'error';
+export interface PhasePayload {
+    /** Stable identifier for this phase (e.g. "understand", "search", "generate"). */
+    id: string;
+    /** User-visible display name (e.g. "理解需求", "检索文献"). */
+    name: string;
+    state: PhaseState;
+    /**
+     * Structured output produced by this phase (e.g. a brief, JSON plan).
+     * Present on done events; persisted in PhaseRecord.body.
+     */
+    body?: string;
+    /**
+     * Frozen snapshot of the think stream for this phase.
+     * Send on the done event to prevent streaming→done content flash in ThinkBlock.
+     * When present, ThinkBlock should display this instead of the live content.
+     */
+    pinned_think?: string;
+    /** Unix ms timestamp when this phase started. */
+    started_at?: number;
+    /** Unix ms timestamp when this phase ended. */
+    ended_at?: number;
+}
+/** Phase lifecycle event — emitted at start (state:"running") and end (state:"done"/"error"). */
+export type PhaseEvent = Envelope<'phase', PhasePayload>;
 export interface ExtensionPayload {
     /** Identifies the extension type (e.g. "tool_progress", "confirm_gate"). */
     name: string;
@@ -310,5 +341,5 @@ export interface ExtensionPayload {
 }
 /** Third-party extension event — consumed via MessageList's renderExtension prop. */
 export type ExtensionEvent = Envelope<'extension', ExtensionPayload>;
-export type SSEEvent = StageEvent | CapabilitiesEvent | MemoryEvent | MemorySavedEvent | SoulEvent | SkillActiveEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | ResourceReadEvent | ResourceContentEvent | WorkflowNodeEvent | DoneEvent | ErrorEvent | ExtensionEvent;
+export type SSEEvent = StageEvent | PhaseEvent | CapabilitiesEvent | MemoryEvent | MemorySavedEvent | SoulEvent | SkillActiveEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | ResourceReadEvent | ResourceContentEvent | WorkflowNodeEvent | DoneEvent | ErrorEvent | ExtensionEvent;
 export {};

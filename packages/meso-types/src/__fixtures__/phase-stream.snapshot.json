@@ -1,0 +1,5 @@
+{
+  "status": "done",
+  "phaseOrder": ["understand", "generate"],
+  "textContent": "这是最终答案"
+}

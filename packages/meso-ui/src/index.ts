@@ -123,6 +123,9 @@ export type {
   WorkflowNodeState,
   WorkflowNodePayload,
   WorkflowNodeEvent,
+  PhaseState,
+  PhasePayload,
+  PhaseEvent,
   StreamState,
   StreamStatus,
   ArtifactState,
@@ -133,4 +136,5 @@ export type {
   ResourceReadState,
   WorkflowNodeRecord,
   WorkflowRunState,
+  PhaseRecord,
 } from './runtime'

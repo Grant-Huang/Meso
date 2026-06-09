@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { ThinkBlock } from '../ThinkBlock'
 import { StageTimeline } from '../StageTimeline'
 import { ToolCallBlock } from '../ToolCallBlock'
 import { WorkflowTimeline } from '../WorkflowTimeline'
-import type { StreamState } from '../../runtime'
+import type { StreamState, ToolCallState } from '../../runtime'
 import type { Stage } from '../StageTimeline'
 import './ProcessTrace.css'
 
@@ -17,6 +17,17 @@ export interface ProcessTraceProps {
   /** Callback for tool confirm/cancel (forwarded to ToolCallBlock). */
   onToolConfirm?: (toolCallId: string) => void
   onToolCancel?: (toolCallId: string) => void
+  /**
+   * Optional render slot for custom stage body content.
+   * Rendered below each stage chip in the StageTimeline area.
+   * Return null/undefined to use default rendering.
+   */
+  renderStageBody?: (stage: Stage, streamStage: StreamState['stages'][number]) => ReactNode
+  /**
+   * Optional render slot that replaces the default ToolCallBlock for a specific call.
+   * Return null/undefined to fall back to ToolCallBlock.
+   */
+  renderToolCall?: (toolCall: ToolCallState) => ReactNode
 }
 
 function buildSummary(stream: StreamState): string {
@@ -30,7 +41,8 @@ function buildSummary(stream: StreamState): string {
         return n + run.nodeOrder.filter(nid => run.nodes[nid]?.state === 'error').length
       }, 0)
   const parts: string[] = []
-  if (stream.stages.length > 0) parts.push(`${stream.stages.length} 阶段`)
+  if (stream.phaseOrder.length > 0) parts.push(`${stream.phaseOrder.length} 阶段`)
+  else if (stream.stages.length > 0) parts.push(`${stream.stages.length} 阶段`)
   if (total > 0) parts.push(`${total} 步`)
   if (errors > 0) parts.push(`${errors} 项失败`)
   return parts.length > 0 ? parts.join(' · ') : '执行过程'
@@ -42,12 +54,15 @@ export function ProcessTrace({
   defaultCollapsed = false,
   onToolConfirm,
   onToolCancel,
+  renderStageBody,
+  renderToolCall,
 }: ProcessTraceProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
 
   const hasContent =
     !!stream.thinkContent ||
     stream.stages.length > 0 ||
+    stream.phaseOrder.length > 0 ||
     stream.toolCallOrder.length > 0 ||
     stream.workflowRunOrder.length > 0
 
@@ -88,14 +103,21 @@ export function ProcessTrace({
           )}
 
           {stream.stages.length > 0 && (
-            <StageTimeline
-              compact
-              stages={stream.stages.map((s): Stage => ({
-                id: s.name,
-                label: s.name,
-                status: s.state === 'done' || s.state === 'error' ? 'done' : 'active',
-              }))}
-            />
+            <>
+              <StageTimeline
+                compact
+                stages={stream.stages.map((s): Stage => ({
+                  id: s.name,
+                  label: s.name,
+                  status: s.state === 'done' || s.state === 'error' ? 'done' : 'active',
+                }))}
+              />
+              {renderStageBody && stream.stages.map(s => {
+                const stage: Stage = { id: s.name, label: s.name, status: s.state === 'done' || s.state === 'error' ? 'done' : 'active' }
+                const body = renderStageBody(stage, s)
+                return body ? <div key={s.name} className="meso-process-trace__stage-body">{body}</div> : null
+              })}
+            </>
           )}
 
           {stream.toolCallOrder.length > 0 && (
@@ -103,6 +125,8 @@ export function ProcessTrace({
               {stream.toolCallOrder.map(id => {
                 const tc = stream.toolCalls[id]
                 if (!tc) return null
+                const custom = renderToolCall?.(tc)
+                if (custom !== undefined && custom !== null) return <div key={id}>{custom}</div>
                 return (
                   <ToolCallBlock
                     key={id}

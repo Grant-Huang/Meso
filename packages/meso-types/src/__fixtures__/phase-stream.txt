@@ -1,0 +1,15 @@
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"understand","name":"理解需求","state":"running","started_at":1000}}
+
+data: {"type":"think","schema_version":"1.0","payload":{"delta":"用户想要","phase_id":"understand"}}
+
+data: {"type":"think","schema_version":"1.0","payload":{"delta":"简洁答案","phase_id":"understand","done":true}}
+
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"understand","name":"理解需求","state":"done","pinned_think":"用户想要简洁答案","body":"需求明确，直接回答","ended_at":2000}}
+
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回答","state":"running","started_at":2100}}
+
+data: {"type":"text","schema_version":"1.0","payload":{"delta":"这是最终答案"}}
+
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回答","state":"done","ended_at":3000}}
+
+data: {"type":"done","schema_version":"1.0","payload":{}}

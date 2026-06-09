@@ -96,12 +96,52 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       }
     }
 
-    case 'think':
+    case 'think': {
+      const { delta, done, phase_id } = event.payload
+      if (phase_id) {
+        const existingPhase = state.phases[phase_id]
+        if (!existingPhase) return state
+        return {
+          ...state,
+          phases: {
+            ...state.phases,
+            [phase_id]: {
+              ...existingPhase,
+              thinkContent: existingPhase.thinkContent + delta,
+            },
+          },
+        }
+      }
       return {
         ...state,
-        thinkContent: state.thinkContent + event.payload.delta,
-        thinkDone: event.payload.done ?? false,
+        thinkContent: state.thinkContent + delta,
+        thinkDone: done ?? false,
       }
+    }
+
+    case 'phase': {
+      const { id, name, state: phaseState, body, pinned_think, started_at, ended_at } = event.payload
+      const existing = state.phases[id]
+      return {
+        ...state,
+        phaseOrder: state.phaseOrder.includes(id)
+          ? state.phaseOrder
+          : [...state.phaseOrder, id],
+        phases: {
+          ...state.phases,
+          [id]: {
+            id,
+            name,
+            state: phaseState,
+            thinkContent: existing?.thinkContent ?? '',
+            pinnedThink: pinned_think ?? existing?.pinnedThink,
+            body: body ?? existing?.body,
+            startedAt: started_at ?? existing?.startedAt,
+            endedAt: ended_at ?? existing?.endedAt,
+          },
+        },
+      }
+    }
 
     case 'text':
       return { ...state, textContent: state.textContent + event.payload.delta }

@@ -907,6 +907,7 @@ function We({
       r.stages.length > 0 && /* @__PURE__ */ e(
         Q,
         {
+          compact: !0,
           stages: r.stages.map((h) => ({
             id: h.name,
             label: h.name,

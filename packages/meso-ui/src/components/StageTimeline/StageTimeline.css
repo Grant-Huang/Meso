@@ -110,7 +110,7 @@
 
 /* Label */
 .meso-stage__label {
-  font-size: 13px;
+  font-size: var(--meso-trace-font-size, 12px);
   line-height: 18px;
   color: var(--color-text-secondary);
   padding-bottom: 20px;

@@ -99,7 +99,7 @@
 .meso-wf-node--done + .meso-wf-node .meso-wf-node__line,
 .meso-wf-node--done .meso-wf-node__line {
   background: var(--color-success);
-  opacity: 0.4;
+  opacity: 0.7;
 }
 
 /* Body: name + duration + expand button */
@@ -119,7 +119,7 @@
 
 .meso-wf-node__name {
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
+  font-size: var(--meso-trace-font-size, 12px);
   color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;

@@ -89,6 +89,7 @@ export function ProcessTrace({
 
           {stream.stages.length > 0 && (
             <StageTimeline
+              compact
               stages={stream.stages.map((s): Stage => ({
                 id: s.name,
                 label: s.name,

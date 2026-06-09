@@ -3,6 +3,12 @@ export interface StreamOptions {
     method?: 'GET' | 'POST';
     headers?: Record<string, string>;
     body?: Record<string, unknown>;
+    /**
+     * Inactivity watchdog timeout in ms. If no data is received for this
+     * duration the stream is aborted and the state is set to 'error'.
+     * Default 120000 (2 min). Pass null to disable.
+     */
+    watchdogMs?: number | null;
 }
 /** Lifecycle callbacks fired after each matching SSE event is applied to state. */
 export interface StreamCallbacks {

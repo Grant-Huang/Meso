@@ -47,6 +47,9 @@ export type {
   WorkflowNodeState,
   WorkflowNodePayload,
   WorkflowNodeEvent,
+  PhaseState,
+  PhasePayload,
+  PhaseEvent,
 } from './protocol'
 
 export type {
@@ -60,6 +63,7 @@ export type {
   ResourceReadState,
   WorkflowNodeRecord,
   WorkflowRunState,
+  PhaseRecord,
 } from './streamState'
 export {
   createInitialStreamState,

@@ -170,6 +170,41 @@ describe('workflow-stream contract', () => {
   })
 })
 
+describe('phase-stream contract', () => {
+  it('final state matches snapshot', () => {
+    expect(replayFixture('phase-stream.txt')).toMatchObject(
+      loadSnapshot('phase-stream.snapshot.json'),
+    )
+  })
+
+  it('phaseOrder preserves arrival order', () => {
+    const state = replayFixture('phase-stream.txt')
+    expect(state.phaseOrder).toEqual(['understand', 'generate'])
+  })
+
+  it('phase think content accumulated from phase_id chunks', () => {
+    const state = replayFixture('phase-stream.txt')
+    expect(state.phases['understand'].thinkContent).toBe('用户想要简洁答案')
+  })
+
+  it('pinned_think stored from done event', () => {
+    const state = replayFixture('phase-stream.txt')
+    expect(state.phases['understand'].pinnedThink).toBe('用户想要简洁答案')
+    expect(state.phases['understand'].body).toBe('需求明确，直接回答')
+  })
+
+  it('phase state transitions correctly', () => {
+    const state = replayFixture('phase-stream.txt')
+    expect(state.phases['understand'].state).toBe('done')
+    expect(state.phases['generate'].state).toBe('done')
+  })
+
+  it('top-level thinkContent unaffected by phase_id thinks', () => {
+    const state = replayFixture('phase-stream.txt')
+    expect(state.thinkContent).toBe('')
+  })
+})
+
 describe('mcp-stream contract', () => {
   it('final state matches snapshot', () => {
     expect(replayFixture('mcp-stream.txt')).toMatchObject(
@@ -419,6 +454,58 @@ describe('applyEvent', () => {
     const s2 = applyEvent(s1,       { type: 'extension', schema_version: '1.0', payload: { name: 'tool', data: 2 } })
     expect(s2.extensionLog).toHaveLength(2)
     expect(s2.extensions['tool']).toHaveLength(2)
+  })
+
+  it('phase: creates phase on first event, deduplicates id in phaseOrder', () => {
+    const s1 = applyEvent(streaming, {
+      type: 'phase', schema_version: '1.0',
+      payload: { id: 'p1', name: '理解需求', state: 'running' },
+    })
+    const s2 = applyEvent(s1, {
+      type: 'phase', schema_version: '1.0',
+      payload: { id: 'p1', name: '理解需求', state: 'done', body: '需求明确' },
+    })
+    expect(s2.phaseOrder).toEqual(['p1'])
+    expect(s2.phases['p1'].state).toBe('done')
+    expect(s2.phases['p1'].body).toBe('需求明确')
+  })
+
+  it('phase: think with phase_id routes to phase.thinkContent', () => {
+    const s1 = applyEvent(streaming, {
+      type: 'phase', schema_version: '1.0',
+      payload: { id: 'p1', name: '思考', state: 'running' },
+    })
+    const s2 = applyEvent(s1, {
+      type: 'think', schema_version: '1.0',
+      payload: { delta: '分析中', phase_id: 'p1' },
+    })
+    const s3 = applyEvent(s2, {
+      type: 'think', schema_version: '1.0',
+      payload: { delta: '…', phase_id: 'p1' },
+    })
+    expect(s3.phases['p1'].thinkContent).toBe('分析中…')
+    expect(s3.thinkContent).toBe('')
+  })
+
+  it('phase: pinned_think stored on done event', () => {
+    const s1 = applyEvent(streaming, {
+      type: 'phase', schema_version: '1.0',
+      payload: { id: 'p1', name: '思考', state: 'running' },
+    })
+    const s2 = applyEvent(s1, {
+      type: 'phase', schema_version: '1.0',
+      payload: { id: 'p1', name: '思考', state: 'done', pinned_think: '最终思考快照' },
+    })
+    expect(s2.phases['p1'].pinnedThink).toBe('最终思考快照')
+  })
+
+  it('phase: think without phase_id routes to top-level thinkContent', () => {
+    const s = applyEvent(streaming, {
+      type: 'think', schema_version: '1.0',
+      payload: { delta: '全局思考', done: true },
+    })
+    expect(s.thinkContent).toBe('全局思考')
+    expect(s.thinkDone).toBe(true)
   })
 
   it('done/error: mutually exclusive status', () => {

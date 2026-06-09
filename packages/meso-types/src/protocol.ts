@@ -56,6 +56,12 @@ export interface ThinkPayload {
   delta: string
   /** true on the final think chunk — triggers auto-collapse in ThinkBlock. */
   done?: boolean
+  /**
+   * When present, routes this chunk to a specific phase's thinkContent
+   * rather than the top-level StreamState.thinkContent.
+   * The phase must have been created via a prior phase event.
+   */
+  phase_id?: string
 }
 /** Incremental reasoning text. */
 export type ThinkEvent = Envelope<'think', ThinkPayload>
@@ -385,6 +391,47 @@ export interface ToolDefinition {
   icon?: string
 }
 
+// ── Phase event ──────────────────────────────────────────────────────────────
+//
+// Phases are coarse, user-visible stages of a multi-step AI pipeline.
+// Unlike workflow_node (developer telemetry), phases are first-class citizens
+// in StreamState and can carry per-phase think streams and structured output.
+//
+// Division of labour:
+//   stage  — lightweight progress label (deprecated path; use phase for richer UX)
+//   phase  — full lifecycle with nested think stream + structured body
+//
+// Typical flow:
+//   phase(id, name, state:"running") → think(delta, phase_id) × N
+//   → think(delta, phase_id, done:true) → phase(id, name, state:"done", body, pinned_think)
+
+export type PhaseState = 'pending' | 'running' | 'done' | 'error'
+
+export interface PhasePayload {
+  /** Stable identifier for this phase (e.g. "understand", "search", "generate"). */
+  id: string
+  /** User-visible display name (e.g. "理解需求", "检索文献"). */
+  name: string
+  state: PhaseState
+  /**
+   * Structured output produced by this phase (e.g. a brief, JSON plan).
+   * Present on done events; persisted in PhaseRecord.body.
+   */
+  body?: string
+  /**
+   * Frozen snapshot of the think stream for this phase.
+   * Send on the done event to prevent streaming→done content flash in ThinkBlock.
+   * When present, ThinkBlock should display this instead of the live content.
+   */
+  pinned_think?: string
+  /** Unix ms timestamp when this phase started. */
+  started_at?: number
+  /** Unix ms timestamp when this phase ended. */
+  ended_at?: number
+}
+/** Phase lifecycle event — emitted at start (state:"running") and end (state:"done"/"error"). */
+export type PhaseEvent = Envelope<'phase', PhasePayload>
+
 // ── Extension event ─────────────────────────────────────────────────────────
 //
 // Third-party backends use this channel for domain-specific events that don't
@@ -405,6 +452,7 @@ export type ExtensionEvent = Envelope<'extension', ExtensionPayload>
 
 export type SSEEvent =
   | StageEvent
+  | PhaseEvent
   | CapabilitiesEvent
   | MemoryEvent
   | MemorySavedEvent

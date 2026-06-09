@@ -1,5 +1,27 @@
-import type { StagePayload, MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState } from './protocol';
+import type { StagePayload, MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState, PhaseState as PhaseLifecycleState } from './protocol';
 export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error';
+/**
+ * Runtime state of a single phase within a multi-step pipeline.
+ * Populated by `phase` events; think chunks with matching `phase_id`
+ * are accumulated into `thinkContent`.
+ */
+export interface PhaseRecord {
+    id: string;
+    name: string;
+    state: PhaseLifecycleState;
+    /** Think chunks accumulated from think events with this phase_id. */
+    thinkContent: string;
+    /**
+     * Frozen snapshot of the think content delivered by the backend on the
+     * done event. When present, use this instead of thinkContent to avoid
+     * streaming→done content flash.
+     */
+    pinnedThink?: string;
+    /** Structured output produced by this phase (e.g. a brief, plan JSON). */
+    body?: string;
+    startedAt?: number;
+    endedAt?: number;
+}
 export interface ArtifactState {
     id: string;
     lang: string;
@@ -76,6 +98,14 @@ export interface StreamState {
     workflowRuns: Record<string, WorkflowRunState>;
     /** Run ids in first-seen order — use for deterministic rendering. */
     workflowRunOrder: string[];
+    /**
+     * Multi-step pipeline phases keyed by id.
+     * Populated by `phase` events; richer alternative to `stages` for apps
+     * that need per-phase think streams and structured output.
+     */
+    phases: Record<string, PhaseRecord>;
+    /** Phase ids in first-seen order — use for deterministic rendering. */
+    phaseOrder: string[];
     /**
      * Extension events keyed by name for lookup (e.g. extensions["tool_progress"]).
      * For time-ordered rendering, use extensionLog instead.

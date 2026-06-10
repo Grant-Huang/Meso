@@ -128,11 +128,8 @@ export default function App() {
     { id: 'extension',   label: 'Extension',  icon: Icons.extension,   active: page === 'extension',   onClick: () => navigate('extension') },
   ]
 
-  // LayoutPage manages its own full-height container
-  if (page === 'layout') return <LayoutPage />
-
   // Static showcase pages don't need a session column "new" button
-  const isStaticPage = ['typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'].includes(page)
+  const isStaticPage = ['layout', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'].includes(page)
 
   return (
     <div style={{ height: '100vh' }}>
@@ -156,6 +153,7 @@ export default function App() {
       >
         {page === 'streaming'  && <StreamingPage  key={activeSessionId} sessionId={activeSessionId ?? ''} />}
         {page === 'live-chat'  && <LiveChatPage   key={activeSessionId} sessionId={activeSessionId ?? ''} />}
+        {page === 'layout'     && <LayoutPage />}
         {page === 'typography' && <TypographyPage />}
         {page === 'components' && <ComponentsPage />}
         {page === 'memory'     && <MemoryPage />}

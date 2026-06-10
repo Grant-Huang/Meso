@@ -26,7 +26,7 @@ const Icons = {
   </svg>,
 }
 
-export function LayoutPage() {
+export function LayoutPage({ onBack }: { onBack?: () => void }) {
   const [sessions, setSessions] = useState<Session[]>(SAMPLE_SESSIONS)
   const [activeId, setActiveId] = useState<string | undefined>('s1')
   const [activeNav, setActiveNav] = useState('chat')
@@ -72,10 +72,31 @@ export function LayoutPage() {
         background: 'var(--color-accent)',
         color: '#fff',
         fontSize: 12,
-        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
         flexShrink: 0,
       }}>
-        ThreeColumnLayout 演示 — 点击侧栏箭头折叠，缩小窗口测试响应式断点（≤900px 隐藏会话列）
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              borderRadius: 5,
+              color: '#fff',
+              fontSize: 12,
+              padding: '2px 10px',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            ← 返回
+          </button>
+        )}
+        <span style={{ flex: 1, textAlign: 'center' }}>
+          ThreeColumnLayout 演示 — 点击侧栏箭头折叠，缩小窗口测试响应式断点（≤900px 隐藏会话列）
+        </span>
       </div>
 
       <div style={{ flex: 1, minHeight: 0 }}>

@@ -129,7 +129,7 @@ export default function App() {
   ]
 
   // LayoutPage manages its own full-height container
-  if (page === 'layout') return <LayoutPage />
+  if (page === 'layout') return <LayoutPage onBack={() => navigate('streaming')} />
 
   // Static showcase pages don't need a session column "new" button
   const isStaticPage = ['typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'].includes(page)

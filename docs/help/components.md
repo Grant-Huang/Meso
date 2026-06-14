@@ -246,7 +246,7 @@ interface Stage {
 
 ## ProcessTrace
 
-执行过程折叠摘要，聚合 think、stages、tool calls 和 workflow，带可展开/折叠的总览 header。
+执行过程折叠摘要，聚合 think、phases、memory、resource reads、tool calls 和 workflow，带可展开/折叠的总览 header。
 
 ```tsx
 <ProcessTrace
@@ -255,9 +255,9 @@ interface Stage {
   defaultCollapsed={false}
   onToolConfirm={id => postConfirm(id)}
   onToolCancel={id => postCancel(id)}
-  renderStageBody={(stage, streamStage) => (
-    streamStage.name === '检索知识' ? <RetrievalResult stage={streamStage} /> : null
-  )}
+  renderPhase={phase =>
+    phase.id === 'search' ? <RetrievalResult phase={phase} /> : null
+  }
   renderToolCall={tc =>
     tc.call.name === 'web_search' ? <SearchCard tc={tc} /> : null
   }
@@ -273,12 +273,12 @@ interface Stage {
 | `defaultCollapsed` | `boolean` | `false` | 初始折叠状态 |
 | `onToolConfirm` | `(id: string) => void` | — | 工具确认回调（转发给 ToolCallBlock）|
 | `onToolCancel` | `(id: string) => void` | — | 工具取消回调 |
-| `renderStageBody` | `(stage: Stage, streamStage) => ReactNode` | — | （v2.1+）每个 stage chip 下方的自定义内容；返回 null/undefined 跳过 |
-| `renderToolCall` | `(toolCall: ToolCallState) => ReactNode` | — | （v2.1+）替换指定 toolCall 的默认 ToolCallBlock；返回 null/undefined 使用默认 |
+| `renderPhase` | `(phase: PhaseRecord) => ReactNode` | — | 替换指定 phase 的默认渲染；返回 null/undefined 使用默认 |
+| `renderToolCall` | `(toolCall: ToolCallState) => ReactNode` | — | 替换指定 toolCall 的默认 ToolCallBlock；返回 null/undefined 使用默认 |
 
 **自动生成摘要文字示例：**
 
-- `3 阶段 · 5 步` — 有 phases 或 stages + tool calls
+- `3 阶段 · 5 步` — 有 phases + tool calls
 - `2 步 · 1 项失败` — 有失败的 tool call 或 workflow 节点
 
 ---
@@ -530,7 +530,7 @@ start({ watchdogMs: null })
 ```typescript
 interface StreamCallbacks {
   onCapabilities?:   (capabilities: CapabilitiesPayload) => void
-  onStageChange?:    (stage: StagePayload) => void
+  onPhaseChange?:    (phase: PhasePayload) => void
   onMemoryRecalled?: (snippets: MemorySnippet[]) => void
   onMemorySaved?:    (saved: MemorySavedPayload) => void
   onSoulActivated?:  (soul: SoulPayload) => void

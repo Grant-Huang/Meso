@@ -7,15 +7,15 @@ const evt = (type: string, payload: object) =>
 
 // ── 场景 A：读取源码文件 ──────────────────────────────────────────
 const SCENARIO_A: string[] = [
-  evt('stage', { name: '读取资源', state: 'active' }),
+  evt('phase', { id: 'read-resource', name: '读取资源', state: 'running' }),
   evt('resource_read', {
     id: 'r1',
     uri: 'file:///src/hooks/useSSEStream.ts',
     name: 'useSSEStream.ts',
     server: 'filesystem-mcp',
   }),
-  evt('stage', { name: '读取资源', state: 'done' }),
-  evt('stage', { name: '分析代码', state: 'active' }),
+  evt('phase', { id: 'read-resource', name: '读取资源', state: 'done' }),
+  evt('phase', { id: 'analyze-code', name: '分析代码', state: 'running' }),
   evt('resource_content', {
     resource_read_id: 'r1',
     contents: [{
@@ -26,7 +26,7 @@ const SCENARIO_A: string[] = [
   }),
   evt('think', { delta: '这是 useSSEStream hook 的核心实现，' }),
   evt('think', { delta: '基于 EventSource API，通过 applyEvent 纯函数驱动状态。', done: true }),
-  evt('stage', { name: '分析代码', state: 'done' }),
+  evt('phase', { id: 'analyze-code', name: '分析代码', state: 'done' }),
   evt('text', { delta: '## useSSEStream 实现分析\n\n' }),
   evt('text', { delta: '**架构模式**：单向数据流 + 不可变状态更新\n\n' }),
   evt('text', { delta: '```\nEventSource → applyEvent(prev, rawLine) → setState → 渲染\n```\n\n' }),
@@ -38,7 +38,7 @@ const SCENARIO_A: string[] = [
 
 // ── 场景 B：读取多个资源（并行） ─────────────────────────────────
 const SCENARIO_B: string[] = [
-  evt('stage', { name: '并行读取', state: 'active' }),
+  evt('phase', { id: 'parallel-read', name: '并行读取', state: 'running' }),
   evt('resource_read', {
     id: 'r1',
     uri: 'file:///package.json',
@@ -61,7 +61,7 @@ const SCENARIO_B: string[] = [
     contents: [{ type: 'text', text: '{\n  "compilerOptions": {\n    "strict": true,\n    "target": "ES2022",\n    "moduleResolution": "bundler"\n  }\n}' }],
     duration_ms: 19,
   }),
-  evt('stage', { name: '并行读取', state: 'done' }),
+  evt('phase', { id: 'parallel-read', name: '并行读取', state: 'done' }),
   evt('text', { delta: '## 项目配置概览\n\n' }),
   evt('text', { delta: '| 配置项 | 值 |\n|--------|----|\n' }),
   evt('text', { delta: '| 包管理器 | pnpm@10.33.0 |\n' }),
@@ -74,7 +74,7 @@ const SCENARIO_B: string[] = [
 
 // ── 场景 C：读取失败（错误处理） ─────────────────────────────────
 const SCENARIO_C: string[] = [
-  evt('stage', { name: '读取配置', state: 'active' }),
+  evt('phase', { id: 'read-config', name: '读取配置', state: 'running' }),
   evt('resource_read', {
     id: 'r1',
     uri: 'file:///secrets/.env.production',
@@ -87,7 +87,7 @@ const SCENARIO_C: string[] = [
     error: 'Permission denied: /secrets/.env.production',
     duration_ms: 5,
   }),
-  evt('stage', { name: '读取配置', state: 'error' }),
+  evt('phase', { id: 'read-config', name: '读取配置', state: 'error' }),
   evt('text', { delta: '读取 `.env.production` 失败：权限不足。\n\n' }),
   evt('text', { delta: '**建议**：请确认 MCP server 有读取该路径的权限，或通过 `ALLOW_LIST` 配置显式授权。' }),
   evt('done', {}),

@@ -1,4 +1,4 @@
-import type { StagePayload, MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState, PhaseState as PhaseLifecycleState } from './protocol';
+import type { MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState, PhaseState as PhaseLifecycleState } from './protocol';
 export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error';
 /**
  * Runtime state of a single phase within a multi-step pipeline.
@@ -69,8 +69,13 @@ export interface StreamState {
     activeSoul: SoulPayload | null;
     /** Active skill/operational mode; null until skill_active event received. */
     activeSkill: SkillPayload | null;
-    /** Pipeline stages in arrival order; deduped by name. */
-    stages: StagePayload[];
+    /**
+     * Multi-step pipeline phases keyed by id.
+     * Populated by `phase` events; carries per-phase think streams and structured output.
+     */
+    phases: Record<string, PhaseRecord>;
+    /** Phase ids in first-seen order — use for deterministic rendering. */
+    phaseOrder: string[];
     /** Memory snippets recalled before generation. */
     memorySnippets: MemorySnippet[];
     /** Memory entries persisted during this session (backend confirmations). */
@@ -93,27 +98,21 @@ export interface StreamState {
     /**
      * Workflow runs keyed by run_id. One stream may contain multiple runs
      * (e.g. parallel sub-graphs from LangGraph or Temporal).
-     * Stage = user-readable coarse progress; workflow_node = developer-facing fine steps.
+     * phase = user-readable pipeline; workflow_node = developer-facing fine steps.
      */
     workflowRuns: Record<string, WorkflowRunState>;
     /** Run ids in first-seen order — use for deterministic rendering. */
     workflowRunOrder: string[];
     /**
-     * Multi-step pipeline phases keyed by id.
-     * Populated by `phase` events; richer alternative to `stages` for apps
-     * that need per-phase think streams and structured output.
-     */
-    phases: Record<string, PhaseRecord>;
-    /** Phase ids in first-seen order — use for deterministic rendering. */
-    phaseOrder: string[];
-    /**
-     * Extension events keyed by name for lookup (e.g. extensions["tool_progress"]).
+     * Extension events keyed by name for lookup (e.g. extensions["citation"]).
      * For time-ordered rendering, use extensionLog instead.
      */
     extensions: Record<string, ExtensionEvent[]>;
     /** All extension events in arrival order — use when sequential rendering matters. */
     extensionLog: ExtensionEvent[];
     errorMessage: string | null;
+    /** Machine-readable error code from the error event (e.g. UPSTREAM_TIMEOUT). */
+    errorCode: string | null;
 }
 export declare function createInitialStreamState(): StreamState;
 /**

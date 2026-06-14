@@ -171,7 +171,7 @@ const PLACEHOLDERS: Record<AppId, string> = {
   codeassist: '粘贴代码或描述问题…',
 }
 
-/** Plugin/App showcase — mirrors docs/demo/09-plugin.html */
+/** Plugin/App showcase */
 export function PluginPage() {
   const [selected, setSelected] = useState<AppId>('general')
 

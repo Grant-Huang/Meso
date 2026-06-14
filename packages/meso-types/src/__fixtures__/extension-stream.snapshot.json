@@ -1,21 +1,23 @@
 {
   "status": "done",
-  "textContent": "正在调用工具，结果如下",
-  "stages": [],
+  "textContent": "正在检索，结果如下",
+  "phaseOrder": [],
+  "phases": {},
   "memorySnippets": [],
   "thinkContent": "",
   "thinkDone": false,
   "artifacts": {},
   "artifactOrder": [],
   "errorMessage": null,
+  "errorCode": null,
   "extensionLog": [
-    { "type": "extension", "payload": { "name": "tool_progress" } },
-    { "type": "extension", "payload": { "name": "tool_progress" } }
+    { "type": "extension", "payload": { "name": "citation" } },
+    { "type": "extension", "payload": { "name": "citation" } }
   ],
   "extensions": {
-    "tool_progress": [
-      { "type": "extension", "payload": { "name": "tool_progress" } },
-      { "type": "extension", "payload": { "name": "tool_progress" } }
+    "citation": [
+      { "type": "extension", "payload": { "name": "citation" } },
+      { "type": "extension", "payload": { "name": "citation" } }
     ]
   }
 }

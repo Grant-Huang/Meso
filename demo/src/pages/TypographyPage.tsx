@@ -1,4 +1,4 @@
-/** Typography showcase — mirrors docs/demo/04-typography.html */
+/** Typography showcase */
 export function TypographyPage() {
   const Section = ({ label }: { label: string }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '28px 0 16px' }}>

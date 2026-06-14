@@ -13,7 +13,7 @@ describe('@meso.ai/ui/runtime re-exports from @meso.ai/types', () => {
   it('createInitialStreamState returns correct shape', () => {
     const state = createInitialStreamState()
     expect(state.status).toBe('idle')
-    expect(state.stages).toEqual([])
+    expect(state.phaseOrder).toEqual([])
     expect(state.extensionLog).toEqual([])
     expect(state.artifactOrder).toEqual([])
   })

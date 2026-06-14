@@ -1,7 +1,15 @@
 node_modules/
 package-lock.json
+yarn.lock
 packages/*/node_modules/
 packages/*/package-lock.json
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
+
+# Vite cache artifacts
+packages/*/vite.config.ts.timestamp-*.mjs
 
 # Environment variables — never commit real keys
 .env

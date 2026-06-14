@@ -4,6 +4,97 @@
 
 ---
 
+## v1.x → v2.0 / v3.0（Breaking Cleanup）
+
+`@meso.ai/types@2.0.0` 与 `@meso.ai/ui@3.0.0` **不保留运行时兼容**。请一次性升级后端事件、前端状态访问与 UI 集成。
+
+```bash
+pnpm add @meso.ai/types@2.0.0 @meso.ai/ui@3.0.0
+```
+
+### stage → phase 迁移
+
+| 旧 (`stage`) | 新 (`phase`) |
+|--------------|--------------|
+| `{ type:"stage", payload:{ name, state:"active" } }` | `{ type:"phase", payload:{ id, name, state:"running" } }` |
+| `state:"done"` | `state:"done"` + 可选 `body` / `pinned_think` |
+| `StreamState.stages` | `StreamState.phases` + `phaseOrder` |
+| `onStageChange` | `onPhaseChange` |
+| `showProcessTrace={false}` | 已删除，`MessageList` 统一使用 `ProcessTrace` |
+| `stagePayloadToStage` | `phaseRecordToStage`（`PhaseRecord` → `StageTimeline` 视觉原语）|
+
+**Python 后端（最小示例）：**
+
+```python
+# 旧
+yield sse({"type": "stage", "schema_version": "1.0",
+           "payload": {"name": "检索", "state": "active"}})
+
+# 新
+yield sse({"type": "phase", "schema_version": "1.0",
+           "payload": {"id": "search", "name": "检索", "state": "running"}})
+```
+
+**Node 后端（最小示例）：**
+
+```typescript
+// 旧
+writeSSE({ type: 'stage', schema_version: '1.0',
+           payload: { name: '检索', state: 'active' } })
+
+// 新
+writeSSE({ type: 'phase', schema_version: '1.0',
+           payload: { id: 'search', name: '检索', state: 'running' } })
+```
+
+**前端状态访问：**
+
+```tsx
+// 旧
+{state.stages.map(s => <Chip key={s.name}>{s.name}</Chip>)}
+
+// 新
+{state.phaseOrder.map(id => {
+  const phase = state.phases[id]
+  return <Chip key={id}>{phase.name}</Chip>
+})}
+```
+
+### tool_progress / confirm_gate → 标准工具事件
+
+| 旧 (`extension`) | 新（标准事件） |
+|------------------|----------------|
+| `extension("tool_progress", { status:"running" })` | `tool_call` + `tool_status`（`running`）|
+| `extension("tool_progress", { status:"done" })` | `tool_result` |
+| `extension("confirm_gate", …)` | `tool_call`（`requires_confirm`）+ `ConfirmGate` UI |
+
+工具进度请使用 `tool_call` → `tool_status` → `tool_result` 序列；需用户确认时使用 `tool_call` 的 `requires_confirm` 与 `@meso.ai/ui` 的 `ConfirmGate` / `ToolCallBlock`。
+
+### 已删除的 API
+
+- `StagePayload` / `StageEvent` / `StreamState.stages`
+- `MessageList.showProcessTrace`
+- `ProcessTrace.renderStageBody`
+- `useSSEStream.onStageChange`
+- 静态 HTML demo（`docs/demo/`、`docs/industrial-vision.html`）— 请使用 React [`demo/`](../../demo/)
+
+---
+
+## v1.2.1 → v1.2.2（patch，@meso.ai/types）
+
+无 breaking change。修复与增强：
+
+- `tool_result` 保留 `groupId` / `groupKind`
+- `tool_call` 对 write/destructive/`requires_confirm` 自动设 `awaiting_confirm`
+- 新增 `tool_status` 事件（`running` / `awaiting_confirm`）
+- `StreamState.errorCode` 持久化 `error.code`
+
+```bash
+pnpm add @meso.ai/types@1.2.2 @meso.ai/ui@2.1.2
+```
+
+---
+
 ## v2.1.0 → v2.1.1（patch）
 
 仅 bug fix，无 API 变更，直接升级即可：
@@ -21,7 +112,7 @@ npm install @meso.ai/ui@2.1.1 @meso.ai/types@1.2.1
 ### 新增：`phase` 事件 + per-phase think 流（@meso.ai/types）
 
 `StreamState` 新增 `phases: Record<string, PhaseRecord>` 和 `phaseOrder: string[]`。
-现有使用 `stages` 的代码完全不受影响；`phases` 默认为空对象。
+现有使用 `phase` 的代码完全不受影响；`phases` 默认为空对象。
 
 ```typescript
 // 新字段（原有字段不变）
@@ -149,19 +240,17 @@ start({ watchdogMs: null })     // 禁用超时
 
 超时时 `state.status = 'error'`，`onError` 收到 `code: 'WATCHDOG_TIMEOUT'`。
 
-### 新增：`ProcessTrace.renderStageBody` + `renderToolCall` 插槽（@meso.ai/ui）
+### 新增：`ProcessTrace.renderPhase` + `renderToolCall` 插槽（@meso.ai/ui）
 
 ```tsx
 <ProcessTrace
   stream={state}
   streaming={isStreaming}
-  renderStageBody={(stage, streamStage) => {
-    // 自定义 stage 下方内容；返回 null/undefined 使用默认
-    if (streamStage.name === '检索') return <RetrievalDetail stage={streamStage} />
+  renderPhase={(phase) => {
+    if (phase.id === 'search') return <RetrievalDetail phase={phase} />
     return null
   }}
   renderToolCall={(tc) => {
-    // 替换默认 ToolCallBlock；返回 null/undefined 使用默认
     if (tc.call.name === 'web_search') return <SearchCard tc={tc} />
     return null
   }}
@@ -294,4 +383,4 @@ state.stages[n].state
 2. 更新契约测试 fixture
 3. 发布新版 `@meso.ai/ui` / `@meso.ai/types`
 
-完整变更历史见 [CHANGELOG.md](../packages/meso-ui/CHANGELOG.md)。
+完整变更历史见 [CHANGELOG.md](../../packages/meso-ui/CHANGELOG.md)。

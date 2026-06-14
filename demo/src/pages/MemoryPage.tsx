@@ -22,7 +22,7 @@ const RESULTS_MAP: Record<string, RecallResult[]> = {
   ],
 }
 
-/** Memory system showcase — mirrors docs/demo/08-memory.html */
+/** Memory system showcase */
 export function MemoryPage() {
   const [query, setQuery] = useState('PostgreSQL 索引优化')
   const [results, setResults] = useState<RecallResult[]>([])

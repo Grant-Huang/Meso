@@ -3,20 +3,12 @@
   "availableCapabilities": null,
   "activeSoul": null,
   "activeSkill": null,
-  "stages": [
-    {
-      "name": "分析意图",
-      "state": "done"
-    },
-    {
-      "name": "搜索网络",
-      "state": "done"
-    },
-    {
-      "name": "生成回复",
-      "state": "done"
-    }
-  ],
+  "phaseOrder": ["intent", "search", "generate"],
+  "phases": {
+    "intent": { "id": "intent", "name": "分析意图", "state": "done", "thinkContent": "" },
+    "search": { "id": "search", "name": "搜索网络", "state": "done", "thinkContent": "" },
+    "generate": { "id": "generate", "name": "生成回复", "state": "done", "thinkContent": "" }
+  },
   "memorySnippets": [],
   "memorySaved": [],
   "toolCalls": {},
@@ -89,5 +81,6 @@
   ],
   "extensions": {},
   "extensionLog": [],
-  "errorMessage": null
+  "errorMessage": null,
+  "errorCode": null
 }

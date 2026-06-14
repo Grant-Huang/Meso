@@ -13,12 +13,13 @@ import type { Message } from '@meso.ai/ui'
 
 const SAFE_EVENTS = [
   `data: {"type":"capabilities","schema_version":"1.0","payload":{"tools":[{"name":"read_file","description":"读取指定路径的文件内容","provider":"local","risk":"safe","input_schema":{"type":"object","properties":{"path":{"type":"string","description":"文件路径"}},"required":["path"]}}]}}`,
-  `data: {"type":"stage","schema_version":"1.0","payload":{"name":"分析请求","state":"active"}}`,
-  `data: {"type":"stage","schema_version":"1.0","payload":{"name":"分析请求","state":"done"}}`,
+  `data: {"type":"phase","schema_version":"1.0","payload":{"id":"analyze","name":"分析请求","state":"running"}}`,
+  `data: {"type":"phase","schema_version":"1.0","payload":{"id":"analyze","name":"分析请求","state":"done"}}`,
   `data: {"type":"text","schema_version":"1.0","payload":{"delta":"我来"}}`,
   `data: {"type":"text","schema_version":"1.0","payload":{"delta":"读取文件"}}`,
   `data: {"type":"text","schema_version":"1.0","payload":{"delta":"内容。"}}`,
   `data: {"type":"tool_call","schema_version":"1.0","payload":{"id":"tc-1","name":"read_file","args":{"path":"/docs/readme.md"},"risk":"safe","provider":"local"}}`,
+  `data: {"type":"tool_status","schema_version":"1.0","payload":{"id":"tc-1","status":"running"}}`,
   `data: {"type":"tool_result","schema_version":"1.0","payload":{"tool_call_id":"tc-1","output":"# Readme\\n这是项目说明文档，包含安装步骤、配置指南和 API 参考。","duration_ms":28}}`,
   `data: {"type":"text","schema_version":"1.0","payload":{"delta":"文件内容已读取，以上是摘要。"}}`,
   `data: {"type":"done","schema_version":"1.0","payload":{}}`,
@@ -33,6 +34,7 @@ const DESTRUCTIVE_PRE = [
 ]
 
 const DESTRUCTIVE_POST = [
+  `data: {"type":"tool_status","schema_version":"1.0","payload":{"id":"tc-2","status":"running"}}`,
   `data: {"type":"tool_result","schema_version":"1.0","payload":{"tool_call_id":"tc-2","output":"已删除 /tmp/cache.db（1.2 MB）","duration_ms":45}}`,
   `data: {"type":"text","schema_version":"1.0","payload":{"delta":"临时文件已成功清理。"}}`,
   `data: {"type":"done","schema_version":"1.0","payload":{}}`,

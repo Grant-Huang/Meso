@@ -11,7 +11,7 @@ interface StreamingPageProps {
 
 /**
  * Demonstrates the full Meso SSE protocol using the mock backend at /api/mock-stream.
- * Shows: stage timeline, memory chips, think block, text streaming, artifact panel.
+ * Shows: phase timeline, memory chips, think block, text streaming, artifact panel.
  *
  * Session persistence strategy:
  * - Messages for every session are stored in a ref (messagesMapRef) so they survive
@@ -99,7 +99,7 @@ export function StreamingPage({ sessionId }: StreamingPageProps) {
       }}>
         <span>Mock 后端：<code style={{ fontSize: 11 }}>/api/mock-stream</code></span>
         <span style={{ color: 'var(--color-text-muted)' }}>·</span>
-        <span>演示完整 SSE 协议：stage → memory → think → text → artifact → done</span>
+        <span>演示完整 SSE 协议：phase → memory → think → text → artifact → done</span>
         {state.status === 'streaming' && (
           <>
             <span style={{ color: 'var(--color-text-muted)', marginLeft: 'auto' }}>·</span>

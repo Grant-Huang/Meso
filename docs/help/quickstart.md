@@ -187,8 +187,8 @@ app = FastAPI()
 async def stream_endpoint(body: dict):
     async def generate():
         # 1. 阶段进度
-        yield sse({"type":"stage","schema_version":"1.0",
-                   "payload":{"name":"分析中","state":"active"}})
+        yield sse({"type":"phase","schema_version":"1.0",
+                   "payload":{"id":"analyze","name":"分析中","state":"running"}})
         await asyncio.sleep(0.1)
 
         # 2. 推理过程（可选）
@@ -203,8 +203,8 @@ async def stream_endpoint(body: dict):
                        "payload":{"delta":chunk}})
 
         # 4. 完成
-        yield sse({"type":"stage","schema_version":"1.0",
-                   "payload":{"name":"分析中","state":"done"}})
+        yield sse({"type":"phase","schema_version":"1.0",
+                   "payload":{"id":"analyze","name":"分析中","state":"done"}})
         yield sse({"type":"done","schema_version":"1.0","payload":{}})
 
     return StreamingResponse(

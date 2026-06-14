@@ -23,12 +23,12 @@ function ChatArea() {
       messages={messages}
       streaming={state}
       emptyState={<EmptyPrompt />}
-      renderLiveTrace={(stream, isStreaming) => (
-        <ProcessTrace stream={stream} streaming={isStreaming} />
+      renderLiveTrace={(stream) => (
+        <ProcessTrace stream={stream} streaming={stream.status === 'streaming'} />
       )}
       renderExtension={(event) => {
-        if (event.payload.name === 'tool_progress') {
-          return <ToolCard data={event.payload.data} />
+        if (event.payload.name === 'citation') {
+          return <CitationCard data={event.payload.data} />
         }
       }}
     />
@@ -60,9 +60,7 @@ function ChatArea() {
 | `capabilities` | `availableCapabilities` 设置 | 应用可按需展示可用能力 |
 | `soul` | `activeSoul` 设置 | SoulIndicator 显示当前人格 |
 | `skill_active` | `activeSkill` 设置 | SkillIndicator 显示当前技能 |
-| `stage` active | `stages` 追加/更新 | StageTimeline 出现，旋转动画 |
-| `stage` done | `stages[n].state = 'done'` | 打对号，全 done 后 1.5s 折叠 |
-| `phase` running | `phases[id]` 创建/更新，`phaseOrder` 追加 | 可渲染 PhaseRecord |
+| `phase` running | `phases[id]` 创建/更新，`phaseOrder` 追加 | ProcessTrace / StageTimeline 更新 |
 | `phase` done | `phases[id].state = 'done'`，存储 `pinnedThink`/`body` | ThinkBlock 切到快照 |
 | `memory` | `memorySnippets` 替换 | Memory 芯片出现 |
 | `memory_saved` | `memorySaved` 追加 | 可选 UI 提示已保存 |
@@ -288,7 +286,7 @@ start({ watchdogMs: 60_000 })
 ```tsx
 import {
   ChatBubble, ThinkBlock, StageTimeline, ArtifactPanel,
-  StatusIcon, LogLine, useSSEStream
+  StatusIcon, LogLine, useSSEStream, phaseRecordToStage
 } from '@meso.ai/ui'
 
 function CustomChat() {
@@ -300,13 +298,13 @@ function CustomChat() {
       {state.status !== 'idle' && (
         <div style={{ padding: '0 16px' }}>
           {/* 阶段进度 */}
-          {state.stages.length > 0 && (
+          {state.phaseOrder.length > 0 && (
             <StageTimeline
-              stages={state.stages.map(s => ({
-                id: s.name,
-                label: s.name,
-                status: s.state === 'done' ? 'done' : s.state === 'error' ? 'error' : 'active',
-              }))}
+              compact
+              stages={state.phaseOrder
+                .map(id => state.phases[id])
+                .filter(Boolean)
+                .map(phaseRecordToStage)}
             />
           )}
 

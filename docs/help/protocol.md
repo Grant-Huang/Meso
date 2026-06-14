@@ -29,8 +29,7 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 | `capabilities` | 本次会话能力清单 | 应用可按需展示可用能力 |
 | `soul` | 激活的 Soul/人格 | SoulIndicator 显示 |
 | `skill_active` | 激活的 Skill/工作模式 | SkillIndicator 显示 |
-| `stage` | 流水线阶段开始/完成 | StageTimeline 动画 |
-| `phase` | 一级流水线阶段（含 per-phase think 流）| 可渲染 PhaseRecord |
+| `phase` | 流水线阶段开始/完成 | ProcessTrace / StageTimeline |
 | `memory` | 记忆召回完成 | Memory 芯片显示 |
 | `memory_saved` | 记忆已持久化 | 可选 UI 提示 |
 | `think` | LLM 推理过程（增量）| ThinkBlock 展开/折叠 |
@@ -47,29 +46,9 @@ data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 
 ---
 
-## stage — 流水线阶段进度
+## phase — 流水线阶段进度
 
-```json
-{"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"active"}}
-{"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"done"}}
-```
-
-| payload 字段 | 类型 | 说明 |
-|-------------|------|------|
-| `name` | string | 阶段标签，如"召回记忆"、"检索知识"、"生成回复" |
-| `state` | `"active"` \| `"done"` \| `"error"` | 同名后发覆盖前一个 |
-
-**去重规则**：相同 `name` 的后发事件覆盖前一个，渲染顺序按首次出现。
-
----
-
-## phase — 一级流水线阶段（v2.1+）
-
-`phase` 是比 `stage` 更丰富的流水线阶段原语，支持：
-- **per-phase think 流**（通过 `think.phase_id` 路由）
-- 完成时携带 `pinned_think`（冻结快照，防止 streaming→done 内容闪烁）
-- 结构化 `body`（JSON 字符串，如分析结果、中间产物）
-- 精确时间戳
+`phase` 支持 per-phase think 流、冻结快照与结构化产出：
 
 ```json
 {"type":"phase","schema_version":"1.0","payload":{"id":"understand","name":"理解需求","state":"running"}}
@@ -111,14 +90,7 @@ yield phase_event(
 )
 ```
 
-**`phase` vs `stage` 的选择：**
-
-| 场景 | 推荐 |
-|------|------|
-| 简单进度条（几个步骤名称）| `stage` |
-| 需要 per-phase think 流 | `phase` |
-| 阶段有结构化输出需要传递给前端 | `phase` |
-| LangGraph / Temporal 等复杂 DAG | `workflow_node` |
+**去重规则**：相同 `id` 的后发事件覆盖前一个，渲染顺序按 `phaseOrder`。
 
 ---
 
@@ -274,9 +246,9 @@ const groups = state.toolCallOrder.reduce((acc, id) => {
 
 ```json
 {"type":"extension","schema_version":"1.0","payload":{
-  "name":"tool_progress",
+  "name":"citation",
   "version":"1.0",
-  "data":{"tool":"web_search","status":"running","query":"Meso platform"}
+  "data":{"source":"paper-42","title":"Meso Protocol Overview"}
 }}
 ```
 
@@ -289,13 +261,13 @@ const groups = state.toolCallOrder.reduce((acc, id) => {
 ### 基础序列
 
 ```
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"active"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"recall","name":"召回记忆","state":"running"}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"召回记忆","state":"done"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"recall","name":"召回记忆","state":"done"}}
 
 data: {"type":"memory","schema_version":"1.0","payload":{"snippets":[{"category":"preference","content":"偏好简洁"}]}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"生成回复","state":"active"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回复","state":"running"}}
 
 data: {"type":"think","schema_version":"1.0","payload":{"delta":"用户问的是…","done":false}}
 
@@ -307,7 +279,7 @@ data: {"type":"text","schema_version":"1.0","payload":{"delta":"以下是代码�
 
 data: {"type":"artifact","schema_version":"1.0","payload":{"id":"a1","lang":"python","delta":"def hello():\n    print('hi')\n","done":true}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"生成回复","state":"done"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回复","state":"done"}}
 
 data: {"type":"done","schema_version":"1.0","payload":{}}
 ```

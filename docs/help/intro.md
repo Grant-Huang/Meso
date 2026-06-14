@@ -155,7 +155,7 @@ import {
   ├── LLM 调用（任意模型）
   ├── 记忆召回（任意实现）
   ├── 工具执行（任意实现）
-  └── 扩展事件（tool_progress、confirm_gate…）
+  └── 扩展事件（citation、entity_reference…）
 ```
 
 ---
@@ -164,7 +164,7 @@ import {
 
 接入完成后，确认以下行为均正常：
 
-- [ ] 发送消息后**立即**出现 StageTimeline（不等 LLM 回复）
+- [ ] 发送消息后**立即**出现阶段进度（`ProcessTrace` / `StageTimeline`）
 - [ ] ThinkBlock 在推理时展开，收到 `done:true` 后 1.5s 自动折叠
 - [ ] 正文逐字流入，末尾显示闪烁光标 ▋
 - [ ] Artifact 面板在首个 artifact 事件到达时弹出

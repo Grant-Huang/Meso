@@ -158,18 +158,19 @@ function ChatPane() {
 
 ---
 
-## 步骤 6（可选）：Stage 进度桥接
+## 步骤 6（可选）：Phase 进度桥接
 
-如果你的后端发 `stage` 事件，可用 `stagePayloadToStage` 将协议 payload 转换为 `StageTimeline` 所需类型，避免手写映射：
+后端发 `phase` 事件时，`ProcessTrace` 会自动渲染阶段条与详情。若需独立使用 `StageTimeline`，可用 `phaseRecordToStage` 转换：
 
 ```tsx
-import { stagePayloadToStage } from '@meso.ai/ui'
+import { phaseRecordToStage } from '@meso.ai/ui'
 import { StageTimeline } from '@meso.ai/ui'
 
-// state.stages 由 useSSEStream 自动维护，无需手动转换
-// 若需要独立渲染 StageTimeline：
-const stages = stagePayloads.map((p, i) => stagePayloadToStage(p, `stage-${i}`))
-<StageTimeline stages={stages} />
+const stages = state.phaseOrder
+  .map(id => state.phases[id])
+  .filter(Boolean)
+  .map(phaseRecordToStage)
+<StageTimeline stages={stages} compact />
 ```
 
 ---
@@ -384,8 +385,8 @@ async def event_stream(session_id: str):
   messages={messages}
   streaming={state.status !== 'idle' ? state : undefined}
   renderExtension={(event) => {
-    if (event.payload.name === 'tool_progress') {
-      return <ToolProgressCard data={event.payload.data} />
+    if (event.payload.name === 'citation') {
+      return <CitationCard data={event.payload.data} />
     }
     return null
   }}

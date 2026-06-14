@@ -39,6 +39,25 @@ importers:
         specifier: ^5.4.11
         version: 5.4.21
 
+  packages/meso-client:
+    dependencies:
+      '@meso.ai/types':
+        specifier: workspace:*
+        version: link:../meso-types
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.11
+        version: 5.4.21
+      vite-plugin-dts:
+        specifier: ^4.3.0
+        version: 4.5.4(rollup@4.60.4)(typescript@5.9.3)(vite@5.4.21)
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(jsdom@25.0.1)
+
   packages/meso-types:
     devDependencies:
       typescript:

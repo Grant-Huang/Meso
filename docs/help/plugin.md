@@ -100,35 +100,19 @@ async function loadApp(appId: string) {
 
 ---
 
-## 工具调用：扩展事件
+## 工具调用：标准事件
 
-工具执行进度通过扩展事件推送到前端，不需要修改平台代码：
+工具执行进度通过标准 SSE 事件推送到前端：
 
 ```json
-{"type":"extension","schema_version":"1.0","payload":{
-  "name": "tool_progress",
-  "data": {"tool":"search_knowledge","status":"running","query":"保密条款"}
-}}
+{"type":"tool_call","schema_version":"1.0","payload":{"id":"tc-1","name":"search_knowledge","arguments":{"query":"保密条款"}}}
+{"type":"tool_status","schema_version":"1.0","payload":{"id":"tc-1","status":"running"}}
+{"type":"tool_result","schema_version":"1.0","payload":{"id":"tc-1","content":"..."}}
 ```
 
-```tsx
-<MessageList
-  messages={messages}
-  streaming={state}
-  renderExtension={event => {
-    if (event.payload.name === 'tool_progress') {
-      const d = event.payload.data as { tool: string; status: string; query?: string }
-      return (
-        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '4px 0' }}>
-          {d.status === 'running' ? `⟳ 正在查询：${d.query}` : `✓ 查询完成`}
-        </div>
-      )
-    }
-  }}
-/>
-```
+`MessageList` 内嵌的 `ProcessTrace` 会自动渲染 `ToolCallBlock`。
 
-详见 [扩展事件](#extension)。
+详见 [工具调用](tools.md)。
 
 ---
 

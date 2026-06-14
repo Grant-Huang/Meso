@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { WorkflowRunState, WorkflowNodeRecord } from '@meso.ai/types'
+import { StatusIcon } from '../StatusIcon'
+import type { StatusIconStatus } from '../StatusIcon'
 import './WorkflowTimeline.css'
 
 export interface WorkflowTimelineProps {
@@ -67,30 +69,23 @@ function buildTree(run: WorkflowRunState): TreeItem[] {
 
 // ── Shared helpers ──────────────────────────────────────────────────
 
+function workflowNodeStateToIcon(state: WorkflowNodeRecord['state']): StatusIconStatus {
+  switch (state) {
+    case 'active': return 'running'
+    case 'done': return 'done'
+    case 'error': return 'error'
+    case 'skipped': return 'warning'
+  }
+}
+
 function NodeIcon({ state }: { state: WorkflowNodeRecord['state'] }) {
-  if (state === 'done') {
-    return (
-      <svg className="meso-wf-node__icon meso-wf-node__icon--done" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="1.5,6.5 4.5,9.5 10.5,3"/>
-      </svg>
-    )
-  }
-  if (state === 'error') {
-    return (
-      <svg className="meso-wf-node__icon meso-wf-node__icon--error" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <line x1="2" y1="2" x2="10" y2="10"/>
-        <line x1="10" y1="2" x2="2" y2="10"/>
-      </svg>
-    )
-  }
-  if (state === 'skipped') {
-    return (
-      <svg className="meso-wf-node__icon meso-wf-node__icon--skipped" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <line x1="2" y1="6" x2="10" y2="6"/>
-      </svg>
-    )
-  }
-  return <span className="meso-wf-node__spinner" aria-hidden="true" />
+  return (
+    <StatusIcon
+      status={workflowNodeStateToIcon(state)}
+      size={12}
+      className={`meso-wf-node__icon meso-wf-node__icon--${state}`}
+    />
+  )
 }
 
 function formatDuration(ms: number): string {

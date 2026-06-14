@@ -11,17 +11,6 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
     case 'capabilities':
       return { ...state, availableCapabilities: event.payload }
 
-    case 'stage': {
-      const { name, state: stageState } = event.payload
-      return {
-        ...state,
-        stages: [
-          ...state.stages.filter(s => s.name !== name),
-          { name, state: stageState },
-        ],
-      }
-    }
-
     case 'memory':
       return { ...state, memorySnippets: event.payload.snippets }
 
@@ -35,7 +24,9 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       return { ...state, activeSkill: event.payload }
 
     case 'tool_call': {
-      const { id, groupId, groupKind } = event.payload
+      const { id, groupId, groupKind, risk, requires_confirm } = event.payload
+      const needsConfirm = requires_confirm === true || risk === 'destructive' || risk === 'write'
+      const status = needsConfirm ? 'awaiting_confirm' : 'pending'
       return {
         ...state,
         toolCallOrder: state.toolCallOrder.includes(id)
@@ -43,7 +34,20 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           : [...state.toolCallOrder, id],
         toolCalls: {
           ...state.toolCalls,
-          [id]: { call: event.payload, status: 'pending', groupId, groupKind },
+          [id]: { call: event.payload, status, groupId, groupKind },
+        },
+      }
+    }
+
+    case 'tool_status': {
+      const { id, status } = event.payload
+      const existing = state.toolCalls[id]
+      if (!existing) return state
+      return {
+        ...state,
+        toolCalls: {
+          ...state.toolCalls,
+          [id]: { ...existing, status },
         },
       }
     }
@@ -60,6 +64,8 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
             call: existing?.call ?? { id: tool_call_id, name: '(unknown)', args: {} },
             result: event.payload,
             status,
+            groupId: existing?.groupId,
+            groupKind: existing?.groupKind,
           },
         },
       }
@@ -200,6 +206,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
         ...state,
         status: 'error',
         errorMessage: event.payload.message,
+        errorCode: event.payload.code ?? null,
       }
 
     case 'extension': {

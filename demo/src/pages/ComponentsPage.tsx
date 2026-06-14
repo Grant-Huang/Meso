@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-/** Components showcase — mirrors docs/demo/05-components.html */
+/** Components showcase */
 export function ComponentsPage() {
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
   const [composerText, setComposerText] = useState('')

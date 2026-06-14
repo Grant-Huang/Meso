@@ -1,7 +1,16 @@
 {
   "status": "error",
-  "stages": [{ "name": "分析中", "state": "active" }],
+  "phaseOrder": ["analyze"],
+  "phases": {
+    "analyze": {
+      "id": "analyze",
+      "name": "分析中",
+      "state": "running",
+      "thinkContent": ""
+    }
+  },
   "errorMessage": "上游服务超时",
+  "errorCode": "UPSTREAM_TIMEOUT",
   "memorySnippets": [],
   "thinkContent": "",
   "thinkDone": false,

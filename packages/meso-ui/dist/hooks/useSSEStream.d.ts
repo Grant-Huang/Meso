@@ -1,19 +1,19 @@
-import type { StreamState, StagePayload, MemorySnippet, MemorySavedPayload, CapabilitiesPayload, SoulPayload, SkillPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ArtifactState, ExtensionEvent } from '../runtime';
+import type { StreamState, PhasePayload, MemorySnippet, MemorySavedPayload, CapabilitiesPayload, SoulPayload, SkillPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ArtifactState, ExtensionEvent } from '../runtime';
+export interface ReconnectOptions {
+    maxAttempts?: number;
+    baseDelayMs?: number;
+}
 export interface StreamOptions {
     method?: 'GET' | 'POST';
     headers?: Record<string, string>;
     body?: Record<string, unknown>;
-    /**
-     * Inactivity watchdog timeout in ms. If no data is received for this
-     * duration the stream is aborted and the state is set to 'error'.
-     * Default 120000 (2 min). Pass null to disable.
-     */
     watchdogMs?: number | null;
+    batchMs?: number | null;
+    reconnect?: boolean | ReconnectOptions;
 }
-/** Lifecycle callbacks fired after each matching SSE event is applied to state. */
 export interface StreamCallbacks {
     onCapabilities?: (capabilities: CapabilitiesPayload) => void;
-    onStageChange?: (stage: StagePayload) => void;
+    onPhaseChange?: (phase: PhasePayload) => void;
     onMemoryRecalled?: (snippets: MemorySnippet[]) => void;
     onMemorySaved?: (saved: MemorySavedPayload) => void;
     onSoulActivated?: (soul: SoulPayload) => void;
@@ -23,16 +23,13 @@ export interface StreamCallbacks {
     onResourceRead?: (read: ResourceReadPayload) => void;
     onResourceContent?: (content: ResourceContentPayload) => void;
     onArtifact?: (artifact: ArtifactState) => void;
-    /** Fired for every extension (domain-specific) event, in arrival order. */
+    onText?: (delta: string, state: StreamState) => void;
+    onThink?: (delta: string, state: StreamState) => void;
     onExtensionEvent?: (event: ExtensionEvent) => void;
     onError?: (message: string, code?: string) => void;
     onDone?: (finalState: StreamState) => void;
+    onReconnect?: (attempt: number) => void;
 }
-/**
- * React hook wrapping the Meso SSE runtime.
- * For fetch-free usage (custom transports, Node.js), import directly from
- * @meso.ai/ui/runtime: { parseSSELine, applyEvent, createInitialStreamState }
- */
 export declare function useSSEStream(url: string, callbacks?: StreamCallbacks): {
     state: StreamState;
     start: (options?: StreamOptions) => Promise<void>;

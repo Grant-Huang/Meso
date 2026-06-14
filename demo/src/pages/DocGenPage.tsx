@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback } from 'react'
+import { StatusIcon } from '@meso.ai/ui'
+import type { StatusIconStatus } from '@meso.ai/ui'
 
-type StageState = 'pending' | 'active' | 'done'
+type PhaseState = 'pending' | 'running' | 'done'
 
-interface Stage {
+interface PhaseItem {
   name: string
-  state: StageState
+  state: PhaseState
 }
 
 interface Artifact {
@@ -16,14 +18,14 @@ interface Artifact {
 
 interface Turn {
   userMessage: string
-  stages: Stage[]
+  phases: PhaseItem[]
   thinks: string[]
   artifacts: Artifact[]
   textContent: string
   status: 'streaming' | 'done'
 }
 
-// ── Mock data identical to 10-docgen.html ───────────────────────────────────
+// ── Mock data for doc generation demo ───────────────────────────────────────
 
 const PRESETS: Record<string, { input: string; title: string; type: string; sectionCount: number }> = {
   report: {
@@ -113,8 +115,8 @@ const s = {
     padding: '8px 12px', fontSize: 14, lineHeight: 1.6,
   },
   aiRow: { display: 'flex', flexDirection: 'column' as const, gap: 8 },
-  stageBar: { display: 'flex', flexDirection: 'column' as const, gap: 3 },
-  stageItem: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 },
+  phaseBar: { display: 'flex', flexDirection: 'column' as const, gap: 3 },
+  phaseItem: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 },
   thinkBlock: {
     background: 'var(--color-bg-elevated)',
     border: '1px solid var(--color-border)', borderRadius: 8,
@@ -178,16 +180,12 @@ const s = {
   },
 }
 
-function StageDot({ state }: { state: StageState }) {
-  const color = state === 'done' ? '#22c55e' : state === 'active' ? 'var(--color-accent)' : 'transparent'
-  const border = state === 'pending' ? '1.5px solid var(--color-border)' : 'none'
-  return (
-    <div style={{
-      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-      background: color, border,
-      animation: state === 'active' ? 'meso-pulse 0.8s ease-in-out infinite alternate' : 'none',
-    }} />
-  )
+function phaseStateToIcon(state: PhaseState): StatusIconStatus {
+  switch (state) {
+    case 'pending': return 'pending'
+    case 'running': return 'running'
+    case 'done': return 'done'
+  }
 }
 
 export function DocGenPage() {
@@ -222,8 +220,8 @@ export function DocGenPage() {
 
     const newTurn: Turn = {
       userMessage: message,
-      stages: [
-        { name: '分析需求', state: 'active' },
+      phases: [
+        { name: '分析需求', state: 'running' },
         { name: '生成模板', state: 'pending' },
         { name: '渲染文档', state: 'pending' },
       ],
@@ -237,38 +235,38 @@ export function DocGenPage() {
 
     await delay(200)
 
-    // Stage 1
+    // Phase 1
     updateLastTurn(t => ({ ...t, thinks: [`正在理解需求，识别文档类型：${preset.type}，共 ${preset.sectionCount} 个章节…`] }))
     await delay(1200)
     updateLastTurn(t => ({
       ...t,
-      stages: t.stages.map(s => s.name === '分析需求' ? { ...s, state: 'done' } : s),
+      phases: t.phases.map(p => p.name === '分析需求' ? { ...p, state: 'done' } : p),
       artifacts: [...t.artifacts, { id: 'json', lang: 'json', label: '结构化内容', content: MOCK_JSON }],
     }))
     await delay(400)
 
-    // Stage 2
+    // Phase 2
     updateLastTurn(t => ({
       ...t,
-      stages: t.stages.map(s => s.name === '生成模板' ? { ...s, state: 'active' } : s),
+      phases: t.phases.map(p => p.name === '生成模板' ? { ...p, state: 'running' } : p),
     }))
     await delay(1000)
     updateLastTurn(t => ({
       ...t,
-      stages: t.stages.map(s => s.name === '生成模板' ? { ...s, state: 'done' } : s),
+      phases: t.phases.map(p => p.name === '生成模板' ? { ...p, state: 'done' } : p),
       artifacts: [...t.artifacts, { id: 'tpl', lang: 'jinja2', label: 'Jinja2 渲染模板', content: MOCK_TEMPLATE }],
     }))
     await delay(400)
 
-    // Stage 3
+    // Phase 3
     updateLastTurn(t => ({
       ...t,
-      stages: t.stages.map(s => s.name === '渲染文档' ? { ...s, state: 'active' } : s),
+      phases: t.phases.map(p => p.name === '渲染文档' ? { ...p, state: 'running' } : p),
     }))
     await delay(700)
     updateLastTurn(t => ({
       ...t,
-      stages: t.stages.map(s => s.name === '渲染文档' ? { ...s, state: 'done' } : s),
+      phases: t.phases.map(p => p.name === '渲染文档' ? { ...p, state: 'done' } : p),
     }))
 
     // Preview
@@ -286,7 +284,6 @@ export function DocGenPage() {
 
   return (
     <div style={s.page}>
-      <style>{`@keyframes meso-pulse{from{opacity:1;transform:scale(1)}to{opacity:.4;transform:scale(.75)}}`}</style>
 
       <div style={s.infoBar}>
         <span>独立工具：<code style={{ fontSize: 11 }}>tools/doc-generator/</code></span>
@@ -317,16 +314,16 @@ export function DocGenPage() {
                 </div>
                 <div style={s.row}>
                   <div style={s.aiRow}>
-                    {/* Stages */}
-                    <div style={s.stageBar}>
-                      {turn.stages.map(stage => (
-                        <div key={stage.name} style={s.stageItem}>
-                          <StageDot state={stage.state} />
+                    {/* Phases */}
+                    <div style={s.phaseBar}>
+                      {turn.phases.map(phase => (
+                        <div key={phase.name} style={s.phaseItem}>
+                          <StatusIcon status={phaseStateToIcon(phase.state)} size={10} />
                           <span style={{
                             fontSize: 12,
-                            color: stage.state === 'active' ? 'var(--color-accent-dark, #3d6b52)' : 'var(--color-text-muted)',
-                            fontWeight: stage.state === 'active' ? 600 : 400,
-                          }}>{stage.name}</span>
+                            color: phase.state === 'running' ? 'var(--color-accent-dark, #3d6b52)' : 'var(--color-text-muted)',
+                            fontWeight: phase.state === 'running' ? 600 : 400,
+                          }}>{phase.name}</span>
                         </div>
                       ))}
                     </div>

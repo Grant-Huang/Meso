@@ -1,6 +1,14 @@
 {
   "status": "done",
-  "stages": [{ "name": "执行工具", "state": "done" }],
+  "phaseOrder": ["tools"],
+  "phases": {
+    "tools": {
+      "id": "tools",
+      "name": "执行工具",
+      "state": "done",
+      "thinkContent": ""
+    }
+  },
   "textContent": "工具调用完成",
   "toolCallOrder": ["tc1", "tc2"],
   "toolCalls": {
@@ -16,5 +24,6 @@
     }
   },
   "memorySaved": [{ "id": "m1", "category": "fact", "preview": "用户询问了偏好信息" }],
-  "errorMessage": null
+  "errorMessage": null,
+  "errorCode": null
 }

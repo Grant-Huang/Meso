@@ -66,6 +66,11 @@ export type { Theme } from './hooks/useTheme'
 export { useFoldState } from './hooks/useFoldState'
 export type { FoldStateOptions, FoldState } from './hooks/useFoldState'
 
+export { MesoLocaleProvider, useMesoLabels, useMesoLocale } from './i18n/MesoLocaleProvider'
+export type { MesoLocaleProviderProps } from './i18n/MesoLocaleProvider'
+export { zhCNLabels, enUSLabels, defaultLabelsByLocale } from './i18n/labels'
+export type { MesoLabels, MesoLocale } from './i18n/labels'
+
 // Runtime (also available as @meso.ai/ui/runtime for React-free usage)
 export {
   PROTOCOL_VERSION,
@@ -76,13 +81,11 @@ export {
   streamStateHasArtifacts,
   isCompatibleVersion,
   assertCompatibleVersion,
-  stagePayloadToStage,
+  phaseRecordToStage,
 } from './runtime'
 export type {
   CapabilityProvider,
   SSEEvent,
-  StageEvent,
-  StagePayload,
   CapabilitiesEvent,
   CapabilitiesPayload,
   ToolSpec,

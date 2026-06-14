@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { WorkflowTimeline, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
-import type { WorkflowRunState, StreamState } from '@meso.ai/ui'
+import { ProcessTrace, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
+import type { StreamState } from '@meso.ai/ui'
 
 // ── Static scenario definitions ───────────────────────────────────────────────
 
@@ -17,21 +17,21 @@ const SCENARIOS: Scenario[] = [
     title: '意图路由 + 网络搜索',
     subtitle: 'intent_router → web_search → 并行 fetch',
     events: [
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"分析意图","state":"active"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"intent","name":"分析意图","state":"running"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n1","name":"intent_router","state":"active","started_at":1700000000000}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n1","name":"intent_router","state":"done","started_at":1700000000000,"duration_ms":38}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"分析意图","state":"done"}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"搜索网络","state":"active"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"intent","name":"分析意图","state":"done"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"search","name":"搜索网络","state":"running"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n2","name":"web_search","parent_id":"n1","state":"active","started_at":1700000000040}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n3","name":"fetch_batch_1","parent_id":"n2","state":"active","started_at":1700000000055}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n4","name":"fetch_batch_2","parent_id":"n2","state":"active","started_at":1700000000058}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n3","name":"fetch_batch_1","parent_id":"n2","state":"done","duration_ms":312,"metadata":{"url":"https://example.com/a","chars":4200}}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n4","name":"fetch_batch_2","parent_id":"n2","state":"error","duration_ms":205,"metadata":{"url":"https://example.com/b","error":"timeout"}}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-search","node_id":"n2","name":"web_search","parent_id":"n1","state":"done","duration_ms":520}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"搜索网络","state":"done"}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"生成回复","state":"active"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"search","name":"搜索网络","state":"done"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回复","state":"running"}}`,
       `data: {"type":"text","schema_version":"1.0","payload":{"delta":"根据搜索结果…"}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"生成回复","state":"done"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成回复","state":"done"}}`,
       `data: {"type":"done","schema_version":"1.0","payload":{}}`,
     ],
   },
@@ -40,7 +40,7 @@ const SCENARIOS: Scenario[] = [
     title: '报告生成 Playbook',
     subtitle: '多数据源并行 → 汇总 → 条件跳过',
     events: [
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"数据采集","state":"active"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"collect","name":"数据采集","state":"running"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r1","name":"plan_tasks","state":"active"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r1","name":"plan_tasks","state":"done","duration_ms":22}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r2","name":"fetch_db","parent_id":"r1","state":"active"}}`,
@@ -49,14 +49,14 @@ const SCENARIOS: Scenario[] = [
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r2","name":"fetch_db","parent_id":"r1","state":"done","duration_ms":88,"metadata":{"rows":1240}}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r4","name":"fetch_files","parent_id":"r1","state":"done","duration_ms":134,"metadata":{"files":7}}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r3","name":"fetch_api","parent_id":"r1","state":"done","duration_ms":310,"metadata":{"records":88}}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"数据采集","state":"done"}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"分析汇总","state":"active"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"collect","name":"数据采集","state":"done"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"summarize","name":"分析汇总","state":"running"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r5","name":"merge_data","parent_id":"r1","state":"active"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r5","name":"merge_data","parent_id":"r1","state":"done","duration_ms":45}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r6","name":"verify_quota","parent_id":"r1","state":"skipped","metadata":{"reason":"quota_check_disabled"}}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r7","name":"generate_report","parent_id":"r1","state":"active"}}`,
       `data: {"type":"workflow_node","schema_version":"1.0","payload":{"run_id":"run-report","node_id":"r7","name":"generate_report","parent_id":"r1","state":"done","duration_ms":1820}}`,
-      `data: {"type":"stage","schema_version":"1.0","payload":{"name":"分析汇总","state":"done"}}`,
+      `data: {"type":"phase","schema_version":"1.0","payload":{"id":"summarize","name":"分析汇总","state":"done"}}`,
       `data: {"type":"done","schema_version":"1.0","payload":{}}`,
     ],
   },
@@ -93,7 +93,6 @@ function usePlayback(events: string[], intervalMs = 600) {
     { ...createInitialStreamState(), status: 'streaming' },
   )
 
-  const runs: WorkflowRunState[] = state.workflowRunOrder.map(id => state.workflowRuns[id])
   const done = idx >= events.length - 1
 
   const play = () => {
@@ -126,7 +125,7 @@ function usePlayback(events: string[], intervalMs = 600) {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [running, events.length, intervalMs])
 
-  return { state, runs, done, running, play, pause, reset, step, idx, total: events.length }
+  return { state, done, running, play, pause, reset, step, idx, total: events.length }
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -138,28 +137,6 @@ const Section = ({ label }: { label: string }) => (
     <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
   </div>
 )
-
-function StageBar({ stages }: { stages: { name: string; state: string }[] }) {
-  if (stages.length === 0) return null
-  return (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, marginBottom: 16 }}>
-      {stages.map(s => (
-        <span key={s.name} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5,
-          padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500,
-          background: s.state === 'done' ? 'rgba(61,107,82,0.10)' : s.state === 'active' ? 'rgba(61,107,82,0.18)' : 'rgba(200,80,80,0.10)',
-          color: s.state === 'done' ? 'var(--color-text-muted)' : s.state === 'active' ? 'var(--color-accent)' : 'var(--color-error)',
-          border: '1px solid transparent',
-          borderColor: s.state === 'active' ? 'var(--color-accent)' : 'transparent',
-        }}>
-          {s.state === 'active' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-accent)', display: 'inline-block', animation: 'meso-stage-pulse 1.2s ease-in-out infinite' }} />}
-          {s.state === 'done' && <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="1,4 3,6.5 7,2"/></svg>}
-          {s.name}
-        </span>
-      ))}
-    </div>
-  )
-}
 
 function EventLog({ events, current }: { events: string[]; current: number }) {
   const mono = '"SF Mono","Fira Code",monospace'
@@ -221,12 +198,16 @@ function PlayControls({ running, done, onPlay, onPause, onStep, onReset, idx, to
 export function WorkflowPage() {
   const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id)
   const scenario = SCENARIOS.find(s => s.id === scenarioId)!
-  const { state, runs, done, running, play, pause, reset, step, idx, total } = usePlayback(scenario.events)
+  const { state, done, running, play, pause, reset, step, idx, total } = usePlayback(scenario.events)
 
   const handleScenario = (id: string) => {
     reset()
     setScenarioId(id)
   }
+
+  const hasTrace =
+    state.phaseOrder.length > 0 ||
+    state.workflowRunOrder.length > 0
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: 960, margin: '0 auto', overflowY: 'auto' }}>
@@ -242,7 +223,7 @@ export function WorkflowPage() {
         DAG 工作流可观测性
       </div>
       <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 28 }}>
-        workflow_node 事件 · WorkflowTimeline 组件 · stage 与节点协作
+        workflow_node 事件 · ProcessTrace 组件 · phase 与节点协作
       </div>
 
       <Section label="1 · 选择演示场景" />
@@ -275,13 +256,19 @@ export function WorkflowPage() {
 
       {/* Two-column: timeline + event log */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        {/* Left: stage bar + WorkflowTimeline */}
+        {/* Left: ProcessTrace */}
         <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '16px 18px', minHeight: 260 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' as const, letterSpacing: '.07em', marginBottom: 12 }}>WorkflowTimeline</div>
-          <StageBar stages={state.stages} />
-          {runs.length === 0
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' as const, letterSpacing: '.07em', marginBottom: 12 }}>ProcessTrace</div>
+          {!hasTrace
             ? <div style={{ color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' as const, paddingTop: 40 }}>点击播放开始</div>
-            : <WorkflowTimeline runs={runs} />
+            : (
+              <ProcessTrace
+                stream={state}
+                streaming={running}
+                turnStreaming={running}
+                defaultCollapsed={false}
+              />
+            )
           }
         </div>
 
@@ -314,15 +301,15 @@ export function WorkflowPage() {
         </div>
       </div>
 
-      <Section label="4 · stage vs workflow_node 分工" />
+      <Section label="4 · phase vs workflow_node 分工" />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {[
           {
-            label: 'stage', color: 'var(--color-accent)', audience: '用户可见',
+            label: 'phase', color: 'var(--color-accent)', audience: '用户可见',
             desc: '粗粒度阶段进度，面向终端用户。',
             examples: ['"召回记忆"', '"搜索网络"', '"生成回复"'],
-            component: 'StageTimeline',
+            component: 'ProcessTrace',
           },
           {
             label: 'workflow_node', color: 'var(--color-text-secondary)', audience: '开发者可观测',

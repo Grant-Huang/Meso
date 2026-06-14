@@ -12,5 +12,6 @@ export interface LogLineProps {
      */
     detail?: string;
     className?: string;
+    'data-testid'?: string;
 }
-export declare function LogLine({ status, primary, outcome, detail, className }: LogLineProps): import("react/jsx-runtime").JSX.Element;
+export declare function LogLine({ status, primary, outcome, detail, className, 'data-testid': testId }: LogLineProps): import("react/jsx-runtime").JSX.Element;

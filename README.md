@@ -79,13 +79,20 @@ export function App() {
 
 ## 平台边界
 
-| 平台提供（@meso.ai/ui） | 应用侧负责 |
-|------------------------|-----------|
+| 层 | 包 | 职责 |
+|----|-----|------|
+| 协议 | `@meso.ai/types` | SSE 事件形状、`applyEvent` 状态机 |
+| UI | `@meso.ai/ui` | 组件、`useSSEStream`、设计 token |
+| 会话 | `@meso.ai/client` | session/turn 管理、持久化 adapter、tool 确认回传 |
+
+| Meso 提供 | 应用侧负责 |
+|-----------|-----------|
 | SSE 协议解析与状态机 | 业务后端 / API 服务 |
-| 设计 token（亮/暗双主题） | 用户鉴权与会话持久化 |
-| `useSSEStream` 客户端 Hook | Tools 执行引擎 |
-| 三栏布局 + 分屏 Artifact 面板 | 知识库检索 / 记忆存储 |
-| 全套流式 UI 组件 | Composer 输入区 |
+| `ProcessTrace` / `MessageList` 多 tool UI | 用户鉴权 |
+| `useSSEStream`（watchdog、合批、可选重连） | Tools 执行引擎 |
+| `@meso.ai/client` session 骨架 | 知识库检索 / 记忆存储后端 |
+
+完整端到端 recipe 见 [docs/help/end-to-end-recipe.md](docs/help/end-to-end-recipe.md)。
 
 ---
 
@@ -122,6 +129,7 @@ assertCompatibleVersion(event)  // throws: "Meso protocol version mismatch: ..."
 | `@meso.ai/ui/tokens.css` | CSS 变量，亮/暗双主题 | — |
 | `@meso.ai/ui/style.css` | 所有组件样式 | — |
 | `@meso.ai/types` | 完整协议类型定义（TypeScript） | ❌ |
+| `@meso.ai/client` | session、transport、tool 确认、replay | ❌ |
 
 ---
 
@@ -133,7 +141,7 @@ assertCompatibleVersion(event)  // throws: "Meso protocol version mismatch: ..."
 | `MessageList` | 多轮对话渲染，合并历史 + 流式状态 | 所有事件 |
 | `ChatBubble` | 用户 / 助手气泡，支持 Markdown | `text` |
 | `ThinkBlock` | 可折叠推理过程块 | `think` |
-| `StageTimeline` | 流水线阶段进度指示器 | `stage` |
+| `StageTimeline` | 流水线阶段进度指示器 | `phase` |
 | `ArtifactPanel` | 代码 / HTML / Mermaid / Markdown / 表格面板 | `artifact` |
 | `WorkflowTimeline` | 工作流节点进度（含并行分支） | `workflow_node` |
 | `ToolCallBlock` | 工具调用状态（含确认门控） | `tool_call`, `tool_result` |
@@ -153,12 +161,12 @@ assertCompatibleVersion(event)  // throws: "Meso protocol version mismatch: ..."
 data: {"type":"<event_type>","schema_version":"1.0","payload":{…}}\n\n
 ```
 
-**标准事件（16 种）**：`capabilities` · `soul` · `skill_active` · `stage` · `memory` · `memory_saved` · `think` · `text` · `artifact` · `tool_call` · `tool_result` · `resource_read` · `resource_content` · `workflow_node` · `done` · `error`
+**标准事件（17 种）**：`capabilities` · `soul` · `skill_active` · `phase` · `memory` · `memory_saved` · `think` · `text` · `artifact` · `tool_call` · `tool_status` · `tool_result` · `resource_read` · `resource_content` · `workflow_node` · `done` · `error`
 
 **扩展事件**（第三方业务事件，不改平台代码）：
 
 ```json
-{"type":"extension","schema_version":"1.0","payload":{"name":"tool_progress","data":{…}}}
+{"type":"extension","schema_version":"1.0","payload":{"name":"citation","data":{"source":"paper-42","title":"…"}}}
 ```
 
 完整规范：[`docs/streaming-protocol.md`](docs/streaming-protocol.md)

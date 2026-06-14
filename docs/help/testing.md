@@ -59,16 +59,16 @@ data: {"type":"error","schema_version":"1.0","payload":{"message":"timeout","cod
 
   it('扩展事件 — extensionLog 按顺序累积', () => {
     const raw = `
-data: {"type":"extension","schema_version":"1.0","payload":{"name":"tool_progress","data":{"status":"running"}}}
+data: {"type":"extension","schema_version":"1.0","payload":{"name":"citation","data":{"source":"paper-42"}}}
 
-data: {"type":"extension","schema_version":"1.0","payload":{"name":"tool_progress","data":{"status":"done","results":3}}}
+data: {"type":"extension","schema_version":"1.0","payload":{"name":"citation","data":{"source":"paper-43"}}}
 
 data: {"type":"done","schema_version":"1.0","payload":{}}
     `
     const state = replaySSE(raw)
     expect(state.extensionLog).toHaveLength(2)
-    expect(state.extensions['tool_progress']).toHaveLength(2)
-    expect(state.extensions['tool_progress'].at(-1)?.payload.data).toMatchObject({ status: 'done', results: 3 })
+    expect(state.extensions['citation']).toHaveLength(2)
+    expect(state.extensions['citation'].at(-1)?.payload.data).toMatchObject({ source: 'paper-43' })
   })
 })
 ```
@@ -92,7 +92,7 @@ packages/meso-types/src/__fixtures__/
 **basic-stream.txt** 示例：
 
 ```
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"生成","state":"active"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"generate","name":"生成","state":"running"}}
 
 data: {"type":"text","schema_version":"1.0","payload":{"delta":"Hello"}}
 

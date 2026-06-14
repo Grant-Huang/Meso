@@ -172,26 +172,32 @@ into the system prompt, then emits `skill_active` to notify the frontend.
 
 ---
 
-### `stage` — Pipeline progress
+### `phase` — Pipeline progress
 
 ```json
 {
-  "type": "stage",
+  "type": "phase",
   "schema_version": "1.0",
   "payload": {
+    "id": "recall",
     "name": "召回记忆",
-    "state": "active"
+    "state": "running"
   }
 }
 ```
 
 | Payload field | Type | Values |
 |---------------|------|--------|
-| `name` | string | Human-readable stage label (e.g. "召回记忆", "检索知识", "生成回复") |
-| `state` | enum | `"active"` \| `"done"` \| `"error"` |
+| `id` | string | Stable phase identifier (e.g. `"recall"`, `"search"`, `"generate"`) |
+| `name` | string | Human-readable phase label |
+| `state` | enum | `"pending"` \| `"running"` \| `"done"` \| `"error"` |
+| `body` | string? | Optional JSON string with structured phase output |
+| `pinned_think` | string? | Frozen think snapshot when `state` becomes `"done"` |
+| `started_at` | number? | Milliseconds timestamp |
+| `ended_at` | number? | Milliseconds timestamp |
 
-**Dedup rule**: multiple `stage` events with the same `name` upsert in place; the last
-state wins. UI orders by first-seen.
+**Dedup rule**: multiple `phase` events with the same `id` upsert in place; the last
+state wins. UI orders by first-seen (`phaseOrder`).
 
 ---
 
@@ -468,7 +474,7 @@ the backend.
 
 | Signal | Event | Audience | Granularity examples |
 |--------|-------|----------|----------------------|
-| Coarse pipeline | `stage` | **Users** | "召回记忆", "搜索网络", "生成回复" |
+| Coarse pipeline | `phase` | **Users** | "召回记忆", "搜索网络", "生成回复" |
 | Fine steps | `workflow_node` | **Developers** | `intent_router`, `web_search`, `fetch_batch_3` |
 
 The two signals are independent. A backend may emit both, either, or neither.
@@ -548,16 +554,16 @@ the platform runtime. Platform UI surfaces them via `MessageList.renderExtension
   "type": "extension",
   "schema_version": "1.0",
   "payload": {
-    "name": "tool_progress",
+    "name": "citation",
     "version": "1.0",
-    "data": { "tool": "web_search", "status": "running", "query": "Meso platform" }
+    "data": { "source": "paper-42", "title": "Meso Protocol Overview" }
   }
 }
 ```
 
 | Payload field | Required | Notes |
 |---------------|----------|-------|
-| `name` | ✅ | Extension identifier (e.g. `"tool_progress"`, `"confirm_gate"`) |
+| `name` | ✅ | Extension identifier (e.g. `"citation"`, `"entity_reference"`) |
 | `version` | ❌ | Semver for the extension schema itself |
 | `data` | ✅ | Arbitrary object; shape is defined by the extension, not the platform |
 
@@ -589,7 +595,7 @@ match. Use `extension` only for domain-specific events that have no standard equ
 | `capabilities` | Once at stream start | Populates available tools/skills/resources in UI |
 | `soul` | Once at stream start | Shows avatar chip with name and traits |
 | `skill_active` | On skill selection/switch | Shows skill badge with provider and focus points |
-| `stage` | Each pipeline stage transition | Updates StageTimeline bar |
+| `phase` | Each pipeline phase transition | Updates ProcessTrace / StageTimeline |
 | `memory` | After recall, before generation | Renders recalled memory chips |
 | `memory_saved` | After backend persists a memory | Appends "已记忆" chip |
 | `tool_call` | LLM decides to call a tool | Renders ToolCallBlock (spinner + risk badge) |
@@ -614,16 +620,16 @@ match. Use `extension` only for domain-specific events that have no standard equ
 → capabilities  { tools: [...], skills: [...] }
 → soul          { id: "assistant-v2", name: "Aria", traits: ["严谨"] }
 → skill_active  { id: "general", name: "通用助手" }
-→ stage         { name: "召回记忆", state: "active" }
-→ stage         { name: "召回记忆", state: "done" }
+→ phase         { id: "recall", name: "召回记忆", state: "running" }
+→ phase         { id: "recall", name: "召回记忆", state: "done" }
 → memory        { snippets: [{ category: "preference", content: "偏好简洁回答" }] }
-→ stage         { name: "生成回复", state: "active" }
+→ phase         { id: "generate", name: "生成回复", state: "running" }
 → think         { delta: "用户想要…", done: false }
 → think         { delta: "", done: true }
 → text          { delta: "根据你的需求，" }
 → artifact      { id: "a1", lang: "python", delta: "def hello():\n", done: false }
 → artifact      { id: "a1", lang: "python", delta: "    print('hi')\n", done: true }
-→ stage         { name: "生成回复", state: "done" }
+→ phase         { id: "generate", name: "生成回复", state: "done" }
 → memory_saved  { id: "mem_001", category: "fact", preview: "用户正在学习 Python" }
 → done          {}
 ```
@@ -666,7 +672,7 @@ match. Use `extension` only for domain-specific events that have no standard equ
 
 | 0.x flat event | 1.0 envelope equivalent |
 |----------------|-------------------------|
-| `{"type":"stage","label":"X","status":"active"}` | `{"type":"stage","schema_version":"1.0","payload":{"name":"X","state":"active"}}` |
+| `{"type":"stage","label":"X","status":"active"}` | **Removed in types@2.0** — use `phase` with `state:"running"` |
 | `{"type":"memory","items":["a","b"]}` | `{"type":"memory","schema_version":"1.0","payload":{"snippets":[{"category":"","content":"a"},…]}}` |
 | `{"type":"think","delta":"x","done":false}` | `{"type":"think","schema_version":"1.0","payload":{"delta":"x","done":false}}` |
 | `{"type":"text","delta":"x"}` | `{"type":"text","schema_version":"1.0","payload":{"delta":"x"}}` |

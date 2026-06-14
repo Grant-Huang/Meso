@@ -19,7 +19,7 @@ export function ConfirmGate({ toolCall, onConfirm, onCancel }: ConfirmGateProps)
   const hasArgs = Object.keys(toolCall.args).length > 0
 
   return (
-    <div className={`meso-confirm-gate meso-confirm-gate--${risk}`} role="alertdialog" aria-label="工具执行确认">
+    <div className={`meso-confirm-gate meso-confirm-gate--${risk}`} role="alertdialog" aria-label="工具执行确认" data-testid="meso-confirm-gate">
       <div className="meso-confirm-gate__icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5"/>

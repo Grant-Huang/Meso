@@ -15,7 +15,7 @@ POST /api/chat
 ```
 
 **推荐加入**：
-- `stage("思考中", active/done)` — 让用户感知延迟
+- `phase(id:"think", state:"running"/"done")` — 让用户感知延迟
 - `think(delta, done)` — 展示 LLM 推理过程（Chain of Thought 模型）
 - `memory(snippets)` — 显示召回的记忆片段
 
@@ -37,8 +37,8 @@ POST /api/chat
 前端自动渲染标签页切换：`ArtifactPanel` 按 `artifactOrder` 显示多个文件。
 
 **推荐加入**：
-- `extension("tool_progress", { tool:"search_knowledge", status:"running" })` — 检索相关代码库时展示进度
-- `extension("confirm_gate", {...})` — 写入文件前请求用户确认
+- `tool_call` + `tool_status` + `tool_result` — 检索代码库时展示标准工具进度
+- `tool_call`（`requires_confirm: true`）— 写入文件前由 `ConfirmGate` 请求用户确认
 
 适合：AI 编程助手、代码审查、自动重构。
 
@@ -49,8 +49,8 @@ POST /api/chat
 **特色**：输出结构化文档（Markdown / HTML 预览）。
 
 ```
-→ stage("分析文档结构", active/done)
-→ stage("生成审查报告", active/done)
+→ phase(id:"analyze", name:"分析文档结构", running/done)
+→ phase(id:"report", name:"生成审查报告", running/done)
 → artifact(id:"report", lang:"markdown", delta:..., done:true)
 → text（总结性说明）
 → done
@@ -70,16 +70,17 @@ POST /api/chat
 **特色**：显式展示检索过程，增强用户信任。
 
 ```
-→ stage("召回记忆", active)
+→ phase(id:"recall", name:"召回记忆", running)
 → memory({ snippets: [{ category:"fact", content:"..." }] })
-→ stage("召回记忆", done)
-→ stage("检索知识库", active)
-→ extension("tool_progress", { tool:"search_knowledge", status:"running", query:"..." })
-→ extension("tool_progress", { tool:"search_knowledge", status:"done", result_count:5 })
-→ stage("检索知识库", done)
-→ stage("生成回复", active)
+→ phase(id:"recall", name:"召回记忆", done)
+→ phase(id:"search", name:"检索知识库", running)
+→ tool_call(name:"search_knowledge", ...)
+→ tool_status(status:"running")
+→ tool_result(...)
+→ phase(id:"search", name:"检索知识库", done)
+→ phase(id:"generate", name:"生成回复", running)
 → text(delta...)
-→ stage("生成回复", done)
+→ phase(id:"generate", name:"生成回复", done)
 → done
 ```
 
@@ -107,8 +108,9 @@ App Manifest 配置：
 ```
 → think(delta...)   ← LLM 制定研究计划
 → think(done:true)
-→ extension("tool_progress", { tool:"search_knowledge", query:"竞品分析" })
-→ extension("tool_progress", { tool:"search_knowledge", status:"done" })
+→ tool_call(name:"search_knowledge", ...)
+→ tool_status(status:"running")
+→ tool_result(...)
 → think(delta...)   ← 分析检索结果
 → think(done:true)
 → artifact(id:"analysis", lang:"markdown", delta:...)
@@ -118,80 +120,49 @@ App Manifest 配置：
 后端实现要点：
 - 使用支持多轮 Function Calling 的 LLM（GPT-4o、Claude 3.x）
 - 每次工具调用后将结果注入上下文，重新请求 LLM
-- `think` 事件在前端自动折叠，不干扰正文阅读
 
-适合：竞品分析、市场调研、学术文献综述。
+适合：竞品分析、文献综述、市场调研。
 
 ---
 
 ## 场景六：工作流自动化
 
-**特色**：多步骤自动化，关键节点需用户确认。
+**特色**：DAG 工作流节点可视化。
 
 ```
-→ stage("解析需求", active/done)
-→ stage("生成执行计划", active/done)
-→ text（展示计划）
-→ extension("confirm_gate", { action:"execute_workflow", message:"即将执行以下操作，是否继续？" })
-
-  ← 用户点击确认 →
-
-→ stage("执行步骤 1/3", active/done)
-→ extension("tool_progress", { tool:"write_file", status:"done", path:"output.md" })
-→ stage("执行步骤 2/3", active/done)
-→ ...
-→ stage("完成", done)
+→ workflow_node(run_id:"wf-1", node_id:"fetch", state:"active")
+→ workflow_node(run_id:"wf-1", node_id:"fetch", state:"done")
+→ workflow_node(run_id:"wf-1", node_id:"transform", state:"active")
+→ workflow_node(run_id:"wf-1", node_id:"transform", state:"done")
+→ text（汇总结果）
 → done
 ```
 
-设计原则：不可逆操作（写文件、发邮件、调用外部 API）前必须发 `confirm_gate`，由前端 `renderExtension` 渲染确认界面。
+`WorkflowTimeline` 自动渲染节点树，含并行分支。
 
-适合：CI/CD 自动化、报告定时生成、数据处理流水线。
-
----
-
-## 场景七：多应用平台
-
-**特色**：同一 Meso 前端承载多个 AI 应用，通过 `AppSidebar` 切换。
-
-每个应用对应一个 App Manifest：
-
-```json
-[
-  { "app_id": "code-assistant",  "label": "代码助手",   "tools": ["read_file","write_file"] },
-  { "app_id": "doc-reviewer",    "label": "文档审查",   "knowledge": [{ "id":"docs" }] },
-  { "app_id": "research-helper", "label": "研究助手",   "tools": ["search_knowledge"] }
-]
-```
-
-前端配置：
-
-```tsx
-<ThreeColumnLayout
-  appName="My Platform"
-  navItems={apps.map(app => ({
-    id: app.app_id,
-    icon: <AppIcon />,
-    label: app.label,
-    onClick: () => switchApp(app.app_id)
-  }))}
->
-  ...
-</ThreeColumnLayout>
-```
-
-切换应用时：重置会话列表、切换工具集、使用对应系统提示词。
+适合：ETL 流水线、审批流、多 Agent 协作。
 
 ---
 
-## 选择正确的 Artifact 类型
+## 场景七：MCP 资源读取
 
-| 内容类型 | Fence 标记 | 渲染方式 |
-|---------|-----------|---------|
-| 代码（任意语言）| ` ```python ` / ` ```js ` 等 | 语法高亮（highlight.js） |
-| HTML 预览 | ` ```html preview ` | 沙箱 iframe 实时渲染 |
-| Mermaid 图表 | ` ```mermaid ` | Mermaid.js 渲染 |
-| Markdown 文档 | ` ```markdown ` | Markdown 预览 |
-| 表格数据 | ` ```artifact:table ` | 表格组件 |
+**特色**：展示 MCP 资源读取过程。
 
-Artifact fence 由后端 LLM 在输出中生成，Meso 前端实时解析并路由到 ArtifactPanel。
+```
+→ resource_read(uri:"file:///config.json", ...)
+→ resource_content(uri:"file:///config.json", content:...)
+→ text（基于资源内容的回复）
+→ done
+```
+
+`ResourceReadBlock` 在 `ProcessTrace` 内展示读取状态与内容摘要。
+
+适合：IDE 插件、配置助手、文件分析。
+
+---
+
+## 设计原则
+
+1. **标准事件优先**：工具进度用 `tool_call`/`tool_status`/`tool_result`，阶段进度用 `phase`
+2. **不可逆操作需确认**：`tool_call` 设置 `requires_confirm: true`，前端 `ConfirmGate` 拦截
+3. **扩展事件兜底**：仅用于 citation、实体引用等平台未覆盖的业务语义

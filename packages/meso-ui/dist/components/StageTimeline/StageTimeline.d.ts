@@ -7,7 +7,6 @@ export interface Stage {
 }
 export interface StageTimelineProps {
     stages: Stage[];
-    /** Compact single-row display (for embedding in chat header) */
     compact?: boolean;
 }
 export declare function StageTimeline({ stages, compact }: StageTimelineProps): import("react/jsx-runtime").JSX.Element | null;

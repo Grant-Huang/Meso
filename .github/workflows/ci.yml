@@ -70,9 +70,9 @@ jobs:
           cat > src/main.jsx << 'EOF'
           import '@meso.ai/ui/tokens.css'
           import '@meso.ai/ui/style.css'
-          import { createInitialStreamState, isCompatibleVersion, stagePayloadToStage } from '@meso.ai/ui'
+          import { createInitialStreamState, isCompatibleVersion, phaseRecordToStage } from '@meso.ai/ui'
           const s = createInitialStreamState()
-          console.log(s.status, typeof isCompatibleVersion, typeof stagePayloadToStage)
+          console.log(s.status, typeof isCompatibleVersion, typeof phaseRecordToStage)
           EOF
           cat > index.html << 'EOF'
           <!doctype html><html><body><script type="module" src="/src/main.jsx"></script></body></html>

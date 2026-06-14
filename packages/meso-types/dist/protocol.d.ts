@@ -23,12 +23,6 @@ type Envelope<T extends string, P> = {
  *   api     — external REST/gRPC endpoint
  */
 export type CapabilityProvider = 'builtin' | 'local' | 'mcp' | 'api';
-export interface StagePayload {
-    name: string;
-    state: 'active' | 'done' | 'error';
-}
-/** Pipeline stage progress (召回记忆, 检索知识, 生成回复, …). */
-export type StageEvent = Envelope<'stage', StagePayload>;
 export interface MemorySnippet {
     category: string;
     content: string;
@@ -186,6 +180,11 @@ export interface ToolCallPayload {
      * Maps from MCP annotations: readOnlyHint → safe, destructiveHint → destructive.
      */
     risk?: ToolRisk;
+    /**
+     * When true, UI shows ConfirmGate before execution regardless of risk level.
+     * Use for operations like bulk email that are not destructive but need approval.
+     */
+    requires_confirm?: boolean;
     /** Who provides this tool. Omit for platform built-ins. */
     provider?: CapabilityProvider;
     /** MCP server name when provider = "mcp". */
@@ -214,6 +213,15 @@ export interface ToolResultPayload {
 }
 /** Tool execution completed (success or error). */
 export type ToolResultEvent = Envelope<'tool_result', ToolResultPayload>;
+/** Runtime status update for an in-flight tool call. */
+export type ToolStatusValue = 'running' | 'awaiting_confirm';
+export interface ToolStatusPayload {
+    /** Matches the id from the corresponding tool_call event. */
+    id: string;
+    status: ToolStatusValue;
+}
+/** Backend signals a tool call entered running or awaiting user confirmation. */
+export type ToolStatusEvent = Envelope<'tool_status', ToolStatusPayload>;
 export interface ResourceReadPayload {
     /** Unique id scoping this read within the response (for correlation). */
     id: string;
@@ -333,7 +341,7 @@ export interface PhasePayload {
 /** Phase lifecycle event — emitted at start (state:"running") and end (state:"done"/"error"). */
 export type PhaseEvent = Envelope<'phase', PhasePayload>;
 export interface ExtensionPayload {
-    /** Identifies the extension type (e.g. "tool_progress", "confirm_gate"). */
+    /** Identifies the extension type (e.g. "citation", "entity_reference"). */
     name: string;
     /** Optional semver for the extension schema itself. */
     version?: string;
@@ -341,5 +349,5 @@ export interface ExtensionPayload {
 }
 /** Third-party extension event — consumed via MessageList's renderExtension prop. */
 export type ExtensionEvent = Envelope<'extension', ExtensionPayload>;
-export type SSEEvent = StageEvent | PhaseEvent | CapabilitiesEvent | MemoryEvent | MemorySavedEvent | SoulEvent | SkillActiveEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | ResourceReadEvent | ResourceContentEvent | WorkflowNodeEvent | DoneEvent | ErrorEvent | ExtensionEvent;
+export type SSEEvent = PhaseEvent | CapabilitiesEvent | MemoryEvent | MemorySavedEvent | SoulEvent | SkillActiveEvent | ThinkEvent | TextEvent | ArtifactEvent | ToolCallEvent | ToolResultEvent | ToolStatusEvent | ResourceReadEvent | ResourceContentEvent | WorkflowNodeEvent | DoneEvent | ErrorEvent | ExtensionEvent;
 export {};

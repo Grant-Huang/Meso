@@ -263,7 +263,7 @@ const { state, start, stop } = useSSEStream(url, callbacks?)
 ```typescript
 interface StreamCallbacks {
   onCapabilities?: (capabilities: CapabilitiesPayload) => void
-  onStageChange?: (stage: StagePayload) => void
+  onPhaseChange?: (phase: PhasePayload) => void
   onMemoryRecalled?: (snippets: MemorySnippet[]) => void
   onMemorySaved?: (saved: MemorySavedPayload) => void
   onSoulActivated?: (soul: SoulPayload) => void

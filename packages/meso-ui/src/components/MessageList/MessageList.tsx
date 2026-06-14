@@ -1,82 +1,38 @@
 import React, { useEffect, useRef } from 'react'
 import { ChatBubble } from '../ChatBubble'
-import { ThinkBlock } from '../ThinkBlock'
-import { StageTimeline } from '../StageTimeline'
 import { ArtifactPanel } from '../ArtifactPanel'
-import { ToolCallBlock } from '../ToolCallBlock'
 import { SoulIndicator } from '../SoulIndicator'
 import { SkillIndicator } from '../SkillIndicator'
-import { ResourceReadBlock } from '../ResourceReadBlock'
+import { ProcessTrace } from '../ProcessTrace'
 import type { StreamState, ExtensionEvent } from '../../runtime'
 import type { ArtifactType } from '../ArtifactPanel'
-import type { Stage } from '../StageTimeline'
 import './MessageList.css'
 
 export interface Message {
   id: string
   role: 'user' | 'assistant'
-  /** Final text content for completed turns. */
   content: string
   timestamp?: string
 }
 
 export interface MessageListProps {
-  /** Completed conversation turns. */
   messages: Message[]
-  /** Live streaming state from useSSEStream; omit when idle. */
   streaming?: StreamState
-  /** Called when artifact copy button is clicked. */
   onArtifactCopy?: (content: string) => void
-  /** Called when artifact download button is clicked. */
   onArtifactDownload?: (content: string) => void
-  /**
-   * Called when user confirms a tool awaiting confirmation.
-   * The app should send the approval to the backend via its own channel.
-   */
   onToolConfirm?: (toolCallId: string) => void
-  /** Called when user cancels a tool awaiting confirmation. */
   onToolCancel?: (toolCallId: string) => void
-  /** Rendered when messages is empty and no streaming is active. */
   emptyState?: React.ReactNode
-  /** Alignment of the empty state. Defaults to 'center'. Use 'top' for welcome screens that sit above the composer. */
   emptyStateAlign?: 'center' | 'top'
   className?: string
-  /**
-   * Render custom UI for extension events in arrival order.
-   * Use this for domain-specific events that don't fit standard types.
-   */
   renderExtension?: (event: ExtensionEvent) => React.ReactNode
-  /**
-   * Custom renderer for the live execution section (stages, tools, think, workflows).
-   * When provided, replaces the default live trace rendering — use to embed ProcessTrace
-   * or any custom execution view without forking MessageList.
-   */
   renderLiveTrace?: (stream: StreamState) => React.ReactNode
-  /**
-   * Sanitized HTML factory for Markdown rendering in assistant bubbles.
-   * When provided, assistant bubbles render content as Markdown.
-   * Must return sanitized HTML (e.g. marked + DOMPurify output).
-   */
   renderMarkdown?: (source: string) => string
-  /**
-   * Artifact lang values to suppress from inline rendering (e.g. graph types
-   * that should only appear in a side panel). Artifacts with a matching lang
-   * are excluded from the message list; pass them to ArtifactPanel separately.
-   */
   hiddenArtifactLangs?: string[]
-  /**
-   * Async Mermaid renderer passed to ArtifactPanel.
-   * Receives source, returns SVG string. Called once streaming is done.
-   */
   renderMermaid?: (source: string) => Promise<string>
-  /**
-   * Syntax highlighter passed to ArtifactPanel.
-   * Receives (code, lang), returns sanitized HTML. Called once streaming is done.
-   */
   highlightCode?: (code: string, lang: string) => string
 }
 
-/** Map protocol lang string to ArtifactPanel type + language prop. */
 function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
   if (lang === 'html preview') return { type: 'html' }
   if (lang === 'mermaid') return { type: 'mermaid' }
@@ -110,9 +66,6 @@ export function MessageList({
 
   const hasContent = messages.length > 0 || (streaming && streaming.status !== 'idle')
 
-  // Stages stay visible after completion so users can see what pipeline ran.
-  // The StageTimeline marks completed stages as 'done' rather than hiding them.
-
   return (
     <div className={`meso-message-list${className ? ` ${className}` : ''}`}>
       <div className="meso-message-list__inner">
@@ -137,66 +90,19 @@ export function MessageList({
           <div className="meso-message-list__live">
             {renderLiveTrace ? renderLiveTrace(streaming) : (
               <>
-                {/* Soul + Skill context row */}
                 {(streaming.activeSoul || streaming.activeSkill) && (
                   <div className="meso-message-list__context-row">
                     {streaming.activeSoul && <SoulIndicator soul={streaming.activeSoul} />}
                     {streaming.activeSkill && <SkillIndicator skill={streaming.activeSkill} />}
                   </div>
                 )}
-
-                {/* Pipeline stages — always shown when present */}
-                {streaming.stages.length > 0 && (
-                  <StageTimeline
-                    stages={streaming.stages.map((s): Stage => ({
-                      id: s.name,
-                      label: s.name,
-                      status: s.state === 'done' || s.state === 'error' ? 'done' : 'active',
-                    }))}
-                  />
-                )}
-
-                {/* Recalled memory chips */}
-                {streaming.memorySnippets.length > 0 && (
-                  <div className="meso-memory-chips">
-                    {streaming.memorySnippets.map((snippet, i) => (
-                      <span key={i} className="meso-memory-chip" title={snippet.content}>
-                        [{snippet.category}] {snippet.content}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Resource reads (MCP) */}
-                {streaming.resourceReadOrder.length > 0 && (
-                  <div className="meso-message-list__resources">
-                    {streaming.resourceReadOrder.map(id => {
-                      const rr = streaming.resourceReads[id]
-                      if (!rr) return null
-                      return <ResourceReadBlock key={id} resourceRead={rr} />
-                    })}
-                  </div>
-                )}
-
-                {/* Tool calls (local / MCP / API) */}
-                {streaming.toolCallOrder.length > 0 && (
-                  <div className="meso-message-list__tools">
-                    {streaming.toolCallOrder.map(id => {
-                      const tc = streaming.toolCalls[id]
-                      if (!tc) return null
-                      return (
-                        <ToolCallBlock
-                          key={id}
-                          toolCall={tc}
-                          onConfirm={onToolConfirm}
-                          onCancel={onToolCancel}
-                        />
-                      )
-                    })}
-                  </div>
-                )}
-
-                {/* Extension events (domain-specific) */}
+                <ProcessTrace
+                  stream={streaming}
+                  streaming={streaming.status === 'streaming'}
+                  turnStreaming={streaming.status === 'streaming'}
+                  onToolConfirm={onToolConfirm}
+                  onToolCancel={onToolCancel}
+                />
                 {renderExtension && streaming.extensionLog.length > 0 && (
                   <div className="meso-message-list__extensions">
                     {streaming.extensionLog.map((ext, i) => (
@@ -204,14 +110,6 @@ export function MessageList({
                     ))}
                   </div>
                 )}
-
-                {streaming.thinkContent && (
-                  <ThinkBlock
-                    content={streaming.thinkContent}
-                    streaming={!streaming.thinkDone}
-                  />
-                )}
-
                 {(streaming.textContent || streaming.status === 'streaming') && (
                   <ChatBubble
                     role="assistant"
@@ -224,7 +122,6 @@ export function MessageList({
                     renderMarkdown={renderMarkdown}
                   />
                 )}
-
                 {streaming.artifactOrder.map(id => {
                   const art = streaming.artifacts[id]
                   if (!art) return null
@@ -245,8 +142,6 @@ export function MessageList({
                     />
                   )
                 })}
-
-                {/* Memory saved notifications */}
                 {streaming.memorySaved.length > 0 && (
                   <div className="meso-memory-saved">
                     {streaming.memorySaved.map(m => (

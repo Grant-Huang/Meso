@@ -13,6 +13,11 @@
   },
   "activeSoul": { "id": "analyst-soul", "name": "分析助手" },
   "activeSkill": { "id": "analyst", "name": "数据分析师", "focus": ["stats"] },
+  "phaseOrder": ["read-resource", "search-web"],
+  "phases": {
+    "read-resource": { "id": "read-resource", "name": "读取资源", "state": "done", "thinkContent": "" },
+    "search-web": { "id": "search-web", "name": "搜索网络", "state": "done", "thinkContent": "" }
+  },
   "resourceReadOrder": ["rr1"],
   "resourceReads": {
     "rr1": {
@@ -29,5 +34,6 @@
     }
   },
   "textContent": "根据库存数据和市场趋势，产品A需求旺盛。",
-  "errorMessage": null
+  "errorMessage": null,
+  "errorCode": null
 }

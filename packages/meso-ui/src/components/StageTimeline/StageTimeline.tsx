@@ -1,3 +1,5 @@
+import { StatusIcon } from '../StatusIcon'
+import type { StatusIconStatus } from '../StatusIcon'
 import './StageTimeline.css'
 
 export type StageStatus = 'pending' | 'active' | 'done' | 'error'
@@ -10,8 +12,16 @@ export interface Stage {
 
 export interface StageTimelineProps {
   stages: Stage[]
-  /** Compact single-row display (for embedding in chat header) */
   compact?: boolean
+}
+
+function stageStatusToIcon(status: StageStatus): StatusIconStatus {
+  switch (status) {
+    case 'pending': return 'pending'
+    case 'active': return 'running'
+    case 'done': return 'done'
+    case 'error': return 'error'
+  }
 }
 
 export function StageTimeline({ stages, compact = false }: StageTimelineProps) {
@@ -25,17 +35,7 @@ export function StageTimeline({ stages, compact = false }: StageTimelineProps) {
           className={`meso-stage meso-stage--${stage.status}`}
         >
           <div className="meso-stage__dot">
-            {stage.status === 'done' ? (
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="1.5,5.5 4,8 8.5,2.5"/>
-              </svg>
-            ) : stage.status === 'error' ? (
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
-              </svg>
-            ) : (
-              <span className="meso-stage__dot-inner" />
-            )}
+            <StatusIcon status={stageStatusToIcon(stage.status)} size={10} />
           </div>
           {idx < stages.length - 1 && (
             <div className={`meso-stage__line${stage.status === 'done' ? ' meso-stage__line--done' : ''}`} />

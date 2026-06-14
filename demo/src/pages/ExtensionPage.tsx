@@ -7,7 +7,7 @@ const evt = (type: string, payload: object) =>
 
 // ── 场景 A：引用卡片（citation） ──────────────────────────────────
 const SCENARIO_A: string[] = [
-  evt('stage', { name: '联网搜索', state: 'active' }),
+  evt('phase', { id: 'search-web', name: '联网搜索', state: 'running' }),
   evt('extension', {
     name: 'citation',
     version: '1.0',
@@ -19,7 +19,7 @@ const SCENARIO_A: string[] = [
       ],
     },
   }),
-  evt('stage', { name: '联网搜索', state: 'done' }),
+  evt('phase', { id: 'search-web', name: '联网搜索', state: 'done' }),
   evt('text', { delta: '## React 19 主要新特性\n\n' }),
   evt('text', { delta: '**1. React 编译器**（自动 memo）\n自动分析组件依赖，无需手动 `useMemo` / `useCallback`，消除常见性能陷阱。[^1]\n\n' }),
   evt('text', { delta: '**2. Server Components 稳定版**\n组件可以直接 `async/await` 数据库、文件系统，在服务端渲染后流式传输 HTML。[^3]\n\n' }),

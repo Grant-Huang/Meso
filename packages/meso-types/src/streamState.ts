@@ -1,5 +1,4 @@
 import type {
-  StagePayload,
   MemorySnippet,
   MemorySavedPayload,
   SoulPayload,
@@ -102,8 +101,13 @@ export interface StreamState {
   activeSkill: SkillPayload | null
 
   // ── Pipeline progress ──────────────────────────────────────────────────────
-  /** Pipeline stages in arrival order; deduped by name. */
-  stages: StagePayload[]
+  /**
+   * Multi-step pipeline phases keyed by id.
+   * Populated by `phase` events; carries per-phase think streams and structured output.
+   */
+  phases: Record<string, PhaseRecord>
+  /** Phase ids in first-seen order — use for deterministic rendering. */
+  phaseOrder: string[]
 
   // ── Memory ─────────────────────────────────────────────────────────────────
   /** Memory snippets recalled before generation. */
@@ -134,25 +138,15 @@ export interface StreamState {
   /**
    * Workflow runs keyed by run_id. One stream may contain multiple runs
    * (e.g. parallel sub-graphs from LangGraph or Temporal).
-   * Stage = user-readable coarse progress; workflow_node = developer-facing fine steps.
+   * phase = user-readable pipeline; workflow_node = developer-facing fine steps.
    */
   workflowRuns: Record<string, WorkflowRunState>
   /** Run ids in first-seen order — use for deterministic rendering. */
   workflowRunOrder: string[]
 
-  // ── Phases ─────────────────────────────────────────────────────────────────
-  /**
-   * Multi-step pipeline phases keyed by id.
-   * Populated by `phase` events; richer alternative to `stages` for apps
-   * that need per-phase think streams and structured output.
-   */
-  phases: Record<string, PhaseRecord>
-  /** Phase ids in first-seen order — use for deterministic rendering. */
-  phaseOrder: string[]
-
   // ── Extension escape hatch ─────────────────────────────────────────────────
   /**
-   * Extension events keyed by name for lookup (e.g. extensions["tool_progress"]).
+   * Extension events keyed by name for lookup (e.g. extensions["citation"]).
    * For time-ordered rendering, use extensionLog instead.
    */
   extensions: Record<string, ExtensionEvent[]>
@@ -160,6 +154,8 @@ export interface StreamState {
   extensionLog: ExtensionEvent[]
 
   errorMessage: string | null
+  /** Machine-readable error code from the error event (e.g. UPSTREAM_TIMEOUT). */
+  errorCode: string | null
 }
 
 export function createInitialStreamState(): StreamState {
@@ -168,7 +164,8 @@ export function createInitialStreamState(): StreamState {
     availableCapabilities: null,
     activeSoul: null,
     activeSkill: null,
-    stages: [],
+    phases: {},
+    phaseOrder: [],
     memorySnippets: [],
     memorySaved: [],
     toolCalls: {},
@@ -182,11 +179,10 @@ export function createInitialStreamState(): StreamState {
     artifactOrder: [],
     workflowRuns: {},
     workflowRunOrder: [],
-    phases: {},
-    phaseOrder: [],
     extensions: {},
     extensionLog: [],
     errorMessage: null,
+    errorCode: null,
   }
 }
 

@@ -35,13 +35,6 @@ export type CapabilityProvider = 'builtin' | 'local' | 'mcp' | 'api'
 
 // ── Standard events ─────────────────────────────────────────────────────────
 
-export interface StagePayload {
-  name: string
-  state: 'active' | 'done' | 'error'
-}
-/** Pipeline stage progress (召回记忆, 检索知识, 生成回复, …). */
-export type StageEvent = Envelope<'stage', StagePayload>
-
 export interface MemorySnippet {
   category: string
   content: string
@@ -230,6 +223,11 @@ export interface ToolCallPayload {
    * Maps from MCP annotations: readOnlyHint → safe, destructiveHint → destructive.
    */
   risk?: ToolRisk
+  /**
+   * When true, UI shows ConfirmGate before execution regardless of risk level.
+   * Use for operations like bulk email that are not destructive but need approval.
+   */
+  requires_confirm?: boolean
   /** Who provides this tool. Omit for platform built-ins. */
   provider?: CapabilityProvider
   /** MCP server name when provider = "mcp". */
@@ -259,6 +257,17 @@ export interface ToolResultPayload {
 }
 /** Tool execution completed (success or error). */
 export type ToolResultEvent = Envelope<'tool_result', ToolResultPayload>
+
+/** Runtime status update for an in-flight tool call. */
+export type ToolStatusValue = 'running' | 'awaiting_confirm'
+
+export interface ToolStatusPayload {
+  /** Matches the id from the corresponding tool_call event. */
+  id: string
+  status: ToolStatusValue
+}
+/** Backend signals a tool call entered running or awaiting user confirmation. */
+export type ToolStatusEvent = Envelope<'tool_status', ToolStatusPayload>
 
 // ── MCP Resource events ──────────────────────────────────────────────────────
 //
@@ -301,10 +310,10 @@ export type ResourceContentEvent = Envelope<'resource_content', ResourceContentP
 // ── Workflow node event ──────────────────────────────────────────────────────
 //
 // Developer-facing fine-grained observability for DAG/workflow execution.
-// Complements stage (user-readable coarse progress) with per-node telemetry.
+// Complements phase (user-visible pipeline) with per-node telemetry.
 //
 // Division of labour:
-//   stage         — user-visible pipeline label ("召回记忆", "生成回复")
+//   phase         — user-visible pipeline stage with per-phase think + body
 //   workflow_node — developer step inside a backend workflow (web_search, fetch_batch_3)
 //
 // A single stream may contain multiple workflow runs (e.g., parallel sub-graphs).
@@ -398,8 +407,8 @@ export interface ToolDefinition {
 // in StreamState and can carry per-phase think streams and structured output.
 //
 // Division of labour:
-//   stage  — lightweight progress label (deprecated path; use phase for richer UX)
-//   phase  — full lifecycle with nested think stream + structured body
+//   phase  — user-visible pipeline stage with nested think stream + structured body
+//   workflow_node — developer telemetry (DAG steps)
 //
 // Typical flow:
 //   phase(id, name, state:"running") → think(delta, phase_id) × N
@@ -439,7 +448,7 @@ export type PhaseEvent = Envelope<'phase', PhasePayload>
 // semantically match — extension is the escape hatch, not the default.
 
 export interface ExtensionPayload {
-  /** Identifies the extension type (e.g. "tool_progress", "confirm_gate"). */
+  /** Identifies the extension type (e.g. "citation", "entity_reference"). */
   name: string
   /** Optional semver for the extension schema itself. */
   version?: string
@@ -451,7 +460,6 @@ export type ExtensionEvent = Envelope<'extension', ExtensionPayload>
 // ── Union ────────────────────────────────────────────────────────────────────
 
 export type SSEEvent =
-  | StageEvent
   | PhaseEvent
   | CapabilitiesEvent
   | MemoryEvent
@@ -463,6 +471,7 @@ export type SSEEvent =
   | ArtifactEvent
   | ToolCallEvent
   | ToolResultEvent
+  | ToolStatusEvent
   | ResourceReadEvent
   | ResourceContentEvent
   | WorkflowNodeEvent

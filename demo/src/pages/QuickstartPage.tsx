@@ -69,9 +69,9 @@ async def event_stream(message: str):
     def sse(type: str, payload: dict) -> str:
         return f'data: {json.dumps({"type": type, "schema_version": "1.0", "payload": payload})}\\n\\n'
 
-    yield sse("stage", {"name": "处理中", "state": "active"})
+    yield sse("phase", {"id": "process", "name": "处理中", "state": "running"})
     await asyncio.sleep(0.3)
-    yield sse("stage", {"name": "处理中", "state": "done"})
+    yield sse("phase", {"id": "process", "name": "处理中", "state": "done"})
 
     yield sse("think", {"delta": "用户问：" + message, "done": True})
 
@@ -227,7 +227,7 @@ export function QuickstartPage() {
             background: state.status === 'streaming' ? 'var(--color-success)' : 'var(--color-text-muted)',
             display: 'inline-block',
           }} />
-          <span>Live Demo — mock SSE 流（stage → think → text → artifact → done）</span>
+          <span>Live Demo — mock SSE 流（phase → think → text → artifact → done）</span>
           {state.status === 'streaming' && (
             <button
               onClick={abort}

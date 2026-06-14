@@ -15,15 +15,13 @@ export {
   parseSSELine,
   isCompatibleVersion,
   assertCompatibleVersion,
-  stagePayloadToStage,
+  phaseRecordToStage,
 } from '@meso.ai/types'
 
 export type {
   ProtocolVersion,
   CapabilityProvider,
   SSEEvent,
-  StageEvent,
-  StagePayload,
   CapabilitiesEvent,
   CapabilitiesPayload,
   ToolSpec,
@@ -51,6 +49,9 @@ export type {
   ToolCallPayload,
   ToolResultEvent,
   ToolResultPayload,
+  ToolStatusEvent,
+  ToolStatusPayload,
+  ToolStatusValue,
   ResourceReadEvent,
   ResourceReadPayload,
   ResourceContentEvent,

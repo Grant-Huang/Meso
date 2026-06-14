@@ -5,13 +5,13 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 // Scripted Meso Protocol v1.0 events for the mock stream endpoint.
 // Each entry is [delay_ms, event_json_string].
 const MOCK_SCRIPT: [number, string][] = [
-  [100,  JSON.stringify({ type: 'stage', schema_version: '1.0', payload: { name: '召回记忆', state: 'active' } })],
+  [100,  JSON.stringify({ type: 'phase', schema_version: '1.0', payload: { id: 'recall', name: '召回记忆', state: 'running' } })],
   [300,  JSON.stringify({ type: 'memory', schema_version: '1.0', payload: { snippets: [
     { category: 'preference', content: '偏好 TypeScript，arrow functions' },
     { category: 'project', content: '当前项目：Meso，React 18 + Vite' },
   ] } })],
-  [400,  JSON.stringify({ type: 'stage', schema_version: '1.0', payload: { name: '召回记忆', state: 'done' } })],
-  [500,  JSON.stringify({ type: 'stage', schema_version: '1.0', payload: { name: '生成回复', state: 'active' } })],
+  [400,  JSON.stringify({ type: 'phase', schema_version: '1.0', payload: { id: 'recall', name: '召回记忆', state: 'done' } })],
+  [500,  JSON.stringify({ type: 'phase', schema_version: '1.0', payload: { id: 'generate', name: '生成回复', state: 'running' } })],
   [600,  JSON.stringify({ type: 'think', schema_version: '1.0', payload: { delta: '用户询问 Meso 的核心特性…让我整理一下关键点。', done: false } })],
   [800,  JSON.stringify({ type: 'think', schema_version: '1.0', payload: { delta: '重点：SSE 协议、组件库、流式状态机。', done: true } })],
   [900,  JSON.stringify({ type: 'text', schema_version: '1.0', payload: { delta: 'Meso 是一个' } })],
@@ -31,7 +31,7 @@ const MOCK_SCRIPT: [number, string][] = [
     delta: '  // state.textContent 实时更新\n  // state.thinkContent 显示思考过程\n  return <MessageList messages={[]} streaming={state} />\n}\n',
     done: true,
   } })],
-  [1800, JSON.stringify({ type: 'stage', schema_version: '1.0', payload: { name: '生成回复', state: 'done' } })],
+  [1800, JSON.stringify({ type: 'phase', schema_version: '1.0', payload: { id: 'generate', name: '生成回复', state: 'done' } })],
   [1900, JSON.stringify({ type: 'done', schema_version: '1.0', payload: {} })],
 ]
 

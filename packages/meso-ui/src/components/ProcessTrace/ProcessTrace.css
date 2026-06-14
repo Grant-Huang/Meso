@@ -65,3 +65,43 @@
   flex-direction: column;
   gap: 6px;
 }
+
+.meso-process-trace__phases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meso-process-trace__phase {
+  border-left: 2px solid var(--color-border-light);
+  padding-left: 10px;
+}
+
+.meso-process-trace__phase-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.meso-process-trace__phase-body {
+  font-size: 12px;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  margin-top: 4px;
+}
+
+.meso-process-trace__tool-group--grouped {
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.meso-process-trace__tool-group-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}

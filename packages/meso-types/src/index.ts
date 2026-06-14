@@ -3,8 +3,6 @@ export type {
   ProtocolVersion,
   CapabilityProvider,
   SSEEvent,
-  StageEvent,
-  StagePayload,
   CapabilitiesEvent,
   CapabilitiesPayload,
   ToolSpec,
@@ -34,6 +32,9 @@ export type {
   ToolCallPayload,
   ToolResultEvent,
   ToolResultPayload,
+  ToolStatusEvent,
+  ToolStatusPayload,
+  ToolStatusValue,
   ResourceReadEvent,
   ResourceReadPayload,
   ResourceContentEvent,
@@ -74,5 +75,5 @@ export {
 export { applyEvent } from './applyEvent'
 export { parseSSELine } from './parseSSELine'
 export { isCompatibleVersion, assertCompatibleVersion } from './versionGuard'
-export { stagePayloadToStage } from './stageAdapter'
-export type { Stage as StageAdapterStage } from './stageAdapter'
+export { phaseRecordToStage } from './phaseAdapter'
+export type { Stage as PhaseAdapterStage } from './phaseAdapter'

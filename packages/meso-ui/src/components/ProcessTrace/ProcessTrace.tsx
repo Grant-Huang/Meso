@@ -1,38 +1,33 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode } from 'react'
 import { ThinkBlock } from '../ThinkBlock'
 import { StageTimeline } from '../StageTimeline'
 import { ToolCallBlock } from '../ToolCallBlock'
 import { WorkflowTimeline } from '../WorkflowTimeline'
-import type { StreamState, ToolCallState } from '../../runtime'
-import type { Stage } from '../StageTimeline'
+import { StatusIcon } from '../StatusIcon'
+import { ResourceReadBlock } from '../ResourceReadBlock'
+import { useFoldState } from '../../hooks/useFoldState'
+import { phaseRecordToStage } from '../../runtime'
+import type { StreamState, ToolCallState, PhaseRecord } from '../../runtime'
+import { groupToolCalls } from '../../utils/groupToolCalls'
+import { phaseStateToIcon } from '../../utils/statusMapping'
 import './ProcessTrace.css'
 
 export interface ProcessTraceProps {
-  /** The live or completed stream state to render. */
   stream: StreamState
-  /** Whether the stream is still active. Controls ThinkBlock streaming mode. */
   streaming?: boolean
-  /** Initial collapsed state of the outer summary header. Default false (expanded). */
+  turnStreaming?: boolean
   defaultCollapsed?: boolean
-  /** Callback for tool confirm/cancel (forwarded to ToolCallBlock). */
+  className?: string
   onToolConfirm?: (toolCallId: string) => void
   onToolCancel?: (toolCallId: string) => void
-  /**
-   * Optional render slot for custom stage body content.
-   * Rendered below each stage chip in the StageTimeline area.
-   * Return null/undefined to use default rendering.
-   */
-  renderStageBody?: (stage: Stage, streamStage: StreamState['stages'][number]) => ReactNode
-  /**
-   * Optional render slot that replaces the default ToolCallBlock for a specific call.
-   * Return null/undefined to fall back to ToolCallBlock.
-   */
   renderToolCall?: (toolCall: ToolCallState) => ReactNode
+  renderPhase?: (phase: PhaseRecord) => ReactNode
+  renderWorkflow?: (stream: StreamState) => ReactNode
 }
 
 function buildSummary(stream: StreamState): string {
   const total = stream.toolCallOrder.length + stream.workflowRunOrder.reduce(
-    (n, id) => n + (stream.workflowRuns[id]?.nodeOrder.length ?? 0), 0
+    (n, id) => n + (stream.workflowRuns[id]?.nodeOrder.length ?? 0), 0,
   )
   const errors = stream.toolCallOrder.filter(id => stream.toolCalls[id]?.status === 'error').length
     + stream.workflowRunOrder.reduce((n, id) => {
@@ -42,27 +37,57 @@ function buildSummary(stream: StreamState): string {
       }, 0)
   const parts: string[] = []
   if (stream.phaseOrder.length > 0) parts.push(`${stream.phaseOrder.length} 阶段`)
-  else if (stream.stages.length > 0) parts.push(`${stream.stages.length} 阶段`)
   if (total > 0) parts.push(`${total} 步`)
   if (errors > 0) parts.push(`${errors} 项失败`)
   return parts.length > 0 ? parts.join(' · ') : '执行过程'
 }
 
+function renderDefaultPhase(phase: PhaseRecord, streaming: boolean): ReactNode {
+  const hasThink = Boolean(phase.thinkContent || phase.pinnedThink)
+  return (
+    <div className="meso-process-trace__phase" data-testid={`meso-phase-${phase.id}`}>
+      <div className="meso-process-trace__phase-header">
+        <StatusIcon status={phaseStateToIcon(phase.state)} size={14} />
+        <span className="meso-process-trace__phase-name">{phase.name}</span>
+      </div>
+      {hasThink && (
+        <ThinkBlock
+          content={phase.thinkContent}
+          pinnedContent={phase.pinnedThink}
+          streaming={streaming && phase.state === 'running'}
+          collapseWhen="never"
+          defaultOpen={true}
+        />
+      )}
+      {phase.body && (
+        <div className="meso-process-trace__phase-body">{phase.body}</div>
+      )}
+    </div>
+  )
+}
+
 export function ProcessTrace({
   stream,
   streaming = false,
+  turnStreaming = false,
   defaultCollapsed = false,
+  className,
   onToolConfirm,
   onToolCancel,
-  renderStageBody,
   renderToolCall,
+  renderPhase,
+  renderWorkflow,
 }: ProcessTraceProps) {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed)
+  const fold = useFoldState({
+    system: !defaultCollapsed,
+    resetOnTurnStart: turnStreaming,
+  })
 
   const hasContent =
     !!stream.thinkContent ||
-    stream.stages.length > 0 ||
     stream.phaseOrder.length > 0 ||
+    stream.memorySnippets.length > 0 ||
+    stream.resourceReadOrder.length > 0 ||
     stream.toolCallOrder.length > 0 ||
     stream.workflowRunOrder.length > 0
 
@@ -72,16 +97,25 @@ export function ProcessTrace({
   const workflowRuns = stream.workflowRunOrder
     .map(id => stream.workflowRuns[id])
     .filter(Boolean)
+  const toolGroups = groupToolCalls(stream)
+  const phaseStages = stream.phaseOrder
+    .map(id => stream.phases[id])
+    .filter(Boolean)
+    .map(phaseRecordToStage)
 
   return (
-    <div className="meso-process-trace">
+    <div
+      className={`meso-process-trace${className ? ` ${className}` : ''}`}
+      data-testid="meso-process-trace"
+    >
       <button
         className="meso-process-trace__header"
-        onClick={() => setCollapsed(v => !v)}
-        aria-expanded={!collapsed}
+        onClick={fold.toggle}
+        aria-expanded={fold.open}
+        aria-label={fold.open ? '折叠执行过程' : '展开执行过程'}
       >
         <svg
-          className={`meso-process-trace__chevron${collapsed ? '' : ' meso-process-trace__chevron--open'}`}
+          className={`meso-process-trace__chevron${fold.open ? ' meso-process-trace__chevron--open' : ''}`}
           width="14" height="14" viewBox="0 0 14 14"
           fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
         >
@@ -91,56 +125,97 @@ export function ProcessTrace({
         {streaming && <span className="meso-process-trace__dot" aria-label="执行中" />}
       </button>
 
-      {!collapsed && (
+      {fold.open && (
         <div className="meso-process-trace__body">
+          {phaseStages.length > 0 && (
+            <StageTimeline compact stages={phaseStages} />
+          )}
+
+          {stream.memorySnippets.length > 0 && (
+            <div className="meso-memory-chips">
+              {stream.memorySnippets.map((snippet, i) => (
+                <span key={i} className="meso-memory-chip" title={snippet.content}>
+                  [{snippet.category}] {snippet.content}
+                </span>
+              ))}
+            </div>
+          )}
+
           {stream.thinkContent && (
             <ThinkBlock
               content={stream.thinkContent}
               streaming={streaming && !stream.thinkDone}
               collapseWhen="never"
               defaultOpen={true}
+              turnStreaming={turnStreaming}
             />
           )}
 
-          {stream.stages.length > 0 && (
-            <>
-              <StageTimeline
-                compact
-                stages={stream.stages.map((s): Stage => ({
-                  id: s.name,
-                  label: s.name,
-                  status: s.state === 'done' || s.state === 'error' ? 'done' : 'active',
-                }))}
-              />
-              {renderStageBody && stream.stages.map(s => {
-                const stage: Stage = { id: s.name, label: s.name, status: s.state === 'done' || s.state === 'error' ? 'done' : 'active' }
-                const body = renderStageBody(stage, s)
-                return body ? <div key={s.name} className="meso-process-trace__stage-body">{body}</div> : null
-              })}
-            </>
-          )}
-
-          {stream.toolCallOrder.length > 0 && (
-            <div className="meso-process-trace__tools">
-              {stream.toolCallOrder.map(id => {
-                const tc = stream.toolCalls[id]
-                if (!tc) return null
-                const custom = renderToolCall?.(tc)
-                if (custom !== undefined && custom !== null) return <div key={id}>{custom}</div>
+          {stream.phaseOrder.length > 0 && (
+            <div className="meso-process-trace__phases">
+              {stream.phaseOrder.map(phaseId => {
+                const phase = stream.phases[phaseId]
+                if (!phase) return null
+                const custom = renderPhase?.(phase)
+                if (custom !== undefined && custom !== null) {
+                  return <div key={phaseId}>{custom}</div>
+                }
                 return (
-                  <ToolCallBlock
-                    key={id}
-                    toolCall={tc}
-                    onConfirm={onToolConfirm}
-                    onCancel={onToolCancel}
-                  />
+                  <div key={phaseId}>
+                    {renderDefaultPhase(phase, streaming)}
+                  </div>
                 )
               })}
             </div>
           )}
 
+          {stream.resourceReadOrder.length > 0 && (
+            <div className="meso-process-trace__resources">
+              {stream.resourceReadOrder.map(id => {
+                const rr = stream.resourceReads[id]
+                if (!rr) return null
+                return <ResourceReadBlock key={id} resourceRead={rr} />
+              })}
+            </div>
+          )}
+
+          {toolGroups.length > 0 && (
+            <div className="meso-process-trace__tools">
+              {toolGroups.map(group => (
+                <div
+                  key={group.key}
+                  className={`meso-process-trace__tool-group${group.groupId ? ' meso-process-trace__tool-group--grouped' : ''}`}
+                  data-group-id={group.groupId}
+                  data-group-kind={group.groupKind}
+                >
+                  {group.groupId && (
+                    <div className="meso-process-trace__tool-group-label">
+                      {group.groupKind ?? 'group'}: {group.groupId}
+                    </div>
+                  )}
+                  {group.ids.map(id => {
+                    const tc = stream.toolCalls[id]
+                    if (!tc) return null
+                    const custom = renderToolCall?.(tc)
+                    if (custom !== undefined && custom !== null) {
+                      return <div key={id}>{custom}</div>
+                    }
+                    return (
+                      <ToolCallBlock
+                        key={id}
+                        toolCall={tc}
+                        onConfirm={onToolConfirm}
+                        onCancel={onToolCancel}
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
+
           {workflowRuns.length > 0 && (
-            <WorkflowTimeline runs={workflowRuns} />
+            renderWorkflow?.(stream) ?? <WorkflowTimeline runs={workflowRuns} />
           )}
         </div>
       )}

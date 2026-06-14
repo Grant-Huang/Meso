@@ -38,10 +38,10 @@ describe('basic-stream contract', () => {
     )
   })
 
-  it('stage dedup: only one entry per name', () => {
+  it('phase dedup: only one entry per id', () => {
     const state = replayFixture('basic-stream.txt')
-    expect(state.stages).toHaveLength(1)
-    expect(state.stages[0]).toEqual({ name: '召回记忆', state: 'done' })
+    expect(state.phaseOrder).toEqual(['recall'])
+    expect(state.phases['recall']).toEqual({ id: 'recall', name: '召回记忆', state: 'done', thinkContent: '' })
   })
 
   it('think: content accumulated, thinkDone=true on last chunk', () => {
@@ -61,13 +61,13 @@ describe('extension-stream contract', () => {
   it('extensionLog preserves arrival order', () => {
     const state = replayFixture('extension-stream.txt')
     expect(state.extensionLog).toHaveLength(2)
-    expect((state.extensionLog[0].payload as { data: { status: string } }).data.status).toBe('running')
-    expect((state.extensionLog[1].payload as { data: { status: string } }).data.status).toBe('done')
+    expect((state.extensionLog[0].payload as { data: { source: string } }).data.source).toBe('paper-42')
+    expect((state.extensionLog[1].payload as { data: { source: string } }).data.source).toBe('paper-43')
   })
 
   it('extensions keyed by name for lookup', () => {
     const state = replayFixture('extension-stream.txt')
-    expect(state.extensions['tool_progress']).toHaveLength(2)
+    expect(state.extensions['citation']).toHaveLength(2)
   })
 })
 
@@ -82,6 +82,14 @@ describe('error-stream contract', () => {
     const state = replayFixture('error-stream.txt')
     expect(state.status).toBe('error')
     expect(state.errorMessage).toBe('上游服务超时')
+  })
+
+  it('errorCode persisted in StreamState', () => {
+    const state = applyEvent(
+      { ...createInitialStreamState(), status: 'streaming' },
+      { type: 'error', schema_version: '1.0', payload: { message: 'fail', code: 'UPSTREAM_TIMEOUT' } },
+    )
+    expect(state.errorCode).toBe('UPSTREAM_TIMEOUT')
   })
 })
 
@@ -163,10 +171,10 @@ describe('workflow-stream contract', () => {
     expect(state.workflowRuns['run-001'].nodes['n4'].metadata?.error).toBe('timeout')
   })
 
-  it('stages unaffected by workflow_node events', () => {
+  it('phases unaffected by workflow_node events', () => {
     const state = replayFixture('workflow-stream.txt')
-    expect(state.stages).toHaveLength(3)
-    expect(state.stages.every(s => s.state === 'done')).toBe(true)
+    expect(state.phaseOrder).toEqual(['intent', 'search', 'generate'])
+    expect(state.phaseOrder.every(id => state.phases[id]?.state === 'done')).toBe(true)
   })
 })
 
@@ -268,11 +276,17 @@ describe('applyEvent', () => {
   const initial = createInitialStreamState()
   const streaming = { ...initial, status: 'streaming' as const }
 
-  it('stage: deduplicates by name', () => {
-    const s1 = applyEvent(streaming, { type: 'stage', schema_version: '1.0', payload: { name: 'A', state: 'active' } })
-    const s2 = applyEvent(s1,       { type: 'stage', schema_version: '1.0', payload: { name: 'A', state: 'done' } })
-    expect(s2.stages).toHaveLength(1)
-    expect(s2.stages[0].state).toBe('done')
+  it('extension-stream: citation extensions preserved', () => {
+    const state = replayFixture('extension-stream.txt')
+    expect(state.extensionLog).toHaveLength(2)
+    expect(state.extensions['citation']).toHaveLength(2)
+  })
+
+  it('phase: deduplicates by id', () => {
+    const s1 = applyEvent(streaming, { type: 'phase', schema_version: '1.0', payload: { id: 'p1', name: 'A', state: 'running' } })
+    const s2 = applyEvent(s1,       { type: 'phase', schema_version: '1.0', payload: { id: 'p1', name: 'A', state: 'done' } })
+    expect(s2.phaseOrder).toHaveLength(1)
+    expect(s2.phases['p1'].state).toBe('done')
   })
 
   it('memory: replaces snippets', () => {
@@ -375,6 +389,46 @@ describe('applyEvent', () => {
     const s1 = applyEvent(streaming, { type: 'resource_read', schema_version: '1.0', payload: { id: 'rr1', uri: 'db://x' } })
     const s2 = applyEvent(s1, { type: 'resource_content', schema_version: '1.0', payload: { resource_read_id: 'rr1', contents: [], error: '访问拒绝' } })
     expect(s2.resourceReads['rr1'].status).toBe('error')
+  })
+
+  it('tool_call: destructive risk sets awaiting_confirm', () => {
+    const s = applyEvent(streaming, {
+      type: 'tool_call', schema_version: '1.0',
+      payload: { id: 'tc1', name: 'delete_file', args: { path: '/a' }, risk: 'destructive' },
+    })
+    expect(s.toolCalls['tc1'].status).toBe('awaiting_confirm')
+  })
+
+  it('tool_call: write risk sets awaiting_confirm', () => {
+    const s = applyEvent(streaming, {
+      type: 'tool_call', schema_version: '1.0',
+      payload: { id: 'tc1', name: 'write_file', args: {}, risk: 'write' },
+    })
+    expect(s.toolCalls['tc1'].status).toBe('awaiting_confirm')
+  })
+
+  it('tool_call: requires_confirm sets awaiting_confirm for safe tools', () => {
+    const s = applyEvent(streaming, {
+      type: 'tool_call', schema_version: '1.0',
+      payload: { id: 'tc1', name: 'send_email', args: {}, risk: 'safe', requires_confirm: true },
+    })
+    expect(s.toolCalls['tc1'].status).toBe('awaiting_confirm')
+  })
+
+  it('tool_status: transitions to running', () => {
+    const s1 = applyEvent(streaming, { type: 'tool_call', schema_version: '1.0', payload: { id: 'tc1', name: 'x', args: {} } })
+    const s2 = applyEvent(s1, { type: 'tool_status', schema_version: '1.0', payload: { id: 'tc1', status: 'running' } })
+    expect(s2.toolCalls['tc1'].status).toBe('running')
+  })
+
+  it('tool_result: preserves groupId and groupKind', () => {
+    const s1 = applyEvent(streaming, {
+      type: 'tool_call', schema_version: '1.0',
+      payload: { id: 'tc1', name: 'search', args: {}, groupId: 'sub-1', groupKind: 'subtopic' },
+    })
+    const s2 = applyEvent(s1, { type: 'tool_result', schema_version: '1.0', payload: { tool_call_id: 'tc1', output: 'ok' } })
+    expect(s2.toolCalls['tc1'].groupId).toBe('sub-1')
+    expect(s2.toolCalls['tc1'].groupKind).toBe('subtopic')
   })
 
   it('tool_call: appends to order list, status pending', () => {

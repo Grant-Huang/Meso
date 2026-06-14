@@ -1,6 +1,14 @@
 {
   "status": "done",
-  "stages": [{ "name": "召回记忆", "state": "done" }],
+  "phaseOrder": ["recall"],
+  "phases": {
+    "recall": {
+      "id": "recall",
+      "name": "召回记忆",
+      "state": "done",
+      "thinkContent": ""
+    }
+  },
   "memorySnippets": [{ "category": "preference", "content": "偏好简洁" }],
   "thinkContent": "用户想要简洁答案",
   "thinkDone": true,
@@ -9,5 +17,6 @@
   "artifactOrder": [],
   "extensions": {},
   "extensionLog": [],
-  "errorMessage": null
+  "errorMessage": null,
+  "errorCode": null
 }

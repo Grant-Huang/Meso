@@ -4,21 +4,21 @@ data: {"type":"soul","schema_version":"1.0","payload":{"id":"analyst-soul","name
 
 data: {"type":"skill_active","schema_version":"1.0","payload":{"id":"analyst","name":"数据分析师","provider":"local","focus":["stats"]}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"读取资源","state":"active"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"read-resource","name":"读取资源","state":"running"}}
 
 data: {"type":"resource_read","schema_version":"1.0","payload":{"id":"rr1","uri":"db://products/catalog","name":"产品目录","server":"inventory-mcp"}}
 
 data: {"type":"resource_content","schema_version":"1.0","payload":{"resource_read_id":"rr1","contents":[{"type":"text","text":"产品A: 100件\n产品B: 50件"}],"duration_ms":80}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"读取资源","state":"done"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"read-resource","name":"读取资源","state":"done"}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"搜索网络","state":"active"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"search-web","name":"搜索网络","state":"running"}}
 
 data: {"type":"tool_call","schema_version":"1.0","payload":{"id":"tc1","name":"search_web","args":{"query":"产品A 市场趋势"},"risk":"safe","provider":"mcp","server":"brave-search","annotations":{"open_world":true}}}
 
 data: {"type":"tool_result","schema_version":"1.0","payload":{"tool_call_id":"tc1","output":"市场需求上升 15%","duration_ms":350}}
 
-data: {"type":"stage","schema_version":"1.0","payload":{"name":"搜索网络","state":"done"}}
+data: {"type":"phase","schema_version":"1.0","payload":{"id":"search-web","name":"搜索网络","state":"done"}}
 
 data: {"type":"text","schema_version":"1.0","payload":{"delta":"根据库存数据和市场趋势，产品A需求旺盛。"}}
 

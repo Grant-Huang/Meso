@@ -38,17 +38,20 @@ jobs:
         run: |
           pnpm --filter @meso.ai/types run build
           pnpm --filter @meso.ai/ui run build
+          pnpm --filter @meso.ai/client run build
 
       - name: Test packages
         run: |
           pnpm --filter @meso.ai/types run test
           pnpm --filter @meso.ai/ui run test
+          pnpm --filter @meso.ai/client run test
 
       - name: Pack tarballs
         run: |
           mkdir -p dist-tarballs
           pnpm --filter @meso.ai/types pack --pack-destination dist-tarballs
           pnpm --filter @meso.ai/ui    pack --pack-destination dist-tarballs
+          pnpm --filter @meso.ai/client pack --pack-destination dist-tarballs
           ls dist-tarballs/
 
       - name: Publish to npm (OIDC Trusted Publishing)
@@ -67,6 +70,7 @@ jobs:
           }
           publish_pkg packages/meso-types
           publish_pkg packages/meso-ui
+          publish_pkg packages/meso-client
 
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2

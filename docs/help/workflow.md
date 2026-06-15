@@ -8,10 +8,10 @@ Meso 通过 `workflow_node` 事件为后端 DAG 工作流提供**开发者可观
 
 | 信号 | 事件类型 | 受众 | 示例 |
 |------|---------|------|------|
-| 粗粒度阶段 | `stage` | **用户** | "召回记忆"、"搜索网络"、"生成回复" |
+| 粗粒度阶段 | `phase` | **用户** | "召回记忆"、"搜索网络"、"生成回复" |
 | 细粒度节点 | `workflow_node` | **开发者** | `intent_router`、`web_search`、`fetch_batch_3` |
 
-两种信号完全独立，可以同时使用，也可以只用其中一个。`stage` 驱动用户可见的 `StageTimeline`；`workflow_node` 驱动开发者可见的 `WorkflowTimeline`，默认不向终端用户展示。
+两种信号完全独立，可以同时使用，也可以只用其中一个。`phase` 驱动用户可见的 `StageTimeline`（通过 `phaseRecordToStage` 适配）；`workflow_node` 驱动开发者可见的 `WorkflowTimeline`，默认不向终端用户展示。
 
 ---
 
@@ -69,13 +69,13 @@ active ──► skipped   条件分支跳过
 ### 单次 run（线性 + 树形子步骤）
 
 ```
-stage: "搜索网络" → active
+phase: "搜索网络" → running
   [workflow_node] intent_router    → active → done (42ms)
   [workflow_node] web_search       → active
       [workflow_node] fetch_batch_1  → active → done (310ms)
       [workflow_node] fetch_batch_2  → active → error (205ms)
   [workflow_node] web_search       → done (520ms)
-stage: "搜索网络" → done
+phase: "搜索网络" → done
 ```
 
 `fetch_batch_1` 和 `fetch_batch_2` 的 `parent_id` 都指向 `web_search`，前端自动渲染为缩进子节点。
@@ -247,11 +247,11 @@ class MesoWorkflowActivities:
 
 ## 常见模式
 
-### 与 stage 协作（推荐）
+### 与 phase 协作（推荐）
 
 ```
 ← 用户视角 →              ← 开发者视角 →
-stage: "搜索网络" active
+phase: "搜索网络" running
                            workflow_node: intent_router  active
                            workflow_node: intent_router  done (42ms)
                            workflow_node: web_search     active
@@ -260,12 +260,12 @@ stage: "搜索网络" active
                            workflow_node: fetch_batch_1  done (310ms)
                            workflow_node: fetch_batch_2  error (205ms)
                            workflow_node: web_search     done (520ms)
-stage: "搜索网络" done
+phase: "搜索网络" done
 ```
 
 ### 只用 workflow_node（纯开发者模式）
 
-适合内部工具或调试面板，不需要向用户展示进度。此时不发送 `stage`，只发送 `workflow_node`，`StageTimeline` 不出现。
+适合内部工具或调试面板，不需要向用户展示进度。此时不发送 `phase`，只发送 `workflow_node`，`StageTimeline` 不出现。
 
 ### metadata 的建议字段
 

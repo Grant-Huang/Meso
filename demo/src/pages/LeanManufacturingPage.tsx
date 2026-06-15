@@ -16,7 +16,10 @@ const SYSTEM_COLORS: Record<string, string> = {
   mom: '#9b59b6',
   erp: '#e67e22',
   plm: '#16a085',
+  acquire: '#8e44ad',
   kb: '#27ae60',
+  'lean-kb': '#27ae60',
+  edgeos: '#c0392b',
 }
 
 function renderCitation(event: ExtensionEvent) {
@@ -70,24 +73,21 @@ export function LeanManufacturingPage() {
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
 
-  // 流结束后把诊断报告摘要存为 assistant 消息
+  // 流结束后把诊断结果存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
   useEffect(() => {
     if (state.status === 'done') {
-      const reportContent = state.artifactOrder
+      const artifacts = state.artifactOrder
         .map(id => state.artifacts[id])
-        .filter(a => a?.lang === 'html' && a.id === 'report')
-        .map(a => a?.content ?? '')
-        .join('\n\n')
-      const textIntro = state.textContent || ''
-      const content = textIntro + (reportContent ? `\n\n[HTML 诊断报告已生成，详见上方 artifact]\n\n${reportContent}` : '')
-      if (content.trim()) {
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content,
-          timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        }])
-      }
+        .filter((a): a is NonNullable<typeof a> => !!a)
+        .map(a => ({ id: a.id, lang: a.lang, content: a.content }))
+      const content = state.textContent || '诊断完成，详见下方产物。'
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content,
+        timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        artifacts: artifacts.length > 0 ? artifacts : undefined,
+      }])
       reset()
     }
   }, [state.status, state.textContent, state.artifacts, state.artifactOrder, reset])
@@ -279,8 +279,8 @@ export function LeanManufacturingPage() {
               <div style={{ fontSize: 32, marginBottom: 12 }}>🏭</div>
               <div style={{ fontSize: 15, marginBottom: 6, fontWeight: 500 }}>精益生产 OEE 诊断</div>
               <div style={{ fontSize: 12, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.6 }}>
-                描述一条产线异常，系统将从 MES/MOM/ERP/PLM 多源取证，结合精益知识库生成 HTML 诊断报告、
-                OEE 数据明细表与看板图表，并在派工前请求你的确认。
+                描述一条产线异常，系统将从 MES/MOM/ERP/PLM/智能采集 5 个 MCP 多源取证，结合精益知识库生成 HTML 诊断报告、
+                OEE 数据明细表与看板图表，派工后向边缘智能 OS 下发执行指令（两道确认门）。
               </div>
               <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8 }}>试试这些场景：</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 360, margin: '0 auto' }}>

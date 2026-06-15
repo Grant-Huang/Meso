@@ -1,11 +1,14 @@
 import React from 'react';
 import type { StreamState, ExtensionEvent } from '../../runtime';
+import type { ArtifactDef } from '@meso.ai/types';
 import './MessageList.css';
 export interface Message {
     id: string;
     role: 'user' | 'assistant';
     content: string;
     timestamp?: string;
+    /** Persisted artifacts attached to a committed message (rendered with ArtifactPanel). */
+    artifacts?: ArtifactDef[];
 }
 export interface MessageListProps {
     messages: Message[];

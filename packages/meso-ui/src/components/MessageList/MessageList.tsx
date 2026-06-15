@@ -5,6 +5,7 @@ import { SoulIndicator } from '../SoulIndicator'
 import { SkillIndicator } from '../SkillIndicator'
 import { ProcessTrace } from '../ProcessTrace'
 import type { StreamState, ExtensionEvent } from '../../runtime'
+import type { ArtifactDef } from '@meso.ai/types'
 import type { ArtifactType } from '../ArtifactPanel'
 import './MessageList.css'
 
@@ -13,6 +14,8 @@ export interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp?: string
+  /** Persisted artifacts attached to a committed message (rendered with ArtifactPanel). */
+  artifacts?: ArtifactDef[]
 }
 
 export interface MessageListProps {
@@ -76,14 +79,31 @@ export function MessageList({
         )}
 
         {messages.map((m) => (
-          <ChatBubble
-            key={m.id}
-            role={m.role}
-            content={m.content}
-            timestamp={m.timestamp}
-            markdown={m.role === 'assistant'}
-            renderMarkdown={renderMarkdown}
-          />
+          <React.Fragment key={m.id}>
+            <ChatBubble
+              role={m.role}
+              content={m.content}
+              timestamp={m.timestamp}
+              markdown={m.role === 'assistant'}
+              renderMarkdown={renderMarkdown}
+            />
+            {m.artifacts && m.artifacts.length > 0 && m.artifacts.map(art => {
+              const { type, language } = langToArtifactType(art.lang)
+              return (
+                <ArtifactPanel
+                  key={art.id}
+                  type={type}
+                  content={art.content}
+                  language={language}
+                  onCopy={onArtifactCopy}
+                  onDownload={onArtifactDownload}
+                  renderMermaid={renderMermaid}
+                  highlightCode={highlightCode}
+                  renderMarkdown={renderMarkdown}
+                />
+              )
+            })}
+          </React.Fragment>
         ))}
 
         {streaming && streaming.status !== 'idle' && (

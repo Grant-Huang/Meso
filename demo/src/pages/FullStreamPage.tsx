@@ -72,21 +72,21 @@ export function FullStreamPage() {
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
 
-  // 流结束后把报告正文存为 assistant 消息
+  // 流结束后把报告存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
   useEffect(() => {
     if (state.status === 'done') {
-      const reportContent = state.artifactOrder
-        .map(id => state.artifacts[id]?.content ?? '')
-        .join('\n\n')
-      const content = (state.textContent || '') + (reportContent ? `\n\n${reportContent}` : '')
-      if (content.trim()) {
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content,
-          timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        }])
-      }
+      const artifacts = state.artifactOrder
+        .map(id => state.artifacts[id])
+        .filter((a): a is NonNullable<typeof a> => !!a)
+        .map(a => ({ id: a.id, lang: a.lang, content: a.content }))
+      const content = state.textContent || '研究完成，详见下方产物。'
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content,
+        timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        artifacts: artifacts.length > 0 ? artifacts : undefined,
+      }])
       reset()
     }
   }, [state.status, state.textContent, state.artifacts, state.artifactOrder, reset])

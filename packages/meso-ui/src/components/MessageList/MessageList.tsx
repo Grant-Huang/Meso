@@ -37,7 +37,7 @@ export interface MessageListProps {
 }
 
 function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
-  if (lang === 'html preview') return { type: 'html' }
+  if (lang === 'html' || lang === 'html preview') return { type: 'html' }
   if (lang === 'mermaid') return { type: 'mermaid' }
   if (lang === 'markdown') return { type: 'markdown' }
   if (lang === 'table') return { type: 'table' }

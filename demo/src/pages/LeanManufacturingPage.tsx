@@ -1,9 +1,11 @@
 import { MessageList, ChatComposer } from '@meso.ai/ui'
 import type { Message, ExtensionEvent } from '@meso.ai/ui'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLeanStream, SYS_NAMES } from '../hooks/useLeanStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
+import { useArtifactContext } from '../components/ArtifactContext'
+import type { SharedArtifact } from '../components/ArtifactContext'
 
 const EXAMPLE_COMPLAINTS = [
   'A 线本周 OEE 从 85% 跌到 71%',
@@ -68,14 +70,55 @@ function renderCitation(event: ExtensionEvent) {
 export function LeanManufacturingPage() {
   const { state, send, abort, reset, confirmTool, cancelTool } = useLeanStream()
   const [messages, setMessages] = useState<Message[]>([])
+  const { setArtifacts, clearArtifacts } = useArtifactContext()
   const [input, setInput] = useState('')
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
 
-  // 流结束后把诊断结果存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
+  // 把 stream artifacts 上报到 App 右栏（流式增量 + done 终态均覆盖）
   useEffect(() => {
-    if (state.status === 'done') {
+    if (state.status === 'idle' || state.artifactOrder.length === 0) {
+      clearArtifacts()
+      return
+    }
+    const arts: SharedArtifact[] = state.artifactOrder
+      .map(id => state.artifacts[id])
+      .filter((a): a is NonNullable<typeof a> => !!a)
+      .map(a => ({ id: a.id, label: a.id, lang: a.lang, content: a.content, streaming: !a.done }))
+    setArtifacts(arts)
+  }, [state.artifacts, state.artifactOrder, state.status, setArtifacts, clearArtifacts])
+
+  // 流结束或用户中止时，把已生成内容存为 assistant 消息（artifacts 保留渲染）
+  const lastHandledStatusRef = useRef<string>('idle')
+  useEffect(() => {
+    const isTerminal = state.status === 'done' || state.status === 'error'
+    // abort 把 status 置 idle；若此前有内容且不是自然完成，也保存
+    const abortedWithContent = state.status === 'idle'
+      && lastHandledStatusRef.current === 'streaming'
+      && (state.artifactOrder.length > 0 || (state.textContent && state.textContent.trim().length > 0))
+    if (!isTerminal && !abortedWithContent) {
+      lastHandledStatusRef.current = state.status
+      return
+    }
+    if (abortedWithContent) {
+      const artifacts = state.artifactOrder
+        .map(id => state.artifacts[id])
+        .filter((a): a is NonNullable<typeof a> => !!a)
+        .map(a => ({ id: a.id, lang: a.lang, content: a.content }))
+      const content = state.textContent || '（会话已中止）'
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content,
+        timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        artifacts: artifacts.length > 0 ? artifacts : undefined,
+      }])
+      lastHandledStatusRef.current = state.status
+      reset()
+      return
+    }
+    if (isTerminal && state.status === 'done') {
       const artifacts = state.artifactOrder
         .map(id => state.artifacts[id])
         .filter((a): a is NonNullable<typeof a> => !!a)
@@ -88,6 +131,7 @@ export function LeanManufacturingPage() {
         timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
         artifacts: artifacts.length > 0 ? artifacts : undefined,
       }])
+      lastHandledStatusRef.current = state.status
       reset()
     }
   }, [state.status, state.textContent, state.artifacts, state.artifactOrder, reset])

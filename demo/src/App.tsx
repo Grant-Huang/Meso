@@ -1,8 +1,11 @@
-import { ThreeColumnLayout } from '@meso.ai/ui'
-import { useState, useEffect } from 'react'
+import { ThreeColumnLayout, ArtifactPaneShell, ArtifactPanel } from '@meso.ai/ui'
+import type { ArtifactType } from '@meso.ai/ui'
+import { useState, useEffect, useMemo } from 'react'
 import { SessionList } from './components/SessionList'
 import type { Session } from './components/SessionList'
 import { SidebarFooter } from './components/SidebarFooter'
+import { ArtifactProvider, useArtifactContext, ARTIFACT_LABELS } from './components/ArtifactContext'
+import type { SharedArtifact } from './components/ArtifactContext'
 import { StreamingPage } from './pages/StreamingPage'
 import { LayoutPage } from './pages/LayoutPage'
 import { LiveChatPage } from './pages/LiveChatPage'
@@ -21,6 +24,14 @@ import { FullStreamPage } from './pages/FullStreamPage'
 import { LeanManufacturingPage } from './pages/LeanManufacturingPage'
 
 type Page = 'full-stream' | 'lean' | 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools' | 'persona' | 'resources' | 'extension'
+
+function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
+  if (lang === 'html' || lang === 'html preview') return { type: 'html' }
+  if (lang === 'mermaid') return { type: 'mermaid' }
+  if (lang === 'markdown') return { type: 'markdown' }
+  if (lang === 'table') return { type: 'table' }
+  return { type: 'code', language: lang }
+}
 
 const ALL_PAGES = new Set<Page>(['full-stream', 'lean', 'streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'])
 
@@ -95,9 +106,18 @@ function getPageFromHash(): Page {
 }
 
 export default function App() {
+  return (
+    <ArtifactProvider>
+      <AppShell />
+    </ArtifactProvider>
+  )
+}
+
+function AppShell() {
   const [page, setPage] = useState<Page>(getPageFromHash)
   const [sessions, setSessions] = useState<Session[]>(PAGE_SESSIONS[page])
   const [activeSessionId, setActiveSessionId] = useState<string | undefined>(PAGE_SESSIONS[page][0]?.id)
+  const { artifacts, clearArtifacts } = useArtifactContext()
 
   useEffect(() => {
     const onHash = () => {
@@ -110,7 +130,10 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
-  const navigate = (p: Page) => { location.hash = p }
+  const navigate = (p: Page) => {
+    clearArtifacts()
+    location.hash = p
+  }
 
   const createSession = () => {
     const id = crypto.randomUUID()
@@ -141,6 +164,36 @@ export default function App() {
   // Static showcase pages don't need a session column "new" button
   const isStaticPage = ['layout', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'].includes(page)
 
+  // 右栏 artifact 面板：仅 lean 页有共享 artifacts 时渲染
+  const artifactTabs = useMemo(() => artifacts.map((art: SharedArtifact) => {
+    const { type, language } = langToArtifactType(art.lang)
+    return {
+      id: art.id,
+      label: ARTIFACT_LABELS[art.id] ?? art.id,
+      ready: !art.streaming,
+      content: (
+        <ArtifactPanel
+          type={type}
+          content={art.content}
+          language={language}
+          streaming={!!art.streaming}
+          onCopy={content => navigator.clipboard.writeText(content).catch(() => {})}
+          onDownload={content => {
+            const blob = new Blob([content], { type: 'text/html' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${art.id}.html`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+        />
+      ),
+    }
+  }), [artifacts])
+
+  const hasArtifacts = artifactTabs.length > 0
+
   return (
     <div style={{ height: '100vh' }}>
       <ThreeColumnLayout
@@ -160,6 +213,15 @@ export default function App() {
             {PAGE_TITLES[page]}
           </div>
         }
+        artifactVisible={hasArtifacts ? undefined : false}
+        showArtifactToggle={hasArtifacts}
+        defaultArtifactVisible={true}
+        artifactPanel={
+          hasArtifacts ? (
+            <ArtifactPaneShell tabs={artifactTabs} autoSelectFirstReady />
+          ) : undefined
+        }
+        artifactPanelWidth={520}
       >
         {page === 'full-stream' && <FullStreamPage key={activeSessionId} />}
         {page === 'lean'        && <LeanManufacturingPage key={activeSessionId} />}

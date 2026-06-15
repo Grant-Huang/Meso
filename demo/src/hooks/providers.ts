@@ -37,6 +37,13 @@ export const PROVIDERS: LlmProvider[] = [
     model: 'qwen-turbo',
     apiKeyEnvHint: 'VITE_QWEN_API_KEY',
   },
+  {
+    id: 'minimax',
+    name: 'MiniMax',
+    baseUrl: 'https://api.minimax.io/v1',
+    model: 'MiniMax-M3',
+    apiKeyEnvHint: 'VITE_MINIMAX_API_KEY',
+  },
 ]
 
 export const ENV_KEYS: Record<string, string> = {
@@ -44,4 +51,5 @@ export const ENV_KEYS: Record<string, string> = {
   openai: import.meta.env.VITE_OPENAI_API_KEY ?? '',
   kimi: import.meta.env.VITE_KIMI_API_KEY ?? '',
   qwen: import.meta.env.VITE_QWEN_API_KEY ?? '',
+  minimax: import.meta.env.VITE_MINIMAX_API_KEY ?? '',
 }

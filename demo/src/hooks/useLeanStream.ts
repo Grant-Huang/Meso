@@ -640,6 +640,23 @@ ${sig.anomaly === 'equipment_failure' ? 'TPM（设备零故障）、自主保全
 请生成 HTML 诊断报告，突出：${focusHint}、结合传感器异常数据定位物理根因、改善措施（含责任班组与时间节点）。`
 }
 
+const RECOMMEND_COMMAND_LABEL: Record<AnomalyType, { label: string; severe: string }> = {
+  equipment_failure: { label: '工艺参数调整', severe: '降速/停机' },
+  quality_decline: { label: '工艺参数回调 + SPC 阈值收紧', severe: '工艺参数回调 + SPC 阈值收紧' },
+  material_shortage: { label: '线速降至 70% + 投料暂停', severe: '线速降至 70% + 投料暂停' },
+  changeover: { label: '切换 SMED 标准换模作业', severe: '切换 SMED 标准换模作业' },
+  oee_drop: { label: '节拍回调标准 CT + 换模间隔优化', severe: '节拍回调标准 CT + 换模间隔优化' },
+  generic: { label: '线速微调 -5%', severe: '线速微调 -5%' },
+}
+
+function buildRecommendationText(sig: ComplaintSignal, mes: MesData, mom: MomData, erp: ErpData, acquire: AcquireData): string {
+  const topDowntime = mes.downtime_reasons[0]
+  const cmdInfo = RECOMMEND_COMMAND_LABEL[sig.anomaly]
+  const cmdDesc = sig.severity === 'severe' ? cmdInfo.severe : cmdInfo.label
+  const healthNote = acquire.health_score < 70 ? `，设备健康度仅 ${acquire.health_score}（偏低）` : ''
+  return `\n\n## 诊断结论与处置建议\n\n综合 ${sig.equipment} 传感器实时数据（健康度 ${acquire.health_score}）、MES 当前 OEE ${mes.oee_now}%、MOM ${mom.degradation_days} 天连降（累计 ${mom.drop_points}pp）等证据，主要根因为 **${topDowntime.reason}**（${topDowntime.minutes} 分钟/${topDowntime.count} 次）${erp.root_hint}${healthNote}。\n\n建议分两步处置：\n\n1. **派工**：创建 ${sig.line} ${ANOMALY_LABELS[sig.anomaly]}专项改善工单，通知 ${mes.shift}班组长与设备组、工艺组到场（写入操作，需确认）。\n2. **现场干预**：向 ${sig.equipment} 下发「${cmdDesc}」指令${sig.severity === 'severe' ? '（不可撤销）' : ''}（危险操作，需确认）。\n\n请依次确认以下两项操作：`
+}
+
 const CAPABILITIES_PAYLOAD = {
   tools: [
     {
@@ -927,6 +944,9 @@ export function useLeanStream() {
       emit(ev({ type: 'artifact', payload: { id: 'dashboard', lang: 'html', delta: buildDashboardHtml(mes, mom), done: true } }))
 
       emit(ev({ type: 'phase', payload: { id: 'diagnose', name: '综合诊断', state: 'done' } }))
+
+      // 报告后过渡：诊断结论摘要 + 干预建议，为确认门做铺垫
+      emit(ev({ type: 'text', payload: { delta: buildRecommendationText(sig, mes, mom, erp, acquire) } }))
 
       // 派工确认门（write 风险，演示 requires_confirm 触发条件）
       emit(ev({ type: 'phase', payload: { id: 'dispatch', name: '现场作业派工', state: 'running' } }))

@@ -17,12 +17,16 @@ import { ToolsPage } from './pages/ToolsPage'
 import PersonaPage from './pages/PersonaPage'
 import ResourcesPage from './pages/ResourcesPage'
 import ExtensionPage from './pages/ExtensionPage'
+import { FullStreamPage } from './pages/FullStreamPage'
+import { LeanManufacturingPage } from './pages/LeanManufacturingPage'
 
-type Page = 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools' | 'persona' | 'resources' | 'extension'
+type Page = 'full-stream' | 'lean' | 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools' | 'persona' | 'resources' | 'extension'
 
-const ALL_PAGES = new Set<Page>(['streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'])
+const ALL_PAGES = new Set<Page>(['full-stream', 'lean', 'streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'])
 
 const PAGE_SESSIONS: Record<Page, Session[]> = {
+  'full-stream': [{ id: 'full-1', title: '深度研究', lastTime: '今天' }],
+  lean: [{ id: 'lean-1', title: 'OEE 诊断', lastTime: '今天' }],
   streaming: [
     { id: 'mock-1', title: 'Mock 流式演示', lastTime: '刚刚' },
     { id: 'mock-2', title: '协议事件测试', lastTime: '今天' },
@@ -47,6 +51,8 @@ const PAGE_SESSIONS: Record<Page, Session[]> = {
 }
 
 const PAGE_TITLES: Record<Page, string> = {
+  'full-stream': '深度研究助手',
+  lean: '精益生产 OEE 诊断',
   streaming: 'SSE 协议演示',
   layout: '布局规范',
   'live-chat': 'Live Chat',
@@ -65,6 +71,8 @@ const PAGE_TITLES: Record<Page, string> = {
 
 // SVG icons
 const Icons = {
+  fullStream: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="2"/><circle cx="8" cy="8" r="6" opacity=".5"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="2" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="14" y2="8"/></svg>,
+  lean: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="2.2"/><path d="M8 2.5v1.8M8 11.7v1.8M2.5 8h1.8M11.7 8h1.8M4.2 4.2l1.3 1.3M10.5 10.5l1.3 1.3M4.2 11.8l1.3-1.3M10.5 5.5l1.3-1.3" opacity=".7"/></svg>,
   streaming: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 4l5 4-5 4M9 12h4"/></svg>,
   layout: <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="5" height="14" rx="1" opacity=".9"/><rect x="8" y="1" width="7" height="6" rx="1" opacity=".9"/><rect x="8" y="9" width="7" height="6" rx="1" opacity=".6"/></svg>,
   liveChat: <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5l-3 2V3a1 1 0 0 1 1-1z"/></svg>,
@@ -83,7 +91,7 @@ const Icons = {
 
 function getPageFromHash(): Page {
   const h = location.hash.slice(1) as Page
-  return ALL_PAGES.has(h) ? h : 'streaming'
+  return ALL_PAGES.has(h) ? h : 'full-stream'
 }
 
 export default function App() {
@@ -112,6 +120,8 @@ export default function App() {
   }
 
   const navItems = [
+    { id: 'full-stream', label: '深度研究',   icon: Icons.fullStream, active: page === 'full-stream', onClick: () => navigate('full-stream') },
+    { id: 'lean',        label: '精益生产',   icon: Icons.lean,       active: page === 'lean',        onClick: () => navigate('lean') },
     { id: 'streaming',   label: 'SSE 演示',  icon: Icons.streaming,   active: page === 'streaming',   onClick: () => navigate('streaming') },
     { id: 'layout',      label: '布局',       icon: Icons.layout,      active: page === 'layout',      onClick: () => navigate('layout') },
     { id: 'live-chat',   label: '真实 API',   icon: Icons.liveChat,    active: page === 'live-chat',   onClick: () => navigate('live-chat') },
@@ -151,6 +161,8 @@ export default function App() {
           </div>
         }
       >
+        {page === 'full-stream' && <FullStreamPage key={activeSessionId} />}
+        {page === 'lean'        && <LeanManufacturingPage key={activeSessionId} />}
         {page === 'streaming'  && <StreamingPage  key={activeSessionId} sessionId={activeSessionId ?? ''} />}
         {page === 'live-chat'  && <LiveChatPage   key={activeSessionId} sessionId={activeSessionId ?? ''} />}
         {page === 'layout'     && <LayoutPage />}

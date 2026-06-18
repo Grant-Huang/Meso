@@ -205,27 +205,6 @@ function AppShell() {
 
   const hasArtifacts = artifactTabs.length > 0
 
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7296/ingest/1c472192-ada2-4196-b156-fbdbd2d0f8d8', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '300461' },
-      body: JSON.stringify({
-        sessionId: '300461', runId: 'repro', hypothesisId: 'H2',
-        location: 'App.tsx:hasArtifacts',
-        message: 'hasArtifacts computed',
-        data: {
-          artifactsCount: artifacts.length,
-          artifactIds: artifacts.map(a => a.id),
-          hasArtifacts,
-          page,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-  }, [artifacts, hasArtifacts, page])
-  // #endregion
-
   return (
     <div style={{ height: '100vh' }}>
       <ThreeColumnLayout

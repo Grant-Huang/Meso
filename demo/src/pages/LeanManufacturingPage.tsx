@@ -200,23 +200,6 @@ export function LeanManufacturingPage() {
   // 之后已生成的 artifacts 被立即清空、右栏整体消失。清空责任交给
   // handleSend（新会话开始）与 App.tsx 的 navigate（页面切换）。
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7296/ingest/1c472192-ada2-4196-b156-fbdbd2d0f8d8', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '300461' },
-      body: JSON.stringify({
-        sessionId: '300461', runId: 'post-fix', hypothesisId: 'H1',
-        location: 'LeanManufacturingPage.tsx:artifact-effect',
-        message: 'artifact-report effect',
-        data: {
-          status: state.status,
-          artifactOrder: state.artifactOrder,
-          earlyReturn: state.status === 'idle' || state.artifactOrder.length === 0,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
     if (state.status === 'idle' || state.artifactOrder.length === 0) {
       return
     }

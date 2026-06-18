@@ -1,4 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createHighlighter, type Highlighter } from 'shiki'
+
+let _hlPromise: Promise<Highlighter> | null = null
+function getHighlighter() {
+  if (!_hlPromise) {
+    _hlPromise = createHighlighter({ themes: ['vitesse-dark'], langs: ['json'] })
+  }
+  return _hlPromise
+}
 
 type AppId = 'general' | 'docreview' | 'codeassist'
 
@@ -80,36 +89,29 @@ const MANIFESTS: Record<AppId, object> = {
   },
 }
 
-const HIGHLIGHT_KEYS = new Set(['id', 'name', 'skill', 'tools', 'memory', 'knowledge'])
 
 function JsonViewer({ data }: { data: object }) {
   const json = JSON.stringify(data, null, 2)
   const mono = '"SF Mono","Fira Code",monospace'
+  const [html, setHtml] = useState<string>('')
 
-  const colorize = (line: string) => {
-    // Key
-    line = line.replace(/"([\w-]+)"\s*:/g, (_m, k) => {
-      const hl = HIGHLIGHT_KEYS.has(k)
-        ? `style="background:rgba(61,107,82,0.19);border-radius:3px;padding:1px 3px;color:#527c5e;font-weight:600;"`
-        : `style="color:#527c5e;font-weight:600;"`
-      return `<span ${hl}>"${k}"</span>:`
+  useEffect(() => {
+    let active = true
+    getHighlighter().then(hl => {
+      if (!active) return
+      const highlighted = hl.codeToHtml(json, {
+        lang: 'json',
+        theme: 'vitesse-dark',
+        transformers: [{ pre: node => { node.properties['style'] = 'background:transparent;margin:0;padding:0;' } }],
+      })
+      setHtml(highlighted)
     })
-    // String values
-    line = line.replace(/:\s*"([^"]*)"/g, (_m, v) => `: <span style="color:#cdd8ca;">"${v}"</span>`)
-    // Bool/null
-    line = line.replace(/:\s*(true|false|null)/g, (_m, v) => `: <span style="color:#2f7d4a;font-weight:600;">${v}</span>`)
-    // Numbers
-    line = line.replace(/:\s*([\d]+)/g, (_m, v) => `: <span style="color:#b8c9b4;">${v}</span>`)
-    // Brackets
-    line = line.replace(/[[\]{}]/g, m => `<span style="color:#9cb8a8;">${m}</span>`)
-    return line
-  }
-
-  const html = json.split('\n').map(colorize).join('\n')
+    return () => { active = false }
+  }, [json])
 
   return (
     <div style={{ background: 'var(--color-code-bg)', borderRadius: 10, padding: '20px 24px', fontFamily: mono, fontSize: 12, lineHeight: 1.85, overflowX: 'auto' }}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: html || `<pre style="margin:0;color:#c8d5cb;white-space:pre">${json}</pre>` }}
     />
   )
 }

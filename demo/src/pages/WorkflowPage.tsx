@@ -153,12 +153,12 @@ function EventLog({ events, current }: { events: string[]; current: number }) {
         } catch { /* empty */ }
         return (
           <div key={i} style={{
-            opacity: past ? 1 : 0.3,
-            color: active ? 'var(--color-accent)' : past ? 'var(--color-code-text)' : 'var(--color-text-muted)',
+            opacity: past ? 1 : 0.45,
+            color: active ? 'var(--color-accent)' : 'var(--color-code-text)',
             fontWeight: active ? 600 : 400,
             display: 'flex', gap: 8,
           }}>
-            <span style={{ color: 'var(--color-text-muted)', minWidth: 22 }}>{i + 1}</span>
+            <span style={{ color: 'rgba(200,213,203,0.4)', minWidth: 22 }}>{i + 1}</span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{label}</span>
           </div>
         )
@@ -286,16 +286,16 @@ export function WorkflowPage() {
         <div style={{ color: 'var(--color-text-muted)', marginBottom: 8 }}>workflow_node 事件结构</div>
         <div>
           <span style={{ color: '#9cb8a8' }}>{'{'}</span><br />
-          {'  '}<span style={{ color: '#527c5e', fontWeight: 600 }}>"type"</span>: <span style={{ color: 'var(--color-text-secondary)' }}>"workflow_node"</span>,<br />
-          {'  '}<span style={{ color: '#527c5e', fontWeight: 600 }}>"schema_version"</span>: <span style={{ color: 'var(--color-text-secondary)' }}>"1.0"</span>,<br />
-          {'  '}<span style={{ color: '#527c5e', fontWeight: 600 }}>"payload"</span>: <span style={{ color: '#9cb8a8' }}>{'{'}</span><br />
-          {'    '}<span style={{ color: '#527c5e' }}>"run_id"</span>: <span style={{ color: 'var(--color-text-muted)' }}>"run-abc"</span>,{'  '}<span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>// 同一执行的所有节点共享</span><br />
-          {'    '}<span style={{ color: '#527c5e' }}>"node_id"</span>: <span style={{ color: 'var(--color-text-muted)' }}>"n_web_search"</span>,<br />
-          {'    '}<span style={{ color: '#527c5e' }}>"parent_id"</span>: <span style={{ color: 'var(--color-text-muted)' }}>"n_router"</span>,{'  '}<span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>// 树形层级（可选）</span><br />
-          {'    '}<span style={{ color: '#527c5e' }}>"name"</span>: <span style={{ color: 'var(--color-text-muted)' }}>"web_search"</span>,<br />
-          {'    '}<span style={{ color: '#527c5e' }}>"state"</span>: <span style={{ color: '#2f7d4a', fontWeight: 600 }}>"active"</span> <span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>// active | done | error | skipped</span><br />
-          {'    '}<span style={{ color: '#527c5e' }}>"duration_ms"</span>: <span style={{ color: '#b8c9b4' }}>312</span>,{'  '}<span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>// done/error 时携带</span><br />
-          {'    '}<span style={{ color: '#527c5e' }}>"metadata"</span>: <span style={{ color: '#9cb8a8' }}>{'{ ... }'}</span><span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>  // 任意领域数据</span><br />
+          {'  '}<span style={{ color: '#8aba9a', fontWeight: 600 }}>"type"</span>: <span style={{ color: '#c8d5cb' }}>"workflow_node"</span>,<br />
+          {'  '}<span style={{ color: '#8aba9a', fontWeight: 600 }}>"schema_version"</span>: <span style={{ color: '#c8d5cb' }}>"1.0"</span>,<br />
+          {'  '}<span style={{ color: '#8aba9a', fontWeight: 600 }}>"payload"</span>: <span style={{ color: '#9cb8a8' }}>{'{'}</span><br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"run_id"</span>: <span style={{ color: '#c8d5cb' }}>"run-abc"</span>,{'  '}<span style={{ color: 'rgba(200,213,203,0.45)', fontSize: 10 }}>// 同一执行的所有节点共享</span><br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"node_id"</span>: <span style={{ color: '#c8d5cb' }}>"n_web_search"</span>,<br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"parent_id"</span>: <span style={{ color: '#c8d5cb' }}>"n_router"</span>,{'  '}<span style={{ color: 'rgba(200,213,203,0.45)', fontSize: 10 }}>// 树形层级（可选）</span><br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"name"</span>: <span style={{ color: '#c8d5cb' }}>"web_search"</span>,<br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"state"</span>: <span style={{ color: '#4dc073', fontWeight: 600 }}>"active"</span> <span style={{ color: 'rgba(200,213,203,0.45)', fontSize: 10 }}>// active | done | error | skipped</span><br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"duration_ms"</span>: <span style={{ color: '#b8c9b4' }}>312</span>,{'  '}<span style={{ color: 'rgba(200,213,203,0.45)', fontSize: 10 }}>// done/error 时携带</span><br />
+          {'    '}<span style={{ color: '#8aba9a' }}>"metadata"</span>: <span style={{ color: '#9cb8a8' }}>{'{ ... }'}</span><span style={{ color: 'rgba(200,213,203,0.45)', fontSize: 10 }}>  // 任意领域数据</span><br />
           {'  '}<span style={{ color: '#9cb8a8' }}>{'}'}</span><br />
           <span style={{ color: '#9cb8a8' }}>{'}'}</span>
         </div>

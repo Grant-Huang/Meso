@@ -117,7 +117,9 @@ function AppShell() {
   const [page, setPage] = useState<Page>(getPageFromHash)
   const [sessions, setSessions] = useState<Session[]>(PAGE_SESSIONS[page])
   const [activeSessionId, setActiveSessionId] = useState<string | undefined>(PAGE_SESSIONS[page][0]?.id)
-  const { artifacts, clearArtifacts } = useArtifactContext()
+  const { artifacts, clearArtifacts, openTabId, consumeOpenTab } = useArtifactContext()
+  // 右栏 tab 选中状态：本地 state，同时响应 context 的 openTabId（主窗口链接点击驱动）
+  const [activeTabId, setActiveTabId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const onHash = () => {
@@ -130,8 +132,17 @@ function AppShell() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  // 主窗口链接卡片点击 → 切换右栏 tab（消费一次后清回 null，允许用户手动切换）
+  useEffect(() => {
+    if (openTabId && artifacts.some(a => a.id === openTabId)) {
+      setActiveTabId(openTabId)
+      consumeOpenTab()
+    }
+  }, [openTabId, artifacts, consumeOpenTab])
+
   const navigate = (p: Page) => {
     clearArtifacts()
+    setActiveTabId(undefined)
     location.hash = p
   }
 
@@ -194,6 +205,27 @@ function AppShell() {
 
   const hasArtifacts = artifactTabs.length > 0
 
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7296/ingest/1c472192-ada2-4196-b156-fbdbd2d0f8d8', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '300461' },
+      body: JSON.stringify({
+        sessionId: '300461', runId: 'repro', hypothesisId: 'H2',
+        location: 'App.tsx:hasArtifacts',
+        message: 'hasArtifacts computed',
+        data: {
+          artifactsCount: artifacts.length,
+          artifactIds: artifacts.map(a => a.id),
+          hasArtifacts,
+          page,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+  }, [artifacts, hasArtifacts, page])
+  // #endregion
+
   return (
     <div style={{ height: '100vh' }}>
       <ThreeColumnLayout
@@ -218,7 +250,12 @@ function AppShell() {
         defaultArtifactVisible={true}
         artifactPanel={
           hasArtifacts ? (
-            <ArtifactPaneShell tabs={artifactTabs} autoSelectFirstReady />
+            <ArtifactPaneShell
+              tabs={artifactTabs}
+              activeTabId={activeTabId}
+              onTabChange={setActiveTabId}
+              autoSelectFirstReady
+            />
           ) : undefined
         }
         artifactPanelWidth={520}

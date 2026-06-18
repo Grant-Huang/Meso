@@ -1,6 +1,7 @@
-import { MessageList, ChatComposer } from '@meso.ai/ui'
-import type { Message, ExtensionEvent } from '@meso.ai/ui'
-import { useState, useEffect, useRef } from 'react'
+import { MessageList, ChatComposer, ProcessTrace, SoulIndicator, SkillIndicator } from '@meso.ai/ui'
+import type { Message, ExtensionEvent, StreamState } from '@meso.ai/ui'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import React from 'react'
 import { useLeanStream, SYS_NAMES } from '../hooks/useLeanStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
@@ -67,19 +68,156 @@ function renderCitation(event: ExtensionEvent) {
   )
 }
 
+// ── 主窗口 artifact 链接卡片渲染 ──────────────────────────────────────────
+//
+// 解析 textContent 中的 [[artifact:<id>|<label>]] 标记，把文本拆成若干段，
+// 标记处渲染为"打开右侧 <label>"可点击按钮（调用 openArtifactTab 切换右栏 tab），
+// 其余文本段按行渲染（与无 markdown 渲染器时的 ChatBubble 行为一致）。
+
+const ARTIFACT_TOKEN = /\[\[artifact:([^|\]]+)\|([^\]]+)\]\]/g
+
+type TextSegment = { kind: 'text'; value: string } | { kind: 'artifact'; id: string; label: string }
+
+function parseArtifactTokens(text: string): TextSegment[] {
+  if (!text) return []
+  const segments: TextSegment[] = []
+  let lastIndex = 0
+  ARTIFACT_TOKEN.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = ARTIFACT_TOKEN.exec(text)) !== null) {
+    if (m.index > lastIndex) {
+      segments.push({ kind: 'text', value: text.slice(lastIndex, m.index) })
+    }
+    segments.push({ kind: 'artifact', id: m[1], label: m[2] })
+    lastIndex = m.index + m[0].length
+  }
+  if (lastIndex < text.length) {
+    segments.push({ kind: 'text', value: text.slice(lastIndex) })
+  }
+  return segments
+}
+
+function renderTextLines(value: string, keyBase: string) {
+  return value.split('\n').map((line, i) => (
+    <React.Fragment key={`${keyBase}-${i}`}>
+      {i > 0 && <br />}
+      {line}
+    </React.Fragment>
+  ))
+}
+
+/** 自定义流式渲染：Soul/Skill → ProcessTrace（执行过程+确认门）→ citation → text 主线（含链接卡片）→ memorySaved */
+function buildRenderLiveTrace(opts: {
+  openArtifactTab: (id: string) => void
+  onToolConfirm: (id: string) => void
+  onToolCancel: (id: string) => void
+  renderExtension?: (event: ExtensionEvent) => React.ReactNode
+}) {
+  return (stream: StreamState): React.ReactNode => {
+    const segments = parseArtifactTokens(stream.textContent)
+    return (
+      <>
+        {(stream.activeSoul || stream.activeSkill) && (
+          <div className="meso-message-list__context-row">
+            {stream.activeSoul && <SoulIndicator soul={stream.activeSoul} />}
+            {stream.activeSkill && <SkillIndicator skill={stream.activeSkill} />}
+          </div>
+        )}
+        <ProcessTrace
+          stream={stream}
+          streaming={stream.status === 'streaming'}
+          turnStreaming={stream.status === 'streaming'}
+          onToolConfirm={opts.onToolConfirm}
+          onToolCancel={opts.onToolCancel}
+        />
+        {opts.renderExtension && stream.extensionLog.length > 0 && (() => {
+          const renderExt = opts.renderExtension!
+          return (
+            <div className="meso-message-list__extensions">
+              {stream.extensionLog.map((ext, i) => (
+                <React.Fragment key={i}>{renderExt(ext)}</React.Fragment>
+              ))}
+            </div>
+          )
+        })()}
+        {(stream.textContent || stream.status === 'streaming') && (
+          <div className="meso-bubble meso-bubble--assistant">
+            <div className="meso-bubble__avatar" aria-hidden="true">AI</div>
+            <div className="meso-bubble__body">
+              <div className="meso-bubble__content">
+                {segments.length === 0 && stream.status === 'streaming' ? (
+                  <span className="meso-bubble__cursor" aria-hidden="true">▋</span>
+                ) : (
+                  segments.map((seg, i) => {
+                    if (seg.kind === 'text') {
+                      return <React.Fragment key={i}>{renderTextLines(seg.value, `seg-${i}`)}</React.Fragment>
+                    }
+                    return (
+                      <div key={i} style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        margin: '6px 0',
+                        padding: '6px 12px',
+                        border: '1px solid var(--color-accent)',
+                        borderRadius: 8,
+                        background: 'rgba(42,122,79,0.08)',
+                        color: 'var(--color-accent)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        width: 'fit-content',
+                      }} onClick={() => opts.openArtifactTab(seg.id)}>
+                        <span aria-hidden="true">↗</span>
+                        <span>打开右侧「{seg.label}」</span>
+                      </div>
+                    )
+                  })
+                )}
+                {stream.status === 'streaming' && segments.length > 0 && (
+                  <span className="meso-bubble__cursor" aria-hidden="true">▋</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    )
+  }
+}
+
 export function LeanManufacturingPage() {
   const { state, send, abort, reset, confirmTool, cancelTool } = useLeanStream()
   const [messages, setMessages] = useState<Message[]>([])
-  const { setArtifacts, clearArtifacts } = useArtifactContext()
+  const { setArtifacts, clearArtifacts, openArtifactTab } = useArtifactContext()
   const [input, setInput] = useState('')
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
 
   // 把 stream artifacts 上报到 App 右栏（流式增量 + done 终态均覆盖）
+  // 注意：status==='idle' 时不调用 clearArtifacts()，避免 done→reset→idle
+  // 之后已生成的 artifacts 被立即清空、右栏整体消失。清空责任交给
+  // handleSend（新会话开始）与 App.tsx 的 navigate（页面切换）。
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7296/ingest/1c472192-ada2-4196-b156-fbdbd2d0f8d8', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '300461' },
+      body: JSON.stringify({
+        sessionId: '300461', runId: 'post-fix', hypothesisId: 'H1',
+        location: 'LeanManufacturingPage.tsx:artifact-effect',
+        message: 'artifact-report effect',
+        data: {
+          status: state.status,
+          artifactOrder: state.artifactOrder,
+          earlyReturn: state.status === 'idle' || state.artifactOrder.length === 0,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+    // #endregion
     if (state.status === 'idle' || state.artifactOrder.length === 0) {
-      clearArtifacts()
       return
     }
     const arts: SharedArtifact[] = state.artifactOrder
@@ -87,7 +225,7 @@ export function LeanManufacturingPage() {
       .filter((a): a is NonNullable<typeof a> => !!a)
       .map(a => ({ id: a.id, label: a.id, lang: a.lang, content: a.content, streaming: !a.done }))
     setArtifacts(arts)
-  }, [state.artifacts, state.artifactOrder, state.status, setArtifacts, clearArtifacts])
+  }, [state.artifacts, state.artifactOrder, state.status, setArtifacts])
 
   // 流结束或用户中止时，把已生成内容存为 assistant 消息（artifacts 保留渲染）
   const lastHandledStatusRef = useRef<string>('idle')
@@ -142,6 +280,17 @@ export function LeanManufacturingPage() {
     }
   }, [state.status, state.errorMessage, reset])
 
+  // 自定义流式渲染：隐藏内联 artifact，text 主线解析 [[artifact:xxx]] 为可点击链接卡片
+  const renderLiveTrace = useCallback(
+    buildRenderLiveTrace({
+      openArtifactTab,
+      onToolConfirm: confirmTool,
+      onToolCancel: cancelTool,
+      renderExtension: renderCitation,
+    }),
+    [openArtifactTab, confirmTool, cancelTool],
+  )
+
   const handleProviderChange = (p: LlmProvider) => {
     setProvider(p)
     setApiKey(ENV_KEYS[p.id] ?? '')
@@ -154,6 +303,9 @@ export function LeanManufacturingPage() {
       setShowConfig(true)
       return
     }
+
+    // 新一轮诊断开始：清空上一轮遗留的 artifact context
+    clearArtifacts()
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -307,6 +459,8 @@ export function LeanManufacturingPage() {
           streaming={state.status !== 'idle' ? state : undefined}
           onToolConfirm={confirmTool}
           onToolCancel={cancelTool}
+          renderLiveTrace={renderLiveTrace}
+          hiddenArtifactLangs={['html', 'table']}
           onArtifactCopy={content => navigator.clipboard.writeText(content).catch(() => {})}
           onArtifactDownload={content => {
             const blob = new Blob([content], { type: 'text/html' })

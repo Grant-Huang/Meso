@@ -657,6 +657,44 @@ function buildRecommendationText(sig: ComplaintSignal, mes: MesData, mom: MomDat
   return `\n\n## 诊断结论与处置建议\n\n综合 ${sig.equipment} 传感器实时数据（健康度 ${acquire.health_score}）、MES 当前 OEE ${mes.oee_now}%、MOM ${mom.degradation_days} 天连降（累计 ${mom.drop_points}pp）等证据，主要根因为 **${topDowntime.reason}**（${topDowntime.minutes} 分钟/${topDowntime.count} 次）${erp.root_hint}${healthNote}。\n\n建议分两步处置：\n\n1. **派工**：创建 ${sig.line} ${ANOMALY_LABELS[sig.anomaly]}专项改善工单，通知 ${mes.shift}班组长与设备组、工艺组到场（写入操作，需确认）。\n2. **现场干预**：向 ${sig.equipment} 下发「${cmdDesc}」指令${sig.severity === 'severe' ? '（不可撤销）' : ''}（危险操作，需确认）。\n\n请依次确认以下两项操作：`
 }
 
+// ── Artifact 摘要（主窗口链接卡片，从已生成数据提取，零 LLM 调用） ─────────
+
+const BOTTLENECK_LABEL: Record<ComplaintSignal['bottleneck'], string> = {
+  availability: '可用率',
+  performance: '表现率',
+  quality: '质量',
+}
+
+function buildReportSummary(sig: ComplaintSignal, mes: MesData, mom: MomData, erp: ErpData, acquire: AcquireData): string {
+  const topDowntime = mes.downtime_reasons[0]
+  const oeeGap = (mes.target_oee - mes.oee_now).toFixed(1)
+  const alarmCount = acquire.sensors.filter(s => s.status === 'alarm').length
+  const alarmNote = alarmCount > 0 ? `，${sig.equipment} 触发 ${alarmCount} 项告警（健康度 ${acquire.health_score}）` : ''
+  return `${sig.line} 当前 OEE **${mes.oee_now}%**（低于目标 ${oeeGap}pp），主瓶颈 **${BOTTLENECK_LABEL[sig.bottleneck]}**。根因定位为 **${topDowntime.reason}**（${topDowntime.minutes} 分钟/${topDowntime.count} 次），${erp.root_hint}。MOM 显示 ${mom.degradation_days} 天连续降解（累计 ${mom.drop_points}pp）${alarmNote}。`
+}
+
+function buildOeeTableSummary(mom: MomData): string {
+  const minOee = Math.min(...mom.trend.map(d => d.oee))
+  const minRow = mom.trend.find(d => d.oee === minOee)!
+  return `7 天趋势明细：${mom.degradation_days} 天连降，累计下降 ${mom.drop_points}pp，最低点 ${minOee}%（${minRow.date}，可用率 ${minRow.a}% / 表现率 ${minRow.p}% / 质量 ${minRow.q}%）。`
+}
+
+function buildDashboardSummary(mes: MesData, acquire: AcquireData): string {
+  const reasonCount = mes.downtime_reasons.length
+  const totalDownMin = mes.downtime_reasons.reduce((s, r) => s + r.minutes, 0)
+  const sensorCount = acquire.sensors.length
+  return `含 4 项 KPI 卡片（OEE/可用率/表现率/质量）、7 天 OEE 趋势线图、当班停机分类条形图（${reasonCount} 类，合计 ${totalDownMin} 分钟），以及 ${acquire.device} ${sensorCount} 项传感器实时状态。`
+}
+
+// ── 主窗口 artifact 链接标记（renderLiveTrace 解析为可点击卡片） ─────────────
+//
+// 形如 [[artifact:<id>|<label>]]，渲染层检测此 token 并替换为"打开右侧 <label>"按钮。
+// 这些片段被拼入 text 增量，驱动主窗口按正确叙事顺序展示（引言→各 artifact 摘要→处置建议）。
+
+function artifactLink(id: string, label: string): string {
+  return `[[artifact:${id}|${label}]]`
+}
+
 const CAPABILITIES_PAYLOAD = {
   tools: [
     {
@@ -932,20 +970,25 @@ export function useLeanStream() {
         { role: 'system', content: DIAGNOSE_SYSTEM_PROMPT },
         { role: 'user', content: buildDiagnosePrompt(complaint, sig, mes, mom, erp, plm, acquire) },
       ], opts, ctrl.signal, delta => {
-        emit(ev({ type: 'artifact', payload: { id: 'report', lang: 'html', delta, done: false } }))
+        emit(ev({ type: 'artifact', payload: { id: LEAN_ARTIFACT_IDS.report, lang: 'html', delta, done: false } }))
       })
-      emit(ev({ type: 'artifact', payload: { id: 'report', lang: 'html', delta: '', done: true } }))
+      emit(ev({ type: 'artifact', payload: { id: LEAN_ARTIFACT_IDS.report, lang: 'html', delta: '', done: true } }))
+
+      // 报告生成完毕 → 主窗口显示"打开右侧"链接 + 核心结论摘要（驱动叙事顺序）
+      if (ctrl.signal.aborted) return
+      emit(ev({ type: 'text', payload: { delta: `📋 诊断报告已生成\n${artifactLink(LEAN_ARTIFACT_IDS.report, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.report])}\n${buildReportSummary(sig, mes, mom, erp, acquire)}\n\n` } }))
 
       // artifact 2: OEE 数据明细 table（一次性）
-      if (ctrl.signal.aborted) return
-      emit(ev({ type: 'artifact', payload: { id: 'oee-table', lang: 'table', delta: JSON.stringify(buildOeeTable(mom)), done: true } }))
+      emit(ev({ type: 'artifact', payload: { id: LEAN_ARTIFACT_IDS.oeeTable, lang: 'table', delta: JSON.stringify(buildOeeTable(mom)), done: true } }))
+      emit(ev({ type: 'text', payload: { delta: `📊 OEE 明细表已生成\n${artifactLink(LEAN_ARTIFACT_IDS.oeeTable, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.oeeTable])}\n${buildOeeTableSummary(mom)}\n\n` } }))
 
       // artifact 3: 看板 HTML（一次性，含 Chart.js CDN）
-      emit(ev({ type: 'artifact', payload: { id: 'dashboard', lang: 'html', delta: buildDashboardHtml(mes, mom), done: true } }))
+      emit(ev({ type: 'artifact', payload: { id: LEAN_ARTIFACT_IDS.dashboard, lang: 'html', delta: buildDashboardHtml(mes, mom), done: true } }))
+      emit(ev({ type: 'text', payload: { delta: `📈 OEE 看板已生成\n${artifactLink(LEAN_ARTIFACT_IDS.dashboard, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.dashboard])}\n${buildDashboardSummary(mes, acquire)}\n\n` } }))
 
       emit(ev({ type: 'phase', payload: { id: 'diagnose', name: '综合诊断', state: 'done' } }))
 
-      // 报告后过渡：诊断结论摘要 + 干预建议，为确认门做铺垫
+      // 三个 artifact 摘要之后，自然衔接诊断结论 + 干预建议，为确认门做铺垫
       emit(ev({ type: 'text', payload: { delta: buildRecommendationText(sig, mes, mom, erp, acquire) } }))
 
       // 派工确认门（write 风险，演示 requires_confirm 触发条件）
@@ -1007,6 +1050,19 @@ export function useLeanStream() {
   }, [emit, streamLlm])
 
   return { state, send, abort, reset, confirmTool, cancelTool }
+}
+
+// 主窗口 artifact 链接用到的稳定 id / label（与 ArtifactContext.ARTIFACT_LABELS 对齐）
+export const LEAN_ARTIFACT_IDS = {
+  report: 'report',
+  oeeTable: 'oee-table',
+  dashboard: 'dashboard',
+} as const
+
+export const LEAN_ARTIFACT_LABELS: Record<string, string> = {
+  [LEAN_ARTIFACT_IDS.report]: '诊断报告',
+  [LEAN_ARTIFACT_IDS.oeeTable]: 'OEE 明细',
+  [LEAN_ARTIFACT_IDS.dashboard]: 'OEE 看板',
 }
 
 export { SYS_NAMES }

@@ -12,6 +12,12 @@ import { groupToolCalls } from '../../utils/groupToolCalls'
 import { phaseStateToIcon } from '../../utils/statusMapping'
 import './ProcessTrace.css'
 
+export interface SimplifyOptions {
+  hideMetadata?: boolean
+  hideResultDetails?: boolean
+  compact?: boolean
+}
+
 export interface ProcessTraceProps {
   stream: StreamState
   streaming?: boolean
@@ -23,6 +29,7 @@ export interface ProcessTraceProps {
   renderToolCall?: (toolCall: ToolCallState) => ReactNode
   renderPhase?: (phase: PhaseRecord) => ReactNode
   renderWorkflow?: (stream: StreamState) => ReactNode
+  simplify?: SimplifyOptions
 }
 
 function buildSummary(stream: StreamState): string {
@@ -77,6 +84,7 @@ export function ProcessTrace({
   renderToolCall,
   renderPhase,
   renderWorkflow,
+  simplify,
 }: ProcessTraceProps) {
   const fold = useFoldState({
     system: !defaultCollapsed,
@@ -206,6 +214,7 @@ export function ProcessTrace({
                         toolCall={tc}
                         onConfirm={onToolConfirm}
                         onCancel={onToolCancel}
+                        simplify={simplify}
                       />
                     )
                   })}

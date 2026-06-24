@@ -254,6 +254,15 @@ export interface ToolResultPayload {
   /** Present only on failure. */
   error?: string
   duration_ms?: number
+  /** Structured metadata for result summary and categorization. */
+  metadata?: {
+    /** Result count (for search, query results). */
+    resultCount?: number
+    /** Category hint: "search" | "fetch" | "compute" | custom. */
+    category?: string
+    /** Application-specific extensions. */
+    custom?: Record<string, unknown>
+  }
 }
 /** Tool execution completed (success or error). */
 export type ToolResultEvent = Envelope<'tool_result', ToolResultPayload>

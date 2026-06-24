@@ -1,4 +1,4 @@
-import type { MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState, PhaseState as PhaseLifecycleState } from './protocol';
+import type { SSEEvent, MemorySnippet, MemorySavedPayload, SoulPayload, SkillPayload, CapabilitiesPayload, ToolCallPayload, ToolResultPayload, ResourceReadPayload, ResourceContentPayload, ExtensionEvent, WorkflowNodeState, PhaseState as PhaseLifecycleState } from './protocol';
 export type StreamStatus = 'idle' | 'streaming' | 'done' | 'error';
 /**
  * Runtime state of a single phase within a multi-step pipeline.
@@ -110,6 +110,25 @@ export interface StreamState {
     extensions: Record<string, ExtensionEvent[]>;
     /** All extension events in arrival order — use when sequential rendering matters. */
     extensionLog: ExtensionEvent[];
+    /**
+     * Unified event log: records all events in strict arrival order.
+     * Used by context-blend rendering mode to implement tool-text interleaving.
+     */
+    eventLog: Array<{
+        timestamp: number;
+        type: SSEEvent['type'];
+        id: string;
+        data: unknown;
+    }>;
+    /**
+     * Text deltas indexed by arrival order.
+     * Allows rendering layer to reconstruct text narrative while respecting tool interleaving.
+     */
+    textChunks: Array<{
+        id: string;
+        delta: string;
+        position: number;
+    }>;
     errorMessage: string | null;
     /** Machine-readable error code from the error event (e.g. UPSTREAM_TIMEOUT). */
     errorCode: string | null;

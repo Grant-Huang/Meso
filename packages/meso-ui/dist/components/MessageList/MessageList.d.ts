@@ -26,5 +26,8 @@ export interface MessageListProps {
     hiddenArtifactLangs?: string[];
     renderMermaid?: (source: string) => Promise<string>;
     highlightCode?: (code: string, lang: string) => string;
+    /** Rendering mode: 'block' for legacy behavior (tools then text),
+     * undefined or default for blend mode (tools and text interleaved) */
+    renderingMode?: 'block';
 }
-export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderLiveTrace, renderMarkdown, renderMermaid, highlightCode, hiddenArtifactLangs, }: MessageListProps): import("react/jsx-runtime").JSX.Element;
+export declare function MessageList({ messages, streaming, onArtifactCopy, onArtifactDownload, onToolConfirm, onToolCancel, emptyState, emptyStateAlign, className, renderExtension, renderLiveTrace, renderMarkdown, renderMermaid, highlightCode, hiddenArtifactLangs, renderingMode, }: MessageListProps): import("react/jsx-runtime").JSX.Element;

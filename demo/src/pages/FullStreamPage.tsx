@@ -1,4 +1,4 @@
-import { MessageList, ChatComposer } from '@meso.ai/ui'
+import { MessageList, ChatComposer, ProcessTrace } from '@meso.ai/ui'
 import type { Message, ExtensionEvent } from '@meso.ai/ui'
 import { useState, useEffect } from 'react'
 import { useFullStream } from '../hooks/useFullStream'
@@ -67,6 +67,7 @@ export function FullStreamPage() {
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
+  const [verbosity, setVerbosity] = useState<'compact' | 'standard' | 'detailed'>('detailed')
 
   // 流结束后把报告存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
   useEffect(() => {
@@ -127,7 +128,7 @@ export function FullStreamPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Provider / Key 配置条 */}
+      {/* Provider / Key / Verbosity 配置条 */}
       <div style={{
         padding: '6px 16px',
         background: 'var(--color-bg-elevated)',
@@ -138,6 +139,31 @@ export function FullStreamPage() {
         flexShrink: 0,
         flexWrap: 'wrap',
       }}>
+        <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>
+          显示模式：
+        </label>
+        <select
+          value={verbosity}
+          onChange={e => setVerbosity(e.target.value as any)}
+          style={{
+            padding: '4px 8px',
+            border: '1px solid var(--color-border)',
+            borderRadius: 4,
+            background: 'var(--color-bg)',
+            color: 'var(--color-text)',
+            fontSize: 12,
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          <option value="compact">Compact（最小化）</option>
+          <option value="standard">Standard（均衡）</option>
+          <option value="detailed">Detailed（完整）</option>
+        </select>
+
+        <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginLeft: 12 }}>
+          模型：
+        </label>
         <select
           value={provider.id}
           onChange={e => handleProviderChange(PROVIDERS.find(p => p.id === e.target.value)!)}
@@ -270,6 +296,15 @@ export function FullStreamPage() {
             URL.revokeObjectURL(url)
           }}
           renderExtension={renderCitation}
+          renderLiveTrace={stream => (
+            <ProcessTrace
+              stream={stream}
+              streaming={true}
+              simplify={{ verbosity }}
+              onToolConfirm={confirmTool}
+              onToolCancel={cancelTool}
+            />
+          )}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🔬</div>

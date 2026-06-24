@@ -32,8 +32,25 @@ export interface ThinkBlockProps {
    * 'never': never auto-collapse; user must click to collapse.
    */
   collapseWhen?: 'streamEnd' | 'never'
-  /** Label shown in the header when collapsed. Default "已思考". */
+  /**
+   * Label shown in the header when collapsed.
+   * When omitted, a one-line summary is derived dynamically from the last
+   * sentence of `content` (so the collapsed header reflects the *conclusion*
+   * of the thinking, not a static "已思考").
+   */
   summary?: string
+}
+
+/**
+ * Derive a one-line collapsed-header summary from think content.
+ * Takes the last sentence (the conclusion) and truncates it.
+ */
+function deriveThinkSummary(text: string): string {
+  const cleaned = text.replace(/\s+/g, ' ').trim()
+  if (!cleaned) return '已思考'
+  const sentences = cleaned.split(/(?<=[。！？.!?])/).map(s => s.trim()).filter(Boolean)
+  const last = sentences[sentences.length - 1] || cleaned
+  return last.length > 36 ? last.slice(0, 36) + '…' : last
 }
 
 export function ThinkBlock({
@@ -46,7 +63,7 @@ export function ThinkBlock({
   open,
   onOpenChange,
   collapseWhen = 'streamEnd',
-  summary = '已思考',
+  summary,
 }: ThinkBlockProps) {
   const isControlled = open !== undefined
 
@@ -93,7 +110,7 @@ export function ThinkBlock({
   }, [turnStreaming])
 
   const displayContent = (!streaming && pinnedContent !== undefined) ? pinnedContent : content
-  const label = isOpen ? '思考过程' : summary
+  const label = isOpen ? '思考过程' : (summary ?? deriveThinkSummary(displayContent))
 
   return (
     <div className={`meso-think${isOpen ? ' meso-think--open' : ''}`}>

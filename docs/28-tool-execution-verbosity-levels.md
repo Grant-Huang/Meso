@@ -32,19 +32,19 @@
 | **Summary Line** | `✓/✗ tool_name — result_count (Xms)` | ✓ | ✓ | ✓ | — |
 | **Tool Name** | Display name from `call.name` | ✓ | ✓ | ✓ | — |
 | **Status Icon** | ✓/✗/⏳ | ✓ | ✓ | ✓ | — |
-| **Result Count** | From `metadata.resultCount` | — | ✓ | ✓ | — |
-| **Duration** | `(Xms)` from `duration_ms` | — | ✓ | ✓ | — |
+| **Duration** | `(Xms)` from `duration_ms` | ✓ | ✓ | ✓ | — |
+| **Result Count** | From `metadata.resultCount` | ✓ | ✓ | ✓ | — |
 | **Risk Level** | `[safe/write/destructive]` badge | — | ✓ | ✓ | — |
-| **Status** | `awaiting_confirm / pending / running / done / error` | — | ✓ | ✓ | — |
-| **Confirmation Gate** | Show ConfirmGate when needed | — | ✓ | ✓ | — |
-| **Input Parameters** | Full `call.args` object | ✗ | ✓ (collapsed) | ✓ (expanded) | **Collapsed** |
-| **Output Preview** | First 200 chars of `output` | ✗ | ✓ (truncated) | ✓ (full) | **Collapsed** |
-| **Metadata** | `metadata.{resultCount,category,custom}` | ✗ | ✓ (key fields) | ✓ (all) | **Collapsed** |
-| **Error Message** | Full error if present | — | ✓ | ✓ | — |
+| **Provider Info** | MCP server, provider type | — | ✓ | ✓ | — |
+| **Narration** | Context text from orchestrator | ✓ | ✓ | ✓ | — |
+| **Confirmation Gate** | Show ConfirmGate when needed | ✓ | ✓ | ✓ | — |
+| **Status** | `awaiting_confirm / running / done / error` | — | ✓ | ✓ | — |
+| **Input Parameters** | Full `call.args` object | ✓ (when expanded) | ✓ | ✓ | **Collapsed** |
+| **Output Preview** | First 200 chars of `output` | ✓ (when expanded) | ✓ (truncated) | ✓ (full) | **Collapsed** |
+| **Metadata** | `metadata.{resultCount,category,custom}` | ✓ (when expanded) | ✓ (key fields) | ✓ (all) | **Collapsed** |
+| **Error Message** | Full error if present | ✓ | ✓ | ✓ | — |
 | **Execution Timeline** | Start/end timestamps, duration breakdown | ✗ | ✗ | ✓ | **Collapsed** |
-| **Provider Info** | MCP server, provider type | ✗ | — | ✓ | **Collapsed** |
 | **Custom Metadata** | `metadata.custom` fields | ✗ | ✗ | ✓ | **Collapsed** |
-| **Narration** | Tooltip/context from orchestrator | — | ✓ | ✓ | — |
 
 ---
 
@@ -52,59 +52,86 @@
 
 ### Compact Mode
 ```
-▶ ✓ web_search
-▶ ✓ knowledge_base
+▶ ✓ web_search — 8 项 (245ms)
+  ✓ 知识库命中 8 条结果
+  
+  [展开时显示：]
+  ▶ Input Parameters
+  ▶ Output  
+  ▶ Metadata
+  
+▶ ✓ knowledge_base — 3 项 (180ms)
+  ✓ 返回 3 条相关文献
 ```
-(Click to expand details)
+
+**特点**：
+- 摘要行展示关键信息（名称、数量、耗时）
+- 旁白/提示总是可见（数据驱动的执行描述）
+- 确认门按钮在 awaiting_confirm 时显示
+- 点击摘要行展开，所有内容折叠（参数、输出、元数据都需点击才展开）
 
 ---
 
 ### Standard Mode (Recommended Default)
 ```
-▼ ✓ web_search — 8 项 (245ms) [safe]
+▼ ✓ web_search — 8 项 (245ms) [safe] — MCP
+  ✓ 知识库命中 8 条结果
+  
   Input Parameters
     ▶ query: "AI Agent框架"
   Output (Preview)
     ▶ [{"id":"s1","title":"LangGraph vs CrewAI","score":0.94}...]
   Metadata
-    resultCount: 8
-    category: web_search
+    ▶ resultCount: 8
+      category: web_search
     
-▶ ✓ knowledge_base — 3 项 (180ms) [safe]
+▶ ✓ knowledge_base — 3 项 (180ms) [safe] — builtin
+  ✓ 返回 3 条相关文献
 ```
+
+**特点**：
+- 摘要行展示完整信息（名称、数量、耗时、风险等级、Provider）
+- 旁白/提示总是可见
+- 参数、输出、元数据默认折叠（点击展开）
+- 第二层信息（参数值、输出内容、字段值）也默认折叠
 
 ---
 
 ### Detailed Mode
 ```
-▼ ✓ web_search — 8 项 (245ms) [safe]
-  Status: done
-  Provider: builtin
+▼ ✓ web_search — 8 项 (245ms) [safe] — MCP
+  ✓ 知识库命中 8 条，精度 0.94
   
-  Input Parameters
-    ▼ query: "AI Agent框架"
-      // Show as key: value
+  ▼ Input Parameters
+    query: "AI Agent框架"
+    limit: 10
+    filter: "recent"
   
-  Execution Timeline
-    Started: 2026-06-24 12:34:56.789
-    Duration: 245ms
-    Breakdown: query(50ms) → fetch(180ms) → parse(15ms)
+  ▼ Output (Full)
+    [{"id":"s1","title":"LangGraph vs CrewAI","score":0.94},
+     {"id":"s2","title":"Anthropic Agents","score":0.89},
+     ...]
   
-  Output
-    ▼ [Full JSON output visible]
-      [{"id":"s1","title":"LangGraph vs CrewAI","score":0.94},
-       {"id":"s2","title":"Anthropic Agents","score":0.89},
-       ...]
-  
-  Metadata
+  ▼ Metadata
     resultCount: 8
     category: web_search
     custom:
       source: google
       region: global
-      
-▶ ✓ knowledge_base — 3 项 (180ms) [safe]
+  
+  ▼ Execution Timeline
+    Duration: 245ms
+    
+▶ ✓ knowledge_base — 3 项 (180ms) [safe] — builtin
+  ✓ 返回 3 条相关文献
 ```
+
+**特点**：
+- 所有信息完全展开（参数、输出、元数据都默认展开）
+- 第二层信息也展开（参数具体值、完整输出内容）
+- 包含执行时间线
+- 包含自定义元数据
+- 用于调试和深度分析
 
 ---
 

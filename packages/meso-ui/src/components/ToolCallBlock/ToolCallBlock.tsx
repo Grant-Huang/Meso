@@ -37,34 +37,31 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
   // Determine verbosity level from new or legacy props
   const verbosity = simplify?.verbosity ?? (simplify?.compact ? 'compact' : 'standard')
 
-  // Backward compatibility: old props override defaults for their modes
-  const hideMetadata = simplify?.hideMetadata ?? false
-
   // Determine visibility based on verbosity
   const isCompact = verbosity === 'compact'
   const isStandard = verbosity === 'standard'
   const isDetailed = verbosity === 'detailed'
 
   // Show/hide elements per verbosity level
-  const showDuration = simplify?.showDuration ?? (!isCompact)
-  const showProvider = simplify?.showProvider ?? (!isCompact)
-  const showRiskLevel = simplify?.showRiskLevel ?? (!isCompact)
+  const showDuration = simplify?.showDuration ?? true // Show in all modes
+  const showProvider = simplify?.showProvider ?? (!isCompact) // Hide only in compact
+  const showRiskLevel = simplify?.showRiskLevel ?? (isStandard || isDetailed) // Show in standard and detailed
   const showExecutionTimeline = simplify?.showExecutionTimeline ?? (isDetailed)
 
   // Default collapse states per verbosity
-  const defaultParamsCollapsed = simplify?.defaultParamsCollapsed ?? (isStandard || isCompact)
-  const defaultOutputCollapsed = simplify?.defaultOutputCollapsed ?? (isStandard || isCompact)
-  const defaultMetadataCollapsed = simplify?.defaultMetadataCollapsed ?? (isStandard || isCompact)
+  // Compact: parameters/output/metadata only visible when expanded
+  // Standard: parameters/output/metadata collapsed by default
+  // Detailed: parameters/output/metadata expanded by default
+  const defaultParamsCollapsed = simplify?.defaultParamsCollapsed ?? (isCompact || isStandard)
+  const defaultOutputCollapsed = simplify?.defaultOutputCollapsed ?? (isCompact || isStandard)
+  const defaultMetadataCollapsed = simplify?.defaultMetadataCollapsed ?? (isCompact || isStandard)
 
-  const [argsOpen, setArgsOpen] = useState(
-    hideMetadata ? false :
-    simplify?.hideResultDetails ? false :
-    !defaultParamsCollapsed
-  )
+  const [argsOpen, setArgsOpen] = useState(!defaultParamsCollapsed)
   const [resultOpen, setResultOpen] = useState(!defaultOutputCollapsed)
   const [metadataOpen, setMetadataOpen] = useState(!defaultMetadataCollapsed)
 
   const summaryCount = result?.metadata?.resultCount
+  const narration = result?.narration
 
   return (
     <div
@@ -75,22 +72,16 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
         <StatusIcon status={toolCallStatusToIcon(status)} size={14} className="meso-tool__status-icon" />
         <span className="meso-tool__name">{call.name}</span>
 
-        {/* Metadata summary line for compact mode */}
-        {isCompact && summaryCount !== undefined && (
+        {/* Summary metrics: result count and duration shown in all modes */}
+        {summaryCount !== undefined && (
           <span className="meso-tool__summary">— {summaryCount} 项</span>
         )}
-        {isCompact && result?.duration_ms !== undefined && (
+        {showDuration && result?.duration_ms !== undefined && (
           <span className="meso-tool__duration">({result.duration_ms}ms)</span>
         )}
 
-        {/* Standard/Detailed: Show metadata in header */}
-        {!isCompact && summaryCount !== undefined && (
-          <span className="meso-tool__summary">— {summaryCount} 项</span>
-        )}
-        {!isCompact && showDuration && result?.duration_ms !== undefined && (
-          <span className="meso-tool__duration">({result.duration_ms}ms)</span>
-        )}
-        {!isCompact && showRiskLevel && risk !== 'safe' && (
+        {/* Risk level badge */}
+        {showRiskLevel && risk !== 'safe' && (
           <span className={`meso-tool__risk meso-tool__risk--${risk}`}>
             {RISK_LABEL[risk]}
           </span>
@@ -105,22 +96,17 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
         {call.annotations?.open_world && (
           <span className="meso-tool__annotation" title="此工具会访问外部网络">🌐</span>
         )}
-
-        {/* Toggle button for parameters in standard/detailed */}
-        {!isCompact && hasArgs && (
-          <button
-            className="meso-tool__toggle"
-            onClick={() => setArgsOpen(o => !o)}
-            aria-expanded={argsOpen}
-            aria-label={argsOpen ? '折叠参数' : '展开参数'}
-          >
-            {argsOpen ? '▾' : '▸'} 参数
-          </button>
-        )}
       </div>
 
-      {/* Parameters section: shown in standard/detailed when expanded */}
-      {!isCompact && hasArgs && (
+      {/* Narration: shown in all modes (when available) */}
+      {narration && (
+        <div className="meso-tool__narration">
+          {narration}
+        </div>
+      )}
+
+      {/* Parameters section: shown in all modes (Standard/Detailed have it in header, Compact via details) */}
+      {hasArgs && (
         <details className="meso-tool__params-details" open={argsOpen}>
           <summary
             className="meso-tool__params-summary"
@@ -150,8 +136,8 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
         />
       )}
 
-      {/* Output/Result section */}
-      {(status === 'done' || status === 'error') && result && !isCompact && (
+      {/* Output/Result section: shown in all modes when available */}
+      {(status === 'done' || status === 'error') && result && (
         <details className="meso-tool__result-details" open={resultOpen}>
           <summary
             className="meso-tool__result-summary"
@@ -174,8 +160,8 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
         </details>
       )}
 
-      {/* Metadata section: shown in standard/detailed */}
-      {!isCompact && result?.metadata && (
+      {/* Metadata section: shown in all modes when available */}
+      {result?.metadata && (
         <details className="meso-tool__metadata-details" open={metadataOpen}>
           <summary
             className="meso-tool__metadata-summary"

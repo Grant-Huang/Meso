@@ -197,6 +197,17 @@
   font-size: 12px;
 }
 
+/* Narration: context/description from orchestrator */
+.meso-tool__narration {
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-top: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
 /* Collapsible details/summary */
 .meso-tool__params-details,
 .meso-tool__result-details,

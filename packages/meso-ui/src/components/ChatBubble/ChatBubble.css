@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   font-weight: 700;
   margin-top: 2px;
 }
@@ -35,7 +35,7 @@
 .meso-bubble__content {
   padding: 10px 13px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--meso-fs-body);
   line-height: 1.65;
   word-break: break-word;
 }
@@ -71,7 +71,7 @@
 }
 
 .meso-bubble__timestamp {
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-text-muted);
   padding: 0 4px;
 }

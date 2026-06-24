@@ -1061,6 +1061,9 @@ export function useLeanStream() {
       emit(ev({ type: 'phase', payload: { id: 'intervene', name: '现场干预', state: 'done' } }))
       emit(ev({ type: 'memory_saved', payload: { id: 'case2', category: 'intervention', preview: `${line} ${ANOMALY_LABELS[sig.anomaly]}：已派工 + 边缘OS下发「${edgeCmd.command}」至${sig.equipment}` } }))
 
+      // ── 收尾总结陈词（闭环回顾，动态生成） ──
+      emit(ev({ type: 'text', payload: { delta: `\n\n---\n\n✅ **诊断闭环完成**。${line} 当前 OEE ${mes.oee_now}%（较目标低 ${(mes.target_oee - mes.oee_now).toFixed(1)}pp），根因定位为 **${topDowntime.reason}**（${topDowntime.minutes} 分钟 / ${topDowntime.count} 次）${alarmCount > 0 ? `，${sig.equipment} 健康度仅 ${acquire.health_score}（${alarmCount} 项告警）` : ''}。已完成两步处置：派发 ${mes.shift}班组专项改善工单、向 ${sig.equipment} 下发现场干预指令（预计 ${effectMin} 分钟生效）。\n\n建议持续跟踪 OEE 回升趋势，若 24 小时内未见改善则升级为 ${ANOMALY_LABELS[sig.anomaly]} 专项攻关，并将本次处置沉淀为标准应对预案。` } }))
+
       emit(ev({ type: 'done', payload: {} }))
     } catch (err) {
       if ((err as Error).name === 'AbortError') return

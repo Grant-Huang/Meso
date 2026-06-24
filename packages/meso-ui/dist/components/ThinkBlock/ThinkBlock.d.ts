@@ -30,7 +30,12 @@ export interface ThinkBlockProps {
      * 'never': never auto-collapse; user must click to collapse.
      */
     collapseWhen?: 'streamEnd' | 'never';
-    /** Label shown in the header when collapsed. Default "已思考". */
+    /**
+     * Label shown in the header when collapsed.
+     * When omitted, a one-line summary is derived dynamically from the last
+     * sentence of `content` (so the collapsed header reflects the *conclusion*
+     * of the thinking, not a static "已思考").
+     */
     summary?: string;
 }
 export declare function ThinkBlock({ content, pinnedContent, streaming, turnStreaming, autoCollapseDelay, defaultOpen, open, onOpenChange, collapseWhen, summary, }: ThinkBlockProps): import("react/jsx-runtime").JSX.Element;

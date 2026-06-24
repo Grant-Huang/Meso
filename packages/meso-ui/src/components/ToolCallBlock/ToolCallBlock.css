@@ -2,7 +2,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
 }
 
 .meso-tool--risk-destructive {
@@ -49,7 +49,7 @@
 .meso-tool__provider {
   padding: 1px 5px;
   border-radius: 8px;
-  font-size: 9px;
+  font-size: var(--meso-fs-micro);
   font-weight: 600;
   letter-spacing: 0.04em;
   background: color-mix(in srgb, var(--color-info) 12%, transparent);
@@ -58,14 +58,14 @@
 }
 
 .meso-tool__annotation {
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   opacity: 0.7;
 }
 
 .meso-tool__risk {
   padding: 1px 6px;
   border-radius: 10px;
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -85,7 +85,7 @@
 .meso-tool__duration {
   margin-left: auto;
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
 }
 
 .meso-tool__toggle {
@@ -93,7 +93,7 @@
   border: none;
   cursor: pointer;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   padding: 2px 4px;
   border-radius: 4px;
   white-space: nowrap;
@@ -110,7 +110,7 @@
   padding: 8px 12px;
   background: var(--color-code-bg);
   color: var(--color-code-text);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   font-family: var(--font-mono, monospace);
   white-space: pre-wrap;
   word-break: break-all;
@@ -144,7 +144,7 @@
 .meso-tool__confirm-msg {
   flex: 1;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
 }
 
 .meso-tool__confirm-actions {
@@ -155,7 +155,7 @@
 .meso-tool__btn {
   padding: 5px 14px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
@@ -182,7 +182,7 @@
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 .meso-tool--compact {
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
 }
 
 .meso-tool--compact .meso-tool__header {
@@ -190,11 +190,11 @@
 }
 
 .meso-tool--standard {
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
 }
 
 .meso-tool--detailed {
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
 }
 
 /* Narration: context/description from orchestrator */
@@ -203,7 +203,7 @@
   background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   border-top: 1px solid var(--color-border-light);
   border-bottom: 1px solid var(--color-border-light);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-text-secondary);
   line-height: 1.4;
 }
@@ -228,7 +228,7 @@
   background: var(--color-bg-elevated);
   cursor: pointer;
   user-select: none;
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   font-weight: 500;
   color: var(--color-text-secondary);
 }
@@ -247,7 +247,7 @@
 .meso-tool__timeline-toggle {
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   width: 12px;
 }
 
@@ -264,7 +264,7 @@
 /* Summary content in compact mode */
 .meso-tool__summary {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   white-space: nowrap;
 }
 
@@ -273,7 +273,7 @@
   padding: 8px 12px;
   background: var(--color-code-bg);
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-code-text);
 }
 
@@ -299,7 +299,7 @@
   padding: 4px 8px;
   background: color-mix(in srgb, var(--color-code-bg) 70%, transparent);
   border-radius: 4px;
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   white-space: pre-wrap;
   word-break: break-all;
   max-height: 150px;
@@ -311,7 +311,7 @@
   padding: 8px 12px;
   background: var(--color-code-bg);
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-code-text);
 }
 

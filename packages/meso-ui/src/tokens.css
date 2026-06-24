@@ -62,7 +62,13 @@
   --session-col-w:        260px;
   --artifact-pane-w:      40%;
 
-  /* Type scale [stable] */
+  /* Type scale [stable] — 四档清晰阶梯，组件统一引用，避免游离字号
+   *   micro   11px  微标签：chip / badge / provider / 时间戳 / duration
+   *   caption 12px  次要信息：工具与资源摘要、参数标签、元数据
+   *   body    14px  对话正文
+   *   title   15px  区块标题
+   *   section 18px  大标题（少用） */
+  --meso-fs-micro:   11px;
   --meso-fs-caption: 12px;
   --meso-fs-body:    14px;
   --meso-fs-title:   15px;

@@ -2,7 +2,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
   background: var(--color-bg-elevated);
 }
 
@@ -34,7 +34,7 @@
 .meso-resource__uri {
   flex: 1;
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -45,14 +45,14 @@
   padding: 1px 6px;
   background: color-mix(in srgb, var(--color-info) 12%, transparent);
   border-radius: 10px;
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-info);
   flex-shrink: 0;
 }
 
 .meso-resource__duration {
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   flex-shrink: 0;
 }
 
@@ -61,7 +61,7 @@
   border: none;
   cursor: pointer;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   padding: 2px 4px;
   border-radius: 4px;
   white-space: nowrap;
@@ -81,7 +81,7 @@
   padding: 8px 12px;
   background: var(--color-code-bg);
   color: var(--color-code-text);
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   font-family: var(--font-mono, monospace);
   white-space: pre-wrap;
   word-break: break-all;
@@ -104,7 +104,7 @@
 .meso-resource__blob-label {
   display: block;
   padding: 6px 12px;
-  font-size: 11px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-text-muted);
   font-family: var(--font-mono, monospace);
 }

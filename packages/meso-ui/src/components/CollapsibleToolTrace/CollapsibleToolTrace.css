@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--meso-fs-caption);
 }
 
 .meso-collapsible-tool__item {
@@ -25,7 +25,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--meso-fs-caption);
   color: var(--color-text);
   transition: color 0.15s;
   font-weight: 400;
@@ -49,7 +49,7 @@
   align-items: center;
   justify-content: center;
   width: 12px;
-  font-size: 10px;
+  font-size: var(--meso-fs-micro);
   color: var(--color-text-secondary);
   flex-shrink: 0;
   font-weight: 600;
@@ -84,7 +84,7 @@
 
 .meso-collapsible-tool__details .meso-tool-call-block__label {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: var(--meso-fs-caption);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;

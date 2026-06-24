@@ -150,11 +150,13 @@ type BlendItem =
   | { kind: 'tool'; key: string; id: string }
   | { kind: 'artifact'; key: string; id: string }
   | { kind: 'resource'; key: string; id: string }
+  | { kind: 'extension'; key: string; index: number }
 
 function buildBlendItems(stream: StreamState, hiddenArtifactLangs?: string[]): BlendItem[] {
   const items: BlendItem[] = []
   let textBuf = ''
   let textKey: string | null = null
+  let extIndex = 0
 
   const flushText = () => {
     if (textKey !== null && textBuf.length > 0) {
@@ -179,6 +181,12 @@ function buildBlendItems(stream: StreamState, hiddenArtifactLangs?: string[]): B
       if (!stream.resourceReads[id]) continue
       flushText()
       items.push({ kind: 'resource', key: `resource-${id}`, id })
+    } else if (type === 'extension') {
+      // 按到达顺序内联渲染扩展事件（如 citation），而非堆在会话末尾
+      if (extIndex >= stream.extensionLog.length) continue
+      flushText()
+      items.push({ kind: 'extension', key: `ext-${extIndex}`, index: extIndex })
+      extIndex++
     } else if (type === 'artifact') {
       const art = stream.artifacts[id]
       if (!art) continue
@@ -233,7 +241,7 @@ function InterleavedStreamingContent({
   )
   const items = useMemo(
     () => buildBlendItems(stream, hiddenArtifactLangs),
-    [stream.eventLog, stream.textChunks, stream.artifacts, stream.toolCalls, stream.resourceReads, hiddenArtifactLangs],
+    [stream.eventLog, stream.textChunks, stream.artifacts, stream.toolCalls, stream.resourceReads, stream.extensionLog, hiddenArtifactLangs],
   )
   const lastTextKey = useMemo(() => {
     for (let i = items.length - 1; i >= 0; i--) {
@@ -325,6 +333,17 @@ function InterleavedStreamingContent({
           )
         }
 
+        if (item.kind === 'extension') {
+          if (!renderExtension) return null
+          const ext = stream.extensionLog[item.index]
+          if (!ext) return null
+          return (
+            <div key={item.key} className="meso-event-extension" data-streaming-role="content">
+              {renderExtension(ext)}
+            </div>
+          )
+        }
+
         // artifact
         const art = stream.artifacts[item.id]
         if (!art) return null
@@ -345,15 +364,6 @@ function InterleavedStreamingContent({
           </div>
         )
       })}
-
-      {/* Extensions in order */}
-      {renderExtension && stream.extensionLog.length > 0 && (
-        <div className="meso-message-list__extensions">
-          {stream.extensionLog.map((ext, i) => (
-            <React.Fragment key={i}>{renderExtension(ext)}</React.Fragment>
-          ))}
-        </div>
-      )}
 
       {/* 记忆通知在最后 */}
       {stream.memorySaved.length > 0 && (

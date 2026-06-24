@@ -893,6 +893,11 @@ export function useLeanStream() {
       // ── 幕二：多系统取证 ──
       emit(ev({ type: 'phase', payload: { id: 'evidence', name: '多系统取证', state: 'running', started_at: t + 300 } }))
 
+      // ──────────────────────────────────────────────────────
+      // 文本穿插 1：取证开始前的介绍
+      emit(ev({ type: 'text', payload: { delta: `现在从 5 个数据源对 ${line} 进行全面取证。\n\n` } }))
+      await delay(100)
+
       // workflow DAG：coordinator + 4 个并行取证节点
       emit(ev({ type: 'workflow_node', payload: { run_id: 'diag', node_id: 'coordinator', name: '取证协调', state: 'active', started_at: t } }))
       for (const sys of ['mes', 'mom', 'erp', 'plm', 'acquire']) {
@@ -910,12 +915,13 @@ export function useLeanStream() {
       const provider: ResourceProvider = new MockResourceProvider(sig)
 
       // 5 轮 MCP 资源读取（MES/MOM/ERP/PLM + 智能采集）
-      const mcpUris: Array<[string, string, string]> = [
-        ['rr1', `mes://realtime/${line}`, 'mes-srv'],
-        ['rr2', `mom://history/${line}?days=7`, 'mom-srv'],
-        ['rr3', `erp://workorders/${line}`, 'erp-srv'],
-        ['rr4', `plm://sop/${line}/${sig.equipmentType}`, 'plm-srv'],
-        ['rr5', `acquire://devices/${line}/${sig.equipmentType}`, 'acquire-srv'],
+      // 改为穿插显示：每个资源后都跟一条文本总结
+      const mcpUris: Array<[string, string, string, string]> = [
+        ['rr1', `mes://realtime/${line}`, 'mes-srv', `✓ MES 现场数据：OEE ${mes.oee_now}%`],
+        ['rr2', `mom://history/${line}?days=7`, 'mom-srv', `✓ MOM 趋势数据：7 天下降 ${mom.drop_points}pp`],
+        ['rr3', `erp://workorders/${line}`, 'erp-srv', `✓ ERP 工单数据：${erp.delayed_count} 个延误`],
+        ['rr4', `plm://sop/${line}/${sig.equipmentType}`, 'plm-srv', `✓ PLM 工艺参数：${plm.params.length} 项规范`],
+        ['rr5', `acquire://devices/${line}/${sig.equipmentType}`, 'acquire-srv', `✓ 智能采集：${sig.equipment} 健康度 ${acquire.health_score}`],
       ]
 
       const nodeMetadata: Record<string, Record<string, unknown>> = {
@@ -926,7 +932,7 @@ export function useLeanStream() {
         acquire: { health: acquire.health_score, alarms: acquire.sensors.filter(s => s.status === 'alarm').length },
       }
 
-      for (const [rid, uri, server] of mcpUris) {
+      for (const [rid, uri, server, summary] of mcpUris) {
         if (ctrl.signal.aborted) return
         emit(ev({ type: 'resource_read', payload: { id: rid, uri, server } }))
         await delay(80)
@@ -936,12 +942,17 @@ export function useLeanStream() {
           contents,
           duration_ms: 280 + Math.floor(Math.random() * 120),
         } }))
+        // ──────────────────────────────────────────────────────
+        // 文本穿插：每个资源完成后发一条总结文本
+        emit(ev({ type: 'text', payload: { delta: `${summary}\n` } }))
         await delay(120)
       }
+      emit(ev({ type: 'text', payload: { delta: '\n' } }))
+      await delay(80)
 
       // KB 检索（tool_call safe）
       if (ctrl.signal.aborted) return
-      emit(ev({ type: 'tool_call', payload: { id: 'tc1', name: 'search_knowledge', args: { query: `${ANOMALY_LABELS[sig.anomaly]} 根因 ${line}` }, risk: 'safe', provider: 'mcp', server: 'lean-kb-srv' } }))
+      emit(ev({ type: 'tool_call', payload: { id: 'tc1', name: 'search_knowledge', args: { query: `${ANOMALY_LABELS[sig.anomaly]} 根因 ${line}` }, risk: 'safe', provider: 'mcp', server: 'lean-kb-srv', metadata: { resultCount: 3 } } }))
       emit(ev({ type: 'tool_status', payload: { id: 'tc1', status: 'running' } }))
       await delay(400)
 
@@ -952,7 +963,12 @@ export function useLeanStream() {
       }
       emit(ev({ type: 'workflow_node', payload: { run_id: 'diag', node_id: 'coordinator', name: '取证协调', state: 'done', duration_ms: 510 } }))
 
-      emit(ev({ type: 'tool_result', payload: { tool_call_id: 'tc1', output: buildKbResult(sig), duration_ms: 400 } }))
+      emit(ev({ type: 'tool_result', payload: { tool_call_id: 'tc1', output: buildKbResult(sig), metadata: { resultCount: 3 }, duration_ms: 400 } }))
+
+      // ──────────────────────────────────────────────────────
+      // 文本穿插：KB 检索完成后的小结
+      emit(ev({ type: 'text', payload: { delta: `✓ 精益知识库：找到 3 篇改善方案\n\n` } }))
+      await delay(100)
 
       // citation（4 数据源 + KB）
       emit(ev({ type: 'extension', payload: { name: 'citation', version: '1.0', data: buildCitations(sig) } }))
@@ -963,7 +979,9 @@ export function useLeanStream() {
 
       // ── 幕三：综合诊断 + 多产物 ──
       emit(ev({ type: 'phase', payload: { id: 'diagnose', name: '综合诊断', state: 'running' } }))
-      emit(ev({ type: 'text', payload: { delta: `基于 5 个系统（MES/MOM/ERP/PLM/智能采集）的取证数据与精益知识库，针对 ${line}（${ANOMALY_LABELS[sig.anomaly]}）的 OEE 异常诊断如下：\n\n` } }))
+      // ──────────────────────────────────────────────────────
+      // 文本穿插：综合诊断前的前言
+      emit(ev({ type: 'text', payload: { delta: `基于以上取证数据与精益知识库，针对 ${line}（${ANOMALY_LABELS[sig.anomaly]}）的 OEE 异常诊断如下：\n\n` } }))
 
       // artifact 1: HTML 诊断报告（LLM 流式生成）
       await streamLlm([

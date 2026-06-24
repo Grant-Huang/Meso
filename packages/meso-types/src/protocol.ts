@@ -242,6 +242,15 @@ export interface ToolCallPayload {
   groupId?: string
   /** Semantic kind of the group (e.g. "subtopic", "parallel_search"). */
   groupKind?: string
+  /** Structured metadata for tool display summary and categorization. */
+  metadata?: {
+    /** Result count hint (for search, query results). */
+    resultCount?: number
+    /** Category hint: "search" | "fetch" | "compute" | custom. */
+    category?: string
+    /** Application-specific extensions. */
+    custom?: Record<string, unknown>
+  }
 }
 /** LLM decided to call a tool — emitted before execution starts. */
 export type ToolCallEvent = Envelope<'tool_call', ToolCallPayload>

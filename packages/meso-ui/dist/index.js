@@ -1,46 +1,46 @@
-import { jsxs as o, jsx as r, Fragment as M } from "react/jsx-runtime";
-import U, { useState as C, useRef as T, useEffect as R, useMemo as ve, useCallback as W, createContext as Ne, useContext as oe } from "react";
-import { phaseRecordToStage as we, createInitialStreamState as K, parseSSELine as ke, applyEvent as ye } from "./runtime.js";
-import { PROTOCOL_VERSION as Nr, assertCompatibleVersion as wr, createStreamStateWithArtifacts as kr, isCompatibleVersion as yr, streamStateHasArtifacts as br } from "./runtime.js";
-function nr({
+import { jsxs as n, jsx as r, Fragment as P } from "react/jsx-runtime";
+import F, { useState as C, useRef as R, useEffect as I, useMemo as ge, useCallback as V, createContext as Ne, useContext as ne } from "react";
+import { phaseRecordToStage as we, createInitialStreamState as G, parseSSELine as ke, applyEvent as be } from "./runtime.js";
+import { PROTOCOL_VERSION as Nr, assertCompatibleVersion as wr, createStreamStateWithArtifacts as kr, isCompatibleVersion as br, streamStateHasArtifacts as yr } from "./runtime.js";
+function ar({
   navItems: e = [],
   sidebarFooter: t,
   sessionColumn: s,
-  children: n,
-  defaultCollapsed: a = !1,
-  appName: c = "Meso",
-  sidebarLogo: i,
-  sidebarTitle: m,
-  mainHeader: h,
-  artifactPanel: _,
-  defaultArtifactVisible: l = !1,
-  onArtifactToggle: u,
-  artifactVisible: f,
-  showArtifactToggle: k = !0,
-  showSessionColumn: N = !0,
-  contentMaxWidth: v,
-  artifactPanelWidth: g,
-  onCollapsedChange: d
+  children: o,
+  defaultCollapsed: l = !1,
+  appName: a = "Meso",
+  sidebarLogo: c,
+  sidebarTitle: i,
+  mainHeader: u,
+  artifactPanel: f,
+  defaultArtifactVisible: d = !1,
+  onArtifactToggle: h,
+  artifactVisible: N,
+  showArtifactToggle: g = !0,
+  showSessionColumn: y = !0,
+  contentMaxWidth: p,
+  artifactPanelWidth: v,
+  onCollapsedChange: m
 }) {
-  const [p, w] = C(a), [S, E] = C(l), L = f !== void 0 ? f : S, y = () => {
+  const [_, w] = C(l), [S, E] = C(d), L = N !== void 0 ? N : S, k = () => {
     const b = !L;
-    f === void 0 && E(b), u == null || u(b);
+    N === void 0 && E(b), h == null || h(b);
   };
-  return /* @__PURE__ */ o("div", { className: "meso-layout", children: [
-    /* @__PURE__ */ o("aside", { className: `meso-sidebar${p ? " meso-sidebar--collapsed" : ""}`, children: [
-      /* @__PURE__ */ o("div", { className: "meso-sidebar__header", children: [
-        i ? /* @__PURE__ */ r("div", { className: "meso-sidebar__logo meso-sidebar__logo--custom", children: i }) : /* @__PURE__ */ r("div", { className: "meso-sidebar__logo", children: c[0] }),
-        m ? /* @__PURE__ */ r("span", { className: "meso-sidebar__title meso-sidebar__title--brand", children: m }) : /* @__PURE__ */ r("span", { className: "meso-sidebar__title", children: c }),
+  return /* @__PURE__ */ n("div", { className: "meso-layout", children: [
+    /* @__PURE__ */ n("aside", { className: `meso-sidebar${_ ? " meso-sidebar--collapsed" : ""}`, children: [
+      /* @__PURE__ */ n("div", { className: "meso-sidebar__header", children: [
+        c ? /* @__PURE__ */ r("div", { className: "meso-sidebar__logo meso-sidebar__logo--custom", children: c }) : /* @__PURE__ */ r("div", { className: "meso-sidebar__logo", children: a[0] }),
+        i ? /* @__PURE__ */ r("span", { className: "meso-sidebar__title meso-sidebar__title--brand", children: i }) : /* @__PURE__ */ r("span", { className: "meso-sidebar__title", children: a }),
         /* @__PURE__ */ r(
           "button",
           {
             className: "meso-sidebar__toggle",
             onClick: () => {
-              const b = !p;
-              w(b), d == null || d(b);
+              const b = !_;
+              w(b), m == null || m(b);
             },
-            "aria-label": p ? "展开侧栏" : "收起侧栏",
-            children: /* @__PURE__ */ o("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", children: [
+            "aria-label": _ ? "展开侧栏" : "收起侧栏",
+            children: /* @__PURE__ */ n("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", children: [
               /* @__PURE__ */ r("line", { x1: "2", y1: "4", x2: "14", y2: "4" }),
               /* @__PURE__ */ r("line", { x1: "2", y1: "8", x2: "14", y2: "8" }),
               /* @__PURE__ */ r("line", { x1: "2", y1: "12", x2: "14", y2: "12" })
@@ -48,7 +48,7 @@ function nr({
           }
         )
       ] }),
-      /* @__PURE__ */ r("nav", { className: "meso-sidebar__nav", children: e.map((b) => /* @__PURE__ */ o(
+      /* @__PURE__ */ r("nav", { className: "meso-sidebar__nav", children: e.map((b) => /* @__PURE__ */ n(
         "div",
         {
           className: `meso-sidebar__nav-item${b.active ? " meso-sidebar__nav-item--active" : ""}`,
@@ -63,26 +63,26 @@ function nr({
       )) }),
       t && /* @__PURE__ */ r("div", { className: "meso-sidebar__footer", children: t })
     ] }),
-    N !== !1 && /* @__PURE__ */ r("div", { className: "meso-session-col", children: s }),
-    /* @__PURE__ */ o("main", { className: "meso-main", children: [
-      /* @__PURE__ */ o("div", { className: "meso-main__header", children: [
-        /* @__PURE__ */ r("div", { className: "meso-main__header-content", children: h }),
-        k !== !1 && /* @__PURE__ */ r(
+    y !== !1 && /* @__PURE__ */ r("div", { className: "meso-session-col", children: s }),
+    /* @__PURE__ */ n("main", { className: "meso-main", children: [
+      /* @__PURE__ */ n("div", { className: "meso-main__header", children: [
+        /* @__PURE__ */ r("div", { className: "meso-main__header-content", children: u }),
+        g !== !1 && /* @__PURE__ */ r(
           "button",
           {
             className: `meso-artifact-toggle${L ? " meso-artifact-toggle--active" : ""}`,
-            onClick: y,
+            onClick: k,
             title: L ? "关闭 Artifact" : "打开 Artifact",
             "aria-label": L ? "关闭 Artifact" : "打开 Artifact",
             children: L ? (
               /* X / close icon */
-              /* @__PURE__ */ o("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ n("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", children: [
                 /* @__PURE__ */ r("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
                 /* @__PURE__ */ r("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
               ] })
             ) : (
               /* Panel / artifact icon */
-              /* @__PURE__ */ o("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ n("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", children: [
                 /* @__PURE__ */ r("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2" }),
                 /* @__PURE__ */ r("line", { x1: "14", y1: "3", x2: "14", y2: "21" })
               ] })
@@ -90,16 +90,16 @@ function nr({
           }
         )
       ] }),
-      /* @__PURE__ */ o("div", { className: "meso-main__content", children: [
-        /* @__PURE__ */ r("div", { className: "meso-main__chat", style: v ? { maxWidth: v, margin: "0 auto", width: "100%" } : void 0, children: n }),
-        L && /* @__PURE__ */ o(M, { children: [
+      /* @__PURE__ */ n("div", { className: "meso-main__content", children: [
+        /* @__PURE__ */ r("div", { className: "meso-main__chat", style: p ? { maxWidth: p, margin: "0 auto", width: "100%" } : void 0, children: o }),
+        L && /* @__PURE__ */ n(P, { children: [
           /* @__PURE__ */ r("div", { className: "meso-artifact-divider", "aria-hidden": "true" }),
           /* @__PURE__ */ r(
             "div",
             {
               className: "meso-artifact-pane",
-              style: g != null ? { width: g, minWidth: g, maxWidth: g } : void 0,
-              children: _
+              style: v != null ? { width: v, minWidth: v, maxWidth: v } : void 0,
+              children: f
             }
           )
         ] })
@@ -111,29 +111,29 @@ function re({
   role: e,
   content: t,
   streaming: s = !1,
-  timestamp: n,
-  markdown: a = !1,
-  renderMarkdown: c
+  timestamp: o,
+  markdown: l = !1,
+  renderMarkdown: a
 }) {
-  const i = a && typeof c == "function";
-  return /* @__PURE__ */ o("div", { className: `meso-bubble meso-bubble--${e}`, children: [
+  const c = l && typeof a == "function";
+  return /* @__PURE__ */ n("div", { className: `meso-bubble meso-bubble--${e}`, children: [
     e === "assistant" && /* @__PURE__ */ r("div", { className: "meso-bubble__avatar", "aria-hidden": "true", children: "AI" }),
-    /* @__PURE__ */ o("div", { className: "meso-bubble__body", children: [
-      i ? /* @__PURE__ */ r(
+    /* @__PURE__ */ n("div", { className: "meso-bubble__body", children: [
+      c ? /* @__PURE__ */ r(
         "div",
         {
           className: "meso-bubble__content meso-bubble__md",
-          dangerouslySetInnerHTML: { __html: c(t) }
+          dangerouslySetInnerHTML: { __html: a(t) }
         }
-      ) : /* @__PURE__ */ o("div", { className: "meso-bubble__content", children: [
+      ) : /* @__PURE__ */ n("div", { className: "meso-bubble__content", children: [
         t.split(`
-`).map((m, h) => /* @__PURE__ */ o(U.Fragment, { children: [
-          h > 0 && /* @__PURE__ */ r("br", {}),
-          m
-        ] }, h)),
+`).map((i, u) => /* @__PURE__ */ n(F.Fragment, { children: [
+          u > 0 && /* @__PURE__ */ r("br", {}),
+          i
+        ] }, u)),
         s && /* @__PURE__ */ r("span", { className: "meso-bubble__cursor", "aria-hidden": "true", children: "▋" })
       ] }),
-      n && /* @__PURE__ */ r("div", { className: "meso-bubble__timestamp", children: n })
+      o && /* @__PURE__ */ r("div", { className: "meso-bubble__timestamp", children: o })
     ] })
   ] });
 }
@@ -141,56 +141,56 @@ function le({
   content: e,
   pinnedContent: t,
   streaming: s = !1,
-  turnStreaming: n,
-  autoCollapseDelay: a = 1500,
-  defaultOpen: c = !0,
-  open: i,
-  onOpenChange: m,
-  collapseWhen: h = "streamEnd",
-  summary: _ = "已思考"
+  turnStreaming: o,
+  autoCollapseDelay: l = 1500,
+  defaultOpen: a = !0,
+  open: c,
+  onOpenChange: i,
+  collapseWhen: u = "streamEnd",
+  summary: f = "已思考"
 }) {
-  const l = i !== void 0, [u, f] = C(c), [k, N] = C(null), v = T(null);
-  v.current = k;
-  const g = l ? i : k !== null ? k : u, d = T(s), p = T(n), w = () => {
-    const L = !g;
-    l || N(L), m == null || m(L);
+  const d = c !== void 0, [h, N] = C(a), [g, y] = C(null), p = R(null);
+  p.current = g;
+  const v = d ? c : g !== null ? g : h, m = R(s), _ = R(o), w = () => {
+    const L = !v;
+    d || y(L), i == null || i(L);
   };
-  return R(() => {
-    if (h !== "never" && a !== null) {
-      if (d.current && !s) {
+  return I(() => {
+    if (u !== "never" && l !== null) {
+      if (m.current && !s) {
         const L = setTimeout(() => {
-          l || f(!1), v.current === null && (m == null || m(!1));
-        }, a);
+          d || N(!1), p.current === null && (i == null || i(!1));
+        }, l);
         return () => clearTimeout(L);
       }
-      d.current = s;
+      m.current = s;
     }
-  }, [s, a, h, l, m]), R(() => {
-    n !== void 0 && (p.current && !n && N(null), p.current = n);
-  }, [n]), /* @__PURE__ */ o("div", { className: `meso-think${g ? " meso-think--open" : ""}`, children: [
-    /* @__PURE__ */ o(
+  }, [s, l, u, d, i]), I(() => {
+    o !== void 0 && (_.current && !o && y(null), _.current = o);
+  }, [o]), /* @__PURE__ */ n("div", { className: `meso-think${v ? " meso-think--open" : ""}`, children: [
+    /* @__PURE__ */ n(
       "button",
       {
         className: "meso-think__header",
         onClick: w,
-        "aria-expanded": g,
+        "aria-expanded": v,
         children: [
           /* @__PURE__ */ r("svg", { className: "meso-think__chevron", width: "14", height: "14", viewBox: "0 0 14 14", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ r("polyline", { points: "3,5 7,9 11,5" }) }),
-          /* @__PURE__ */ r("span", { className: "meso-think__label", children: g ? "思考过程" : _ }),
+          /* @__PURE__ */ r("span", { className: "meso-think__label", children: v ? "思考过程" : f }),
           s && /* @__PURE__ */ r("span", { className: "meso-think__dot", "aria-label": "思考中" })
         ]
       }
     ),
-    /* @__PURE__ */ r("div", { className: "meso-think__body", children: /* @__PURE__ */ o("div", { className: "meso-think__content", children: [
+    /* @__PURE__ */ r("div", { className: "meso-think__body", children: /* @__PURE__ */ n("div", { className: "meso-think__content", children: [
       !s && t !== void 0 ? t : e,
       s && /* @__PURE__ */ r("span", { className: "meso-think__cursor", "aria-hidden": "true", children: "▋" })
     ] }) })
   ] });
 }
-function ar({ active: e = !0 }) {
+function or({ active: e = !0 }) {
   return e ? /* @__PURE__ */ r("span", { className: "meso-streaming-cursor", "aria-hidden": "true", children: "▋" }) : null;
 }
-function be(e) {
+function ye(e) {
   try {
     const t = JSON.parse(e);
     return Array.isArray(t.headers) && Array.isArray(t.rows) ? t : null;
@@ -202,104 +202,104 @@ function se({
   type: e,
   content: t,
   language: s = "plaintext",
-  streaming: n = !1,
-  onCopy: a,
-  onDownload: c,
-  renderMermaid: i,
-  highlightCode: m,
-  renderMarkdown: h
+  streaming: o = !1,
+  onCopy: l,
+  onDownload: a,
+  renderMermaid: c,
+  highlightCode: i,
+  renderMarkdown: u
 }) {
-  const [_, l] = C(!1), [u, f] = C(e), [k, N] = C(null), [v, g] = C(!1), [d, p] = C(null), w = T("");
-  R(() => {
-    f(e);
-  }, [e]), R(() => {
-    e !== "mermaid" || n || !i || t === w.current || (w.current = t, N(null), g(!1), i(t).then((y) => N(y)).catch(() => g(!0)));
-  }, [e, n, t, i]), R(() => {
-    e !== "code" || n || !m || t === w.current && d || (w.current = t, p(m(t, s)));
-  }, [e, n, t, s, m, d]);
+  const [f, d] = C(!1), [h, N] = C(e), [g, y] = C(null), [p, v] = C(!1), [m, _] = C(null), w = R("");
+  I(() => {
+    N(e);
+  }, [e]), I(() => {
+    e !== "mermaid" || o || !c || t === w.current || (w.current = t, y(null), v(!1), c(t).then((k) => y(k)).catch(() => v(!0)));
+  }, [e, o, t, c]), I(() => {
+    e !== "code" || o || !i || t === w.current && m || (w.current = t, _(i(t, s)));
+  }, [e, o, t, s, i, m]);
   const S = () => {
     navigator.clipboard.writeText(t).catch(() => {
-    }), l(!0), setTimeout(() => l(!1), 2e3), a == null || a(t);
+    }), d(!0), setTimeout(() => d(!1), 2e3), l == null || l(t);
   }, E = () => {
-    if (c) {
-      c(t);
+    if (a) {
+      a(t);
       return;
     }
-    const y = {
+    const k = {
       html: "html",
       mermaid: "md",
       markdown: "md",
       table: "json",
       code: s || "txt"
-    }, b = new Blob([t], { type: "text/plain" }), O = document.createElement("a");
-    O.href = URL.createObjectURL(b), O.download = `artifact.${y[e]}`, O.click(), URL.revokeObjectURL(O.href);
+    }, b = new Blob([t], { type: "text/plain" }), T = document.createElement("a");
+    T.href = URL.createObjectURL(b), T.download = `artifact.${k[e]}`, T.click(), URL.revokeObjectURL(T.href);
   };
-  return /* @__PURE__ */ o("div", { className: "meso-artifact", children: [
-    /* @__PURE__ */ o("div", { className: "meso-artifact__header", children: [
-      /* @__PURE__ */ r("div", { className: "meso-artifact__tabs", children: (e === "html" ? ["html", "code"] : [e]).map((y) => /* @__PURE__ */ r(
+  return /* @__PURE__ */ n("div", { className: "meso-artifact", children: [
+    /* @__PURE__ */ n("div", { className: "meso-artifact__header", children: [
+      /* @__PURE__ */ r("div", { className: "meso-artifact__tabs", children: (e === "html" ? ["html", "code"] : [e]).map((k) => /* @__PURE__ */ r(
         "span",
         {
-          className: `meso-artifact__tab${u === y ? " meso-artifact__tab--active" : ""}`,
-          onClick: () => f(y),
-          children: Ce(y, s)
+          className: `meso-artifact__tab${h === k ? " meso-artifact__tab--active" : ""}`,
+          onClick: () => N(k),
+          children: Ce(k, s)
         },
-        y
+        k
       )) }),
-      n && /* @__PURE__ */ r("span", { className: "meso-artifact__streaming-badge", children: "生成中…" }),
+      o && /* @__PURE__ */ r("span", { className: "meso-artifact__streaming-badge", children: "生成中…" }),
       /* @__PURE__ */ r("button", { className: "meso-artifact__download-btn", onClick: E, title: "下载", "aria-label": "下载文件", children: /* @__PURE__ */ r("svg", { width: "15", height: "15", viewBox: "0 0 15 15", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ r("path", { d: "M7.5 2v8M4.5 7.5L7.5 10.5 10.5 7.5M2 13h11" }) }) }),
-      /* @__PURE__ */ r("button", { className: "meso-artifact__copy-btn", onClick: S, title: "复制", "aria-label": "复制代码", children: _ ? /* @__PURE__ */ r("svg", { width: "15", height: "15", viewBox: "0 0 15 15", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ r("polyline", { points: "2,8 6,12 13,4" }) }) : /* @__PURE__ */ o("svg", { width: "15", height: "15", viewBox: "0 0 15 15", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", children: [
+      /* @__PURE__ */ r("button", { className: "meso-artifact__copy-btn", onClick: S, title: "复制", "aria-label": "复制代码", children: f ? /* @__PURE__ */ r("svg", { width: "15", height: "15", viewBox: "0 0 15 15", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ r("polyline", { points: "2,8 6,12 13,4" }) }) : /* @__PURE__ */ n("svg", { width: "15", height: "15", viewBox: "0 0 15 15", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", children: [
         /* @__PURE__ */ r("rect", { x: "5", y: "5", width: "8", height: "9", rx: "1.5" }),
         /* @__PURE__ */ r("path", { d: "M10 5V3.5A1.5 1.5 0 008.5 2h-6A1.5 1.5 0 001 3.5v9A1.5 1.5 0 002.5 14H4" })
       ] }) })
     ] }),
-    /* @__PURE__ */ o("div", { className: "meso-artifact__body", children: [
-      u === "html" && /* @__PURE__ */ r("iframe", { className: "meso-artifact__preview", srcDoc: t, sandbox: "allow-scripts", title: "HTML 预览" }),
-      u === "mermaid" && /* @__PURE__ */ o(M, { children: [
-        n && /* @__PURE__ */ o("pre", { className: "meso-artifact__code", children: [
+    /* @__PURE__ */ n("div", { className: "meso-artifact__body", children: [
+      h === "html" && /* @__PURE__ */ r("iframe", { className: "meso-artifact__preview", srcDoc: t, sandbox: "allow-scripts", title: "HTML 预览" }),
+      h === "mermaid" && /* @__PURE__ */ n(P, { children: [
+        o && /* @__PURE__ */ n("pre", { className: "meso-artifact__code", children: [
           /* @__PURE__ */ r("code", { children: t }),
           /* @__PURE__ */ r("span", { className: "meso-artifact__cursor", "aria-hidden": "true", children: "▋" })
         ] }),
-        !n && k && /* @__PURE__ */ r(
+        !o && g && /* @__PURE__ */ r(
           "div",
           {
             className: "meso-artifact__mermaid",
-            dangerouslySetInnerHTML: { __html: k }
+            dangerouslySetInnerHTML: { __html: g }
           }
         ),
-        !n && !k && !v && !i && /* @__PURE__ */ o("div", { className: "meso-artifact__mermaid-placeholder", children: [
+        !o && !g && !p && !c && /* @__PURE__ */ n("div", { className: "meso-artifact__mermaid-placeholder", children: [
           /* @__PURE__ */ r("span", { children: "图表预览需要集成 Mermaid 渲染器" }),
           /* @__PURE__ */ r("pre", { className: "meso-artifact__code", style: { flex: 1 }, children: /* @__PURE__ */ r("code", { children: t }) })
         ] }),
-        !n && v && /* @__PURE__ */ o("div", { className: "meso-artifact__mermaid-placeholder meso-artifact__mermaid-placeholder--error", children: [
+        !o && p && /* @__PURE__ */ n("div", { className: "meso-artifact__mermaid-placeholder meso-artifact__mermaid-placeholder--error", children: [
           /* @__PURE__ */ r("span", { children: "图表渲染失败，请检查语法" }),
           /* @__PURE__ */ r("pre", { className: "meso-artifact__code", style: { flex: 1 }, children: /* @__PURE__ */ r("code", { children: t }) })
         ] }),
-        !n && !k && !v && i && /* @__PURE__ */ r("div", { className: "meso-artifact__mermaid-placeholder", children: /* @__PURE__ */ r("span", { children: "渲染中…" }) })
+        !o && !g && !p && c && /* @__PURE__ */ r("div", { className: "meso-artifact__mermaid-placeholder", children: /* @__PURE__ */ r("span", { children: "渲染中…" }) })
       ] }),
-      u === "markdown" && /* @__PURE__ */ r(M, { children: h ? /* @__PURE__ */ r(
+      h === "markdown" && /* @__PURE__ */ r(P, { children: u ? /* @__PURE__ */ r(
         "div",
         {
           className: "meso-artifact__markdown",
-          dangerouslySetInnerHTML: { __html: h(t) }
+          dangerouslySetInnerHTML: { __html: u(t) }
         }
-      ) : /* @__PURE__ */ o("pre", { className: "meso-artifact__code", children: [
+      ) : /* @__PURE__ */ n("pre", { className: "meso-artifact__code", children: [
         /* @__PURE__ */ r("code", { children: t }),
-        n && /* @__PURE__ */ r("span", { className: "meso-artifact__cursor", "aria-hidden": "true", children: "▋" })
+        o && /* @__PURE__ */ r("span", { className: "meso-artifact__cursor", "aria-hidden": "true", children: "▋" })
       ] }) }),
-      u === "table" && /* @__PURE__ */ r(xe, { content: t, streaming: n }),
-      (u === "code" || u === "html" && !1) && /* @__PURE__ */ o("pre", { className: "meso-artifact__code", children: [
-        d && !n ? /* @__PURE__ */ r("code", { dangerouslySetInnerHTML: { __html: d } }) : /* @__PURE__ */ r("code", { children: t }),
-        n && /* @__PURE__ */ r("span", { className: "meso-artifact__cursor", "aria-hidden": "true", children: "▋" })
+      h === "table" && /* @__PURE__ */ r(xe, { content: t, streaming: o }),
+      (h === "code" || h === "html" && !1) && /* @__PURE__ */ n("pre", { className: "meso-artifact__code", children: [
+        m && !o ? /* @__PURE__ */ r("code", { dangerouslySetInnerHTML: { __html: m } }) : /* @__PURE__ */ r("code", { children: t }),
+        o && /* @__PURE__ */ r("span", { className: "meso-artifact__cursor", "aria-hidden": "true", children: "▋" })
       ] })
     ] })
   ] });
 }
 function xe({ content: e, streaming: t }) {
-  const s = be(e);
-  return s ? /* @__PURE__ */ r("div", { className: "meso-artifact__table-wrap", children: /* @__PURE__ */ o("table", { className: "meso-artifact__table", children: [
-    /* @__PURE__ */ r("thead", { children: /* @__PURE__ */ r("tr", { children: s.headers.map((n, a) => /* @__PURE__ */ r("th", { children: n }, a)) }) }),
-    /* @__PURE__ */ r("tbody", { children: s.rows.map((n, a) => /* @__PURE__ */ r("tr", { children: n.map((c, i) => /* @__PURE__ */ r("td", { children: String(c) }, i)) }, a)) })
-  ] }) }) : /* @__PURE__ */ o("pre", { className: "meso-artifact__code", children: [
+  const s = ye(e);
+  return s ? /* @__PURE__ */ r("div", { className: "meso-artifact__table-wrap", children: /* @__PURE__ */ n("table", { className: "meso-artifact__table", children: [
+    /* @__PURE__ */ r("thead", { children: /* @__PURE__ */ r("tr", { children: s.headers.map((o, l) => /* @__PURE__ */ r("th", { children: o }, l)) }) }),
+    /* @__PURE__ */ r("tbody", { children: s.rows.map((o, l) => /* @__PURE__ */ r("tr", { children: o.map((a, c) => /* @__PURE__ */ r("td", { children: String(a) }, c)) }, l)) })
+  ] }) }) : /* @__PURE__ */ n("pre", { className: "meso-artifact__code", children: [
     /* @__PURE__ */ r("code", { children: e }),
     t && /* @__PURE__ */ r("span", { className: "meso-artifact__cursor", "aria-hidden": "true", children: "▋" })
   ] });
@@ -314,36 +314,36 @@ const Se = {
   pending: "等待",
   warning: "警告"
 };
-function A({
+function W({
   status: e,
   size: t = 16,
   className: s,
-  "aria-label": n
+  "aria-label": o
 }) {
-  const a = n ?? Se[e];
-  return /* @__PURE__ */ o(
+  const l = o ?? Se[e];
+  return /* @__PURE__ */ n(
     "span",
     {
       className: `meso-status-icon meso-status-icon--${e}${s ? ` ${s}` : ""}`,
       style: { width: t, height: t },
       role: "img",
-      "aria-label": a,
+      "aria-label": l,
       children: [
-        e === "running" && /* @__PURE__ */ o("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
+        e === "running" && /* @__PURE__ */ n("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
           /* @__PURE__ */ r("circle", { cx: "8", cy: "8", r: "6", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeDasharray: "3 3", className: "meso-status-icon__spin" }),
           /* @__PURE__ */ r("circle", { cx: "8", cy: "8", r: "2.5", fill: "currentColor", className: "meso-status-icon__pulse" })
         ] }),
-        e === "done" && /* @__PURE__ */ o("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
+        e === "done" && /* @__PURE__ */ n("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
           /* @__PURE__ */ r("circle", { cx: "8", cy: "8", r: "7", fill: "currentColor" }),
           /* @__PURE__ */ r("polyline", { points: "4.5,8 7,10.5 11.5,5.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" })
         ] }),
-        e === "error" && /* @__PURE__ */ o("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
+        e === "error" && /* @__PURE__ */ n("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
           /* @__PURE__ */ r("circle", { cx: "8", cy: "8", r: "7", fill: "currentColor" }),
           /* @__PURE__ */ r("line", { x1: "5.5", y1: "5.5", x2: "10.5", y2: "10.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round" }),
           /* @__PURE__ */ r("line", { x1: "10.5", y1: "5.5", x2: "5.5", y2: "10.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round" })
         ] }),
         e === "pending" && /* @__PURE__ */ r("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ r("circle", { cx: "8", cy: "8", r: "6.25", stroke: "currentColor", strokeWidth: "1.5" }) }),
-        e === "warning" && /* @__PURE__ */ o("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
+        e === "warning" && /* @__PURE__ */ n("svg", { viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
           /* @__PURE__ */ r("circle", { cx: "8", cy: "8", r: "7", fill: "currentColor" }),
           /* @__PURE__ */ r("line", { x1: "8", y1: "5", x2: "8", y2: "9", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round" }),
           /* @__PURE__ */ r("circle", { cx: "8", cy: "11.5", r: "0.75", fill: "white" })
@@ -365,13 +365,13 @@ function Le(e) {
   }
 }
 function $e({ stages: e, compact: t = !1 }) {
-  return e.length === 0 ? null : /* @__PURE__ */ r("div", { className: `meso-stages${t ? " meso-stages--compact" : ""}`, role: "status", "aria-label": "处理进度", children: e.map((s, n) => /* @__PURE__ */ o(
+  return e.length === 0 ? null : /* @__PURE__ */ r("div", { className: `meso-stages${t ? " meso-stages--compact" : ""}`, role: "status", "aria-label": "处理进度", children: e.map((s, o) => /* @__PURE__ */ n(
     "div",
     {
       className: `meso-stage meso-stage--${s.status}`,
       children: [
-        /* @__PURE__ */ r("div", { className: "meso-stage__dot", children: /* @__PURE__ */ r(A, { status: Le(s.status), size: 10 }) }),
-        n < e.length - 1 && /* @__PURE__ */ r("div", { className: `meso-stage__line${s.status === "done" ? " meso-stage__line--done" : ""}` }),
+        /* @__PURE__ */ r("div", { className: "meso-stage__dot", children: /* @__PURE__ */ r(W, { status: Le(s.status), size: 10 }) }),
+        o < e.length - 1 && /* @__PURE__ */ r("div", { className: `meso-stage__line${s.status === "done" ? " meso-stage__line--done" : ""}` }),
         /* @__PURE__ */ r("span", { className: `meso-stage__label${t ? " meso-stage__label--compact" : ""}`, children: s.label })
       ]
     },
@@ -379,31 +379,31 @@ function $e({ stages: e, compact: t = !1 }) {
   )) });
 }
 function Te(e) {
-  const { nodes: t, nodeOrder: s } = e, n = /* @__PURE__ */ new Map();
-  for (const m of s) {
-    const h = t[m];
-    if (!h) continue;
-    const _ = h.parent_id ?? null;
-    n.has(_) || n.set(_, []), n.get(_).push(m);
+  const { nodes: t, nodeOrder: s } = e, o = /* @__PURE__ */ new Map();
+  for (const i of s) {
+    const u = t[i];
+    if (!u) continue;
+    const f = u.parent_id ?? null;
+    o.has(f) || o.set(f, []), o.get(f).push(i);
   }
-  const a = /* @__PURE__ */ new Map();
-  for (const [, m] of n)
-    if (m.length > 1)
-      for (const h of m) a.set(h, m);
-  const c = [], i = /* @__PURE__ */ new Set();
-  for (const m of s) {
-    if (i.has(m)) continue;
-    const h = t[m];
-    if (!h) continue;
-    const _ = a.get(m);
-    if (_) {
-      const l = _.map((u) => t[u]).filter((u) => !!u);
-      for (const u of l) i.add(u.node_id);
-      c.push({ kind: "parallel", nodes: l, isLast: !1 });
+  const l = /* @__PURE__ */ new Map();
+  for (const [, i] of o)
+    if (i.length > 1)
+      for (const u of i) l.set(u, i);
+  const a = [], c = /* @__PURE__ */ new Set();
+  for (const i of s) {
+    if (c.has(i)) continue;
+    const u = t[i];
+    if (!u) continue;
+    const f = l.get(i);
+    if (f) {
+      const d = f.map((h) => t[h]).filter((h) => !!h);
+      for (const h of d) c.add(h.node_id);
+      a.push({ kind: "parallel", nodes: d, isLast: !1 });
     } else
-      i.add(m), c.push({ kind: "node", node: h, isLast: !1 });
+      c.add(i), a.push({ kind: "node", node: u, isLast: !1 });
   }
-  return c.length > 0 && (c[c.length - 1] = { ...c[c.length - 1], isLast: !0 }), c;
+  return a.length > 0 && (a[a.length - 1] = { ...a[a.length - 1], isLast: !0 }), a;
 }
 function Ee(e) {
   switch (e) {
@@ -417,9 +417,9 @@ function Ee(e) {
       return "warning";
   }
 }
-function ie({ state: e }) {
+function ce({ state: e }) {
   return /* @__PURE__ */ r(
-    A,
+    W,
     {
       status: Ee(e),
       size: 12,
@@ -427,51 +427,51 @@ function ie({ state: e }) {
     }
   );
 }
-function ce(e) {
+function ie(e) {
   return e < 1e3 ? `${e}ms` : `${(e / 1e3).toFixed(1)}s`;
 }
 function Oe({ node: e, isLast: t }) {
-  var c;
-  const [s, n] = C(!1), a = e.metadata && Object.keys(e.metadata).length > 0;
-  return /* @__PURE__ */ o("div", { className: `meso-wf-node meso-wf-node--${e.state}`, children: [
-    /* @__PURE__ */ o("div", { className: "meso-wf-node__track", children: [
-      /* @__PURE__ */ r("div", { className: "meso-wf-node__dot", children: /* @__PURE__ */ r(ie, { state: e.state }) }),
+  var a;
+  const [s, o] = C(!1), l = e.metadata && Object.keys(e.metadata).length > 0;
+  return /* @__PURE__ */ n("div", { className: `meso-wf-node meso-wf-node--${e.state}`, children: [
+    /* @__PURE__ */ n("div", { className: "meso-wf-node__track", children: [
+      /* @__PURE__ */ r("div", { className: "meso-wf-node__dot", children: /* @__PURE__ */ r(ce, { state: e.state }) }),
       !t && /* @__PURE__ */ r("div", { className: "meso-wf-node__line" })
     ] }),
-    /* @__PURE__ */ o("div", { className: "meso-wf-node__body", children: [
-      /* @__PURE__ */ o("div", { className: "meso-wf-node__header", children: [
+    /* @__PURE__ */ n("div", { className: "meso-wf-node__body", children: [
+      /* @__PURE__ */ n("div", { className: "meso-wf-node__header", children: [
         /* @__PURE__ */ r("code", { className: "meso-wf-node__name", children: e.name }),
-        e.duration_ms !== void 0 && /* @__PURE__ */ r("span", { className: "meso-wf-node__duration", children: ce(e.duration_ms) }),
-        a && /* @__PURE__ */ r(
+        e.duration_ms !== void 0 && /* @__PURE__ */ r("span", { className: "meso-wf-node__duration", children: ie(e.duration_ms) }),
+        l && /* @__PURE__ */ r(
           "button",
           {
             className: "meso-wf-node__expand",
-            onClick: () => n((i) => !i),
+            onClick: () => o((c) => !c),
             "aria-expanded": s,
             "aria-label": s ? "收起详情" : "展开详情",
             children: /* @__PURE__ */ r("svg", { viewBox: "0 0 10 10", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", style: { transform: s ? "rotate(180deg)" : void 0 }, children: /* @__PURE__ */ r("polyline", { points: "2,3.5 5,6.5 8,3.5" }) })
           }
         )
       ] }),
-      e.state === "error" && !!((c = e.metadata) != null && c.error) && /* @__PURE__ */ r("div", { className: "meso-wf-node__error", children: String(e.metadata.error) }),
-      s && a && /* @__PURE__ */ r("pre", { className: "meso-wf-node__meta", children: JSON.stringify(e.metadata, null, 2) })
+      e.state === "error" && !!((a = e.metadata) != null && a.error) && /* @__PURE__ */ r("div", { className: "meso-wf-node__error", children: String(e.metadata.error) }),
+      s && l && /* @__PURE__ */ r("pre", { className: "meso-wf-node__meta", children: JSON.stringify(e.metadata, null, 2) })
     ] })
   ] });
 }
 function Re({ nodes: e, isLast: t }) {
-  return /* @__PURE__ */ o("div", { className: "meso-wf-parallel", children: [
-    /* @__PURE__ */ r("div", { className: "meso-wf-parallel__row", children: e.map((s, n) => {
-      var a;
-      return /* @__PURE__ */ o("div", { className: `meso-wf-parallel__branch meso-wf-parallel__branch--${s.state}`, children: [
-        /* @__PURE__ */ r("div", { className: "meso-wf-parallel__branch-dot", children: /* @__PURE__ */ r(ie, { state: s.state }) }),
-        /* @__PURE__ */ o("div", { className: "meso-wf-parallel__branch-body", children: [
-          /* @__PURE__ */ o("div", { className: "meso-wf-parallel__branch-label", children: [
+  return /* @__PURE__ */ n("div", { className: "meso-wf-parallel", children: [
+    /* @__PURE__ */ r("div", { className: "meso-wf-parallel__row", children: e.map((s, o) => {
+      var l;
+      return /* @__PURE__ */ n("div", { className: `meso-wf-parallel__branch meso-wf-parallel__branch--${s.state}`, children: [
+        /* @__PURE__ */ r("div", { className: "meso-wf-parallel__branch-dot", children: /* @__PURE__ */ r(ce, { state: s.state }) }),
+        /* @__PURE__ */ n("div", { className: "meso-wf-parallel__branch-body", children: [
+          /* @__PURE__ */ n("div", { className: "meso-wf-parallel__branch-label", children: [
             "并行分支 ",
-            String.fromCharCode(65 + n)
+            String.fromCharCode(65 + o)
           ] }),
           /* @__PURE__ */ r("code", { className: "meso-wf-node__name", children: s.name }),
-          s.state === "error" && !!((a = s.metadata) != null && a.error) && /* @__PURE__ */ r("div", { className: "meso-wf-node__error", children: String(s.metadata.error) }),
-          s.duration_ms !== void 0 && /* @__PURE__ */ r("span", { className: "meso-wf-node__duration", style: { display: "block", marginTop: 2 }, children: ce(s.duration_ms) })
+          s.state === "error" && !!((l = s.metadata) != null && l.error) && /* @__PURE__ */ r("div", { className: "meso-wf-node__error", children: String(s.metadata.error) }),
+          s.duration_ms !== void 0 && /* @__PURE__ */ r("span", { className: "meso-wf-node__duration", style: { display: "block", marginTop: 2 }, children: ie(s.duration_ms) })
         ] })
       ] }, s.node_id);
     }) }),
@@ -480,20 +480,20 @@ function Re({ nodes: e, isLast: t }) {
 }
 function Ie({ runs: e, showRunId: t = !0, hidden: s }) {
   if (e.length === 0 || s) return null;
-  const n = e.length > 1;
-  return /* @__PURE__ */ r("div", { className: "meso-wf", role: "status", "aria-label": "工作流进度", children: e.map((a) => {
-    const c = Te(a);
-    return /* @__PURE__ */ o("div", { className: "meso-wf-run", children: [
-      n && t && /* @__PURE__ */ r("div", { className: "meso-wf-run__label", children: a.run_id }),
-      c.map(
-        (i, m) => i.kind === "parallel" ? /* @__PURE__ */ r(Re, { nodes: i.nodes, isLast: i.isLast }, `parallel-${m}`) : /* @__PURE__ */ r(Oe, { node: i.node, isLast: i.isLast }, i.node.node_id)
+  const o = e.length > 1;
+  return /* @__PURE__ */ r("div", { className: "meso-wf", role: "status", "aria-label": "工作流进度", children: e.map((l) => {
+    const a = Te(l);
+    return /* @__PURE__ */ n("div", { className: "meso-wf-run", children: [
+      o && t && /* @__PURE__ */ r("div", { className: "meso-wf-run__label", children: l.run_id }),
+      a.map(
+        (c, i) => c.kind === "parallel" ? /* @__PURE__ */ r(Re, { nodes: c.nodes, isLast: c.isLast }, `parallel-${i}`) : /* @__PURE__ */ r(Oe, { node: c.node, isLast: c.isLast }, c.node.node_id)
       )
-    ] }, a.run_id);
+    ] }, l.run_id);
   }) });
 }
 function Me({ soul: e, compact: t = !1 }) {
   const s = e.name.charAt(0);
-  return /* @__PURE__ */ o(
+  return /* @__PURE__ */ n(
     "div",
     {
       className: `meso-soul${t ? " meso-soul--compact" : ""}`,
@@ -502,9 +502,9 @@ function Me({ soul: e, compact: t = !1 }) {
       "aria-label": `当前 Soul: ${e.name}`,
       children: [
         /* @__PURE__ */ r("div", { className: "meso-soul__avatar", children: e.avatar ? /* @__PURE__ */ r("img", { src: e.avatar, alt: e.name, className: "meso-soul__img" }) : /* @__PURE__ */ r("span", { className: "meso-soul__initial", children: s }) }),
-        !t && /* @__PURE__ */ o(M, { children: [
+        !t && /* @__PURE__ */ n(P, { children: [
           /* @__PURE__ */ r("span", { className: "meso-soul__name", children: e.name }),
-          e.traits && e.traits.length > 0 && /* @__PURE__ */ r("div", { className: "meso-soul__traits", children: e.traits.map((n) => /* @__PURE__ */ r("span", { className: "meso-soul__trait", children: n }, n)) })
+          e.traits && e.traits.length > 0 && /* @__PURE__ */ r("div", { className: "meso-soul__traits", children: e.traits.map((o) => /* @__PURE__ */ r("span", { className: "meso-soul__trait", children: o }, o)) })
         ] })
       ]
     }
@@ -516,7 +516,7 @@ const Ae = {
 };
 function Be({ skill: e }) {
   const t = e.provider ? Ae[e.provider] : null;
-  return /* @__PURE__ */ o(
+  return /* @__PURE__ */ n(
     "div",
     {
       className: "meso-skill",
@@ -534,7 +534,7 @@ function Be({ skill: e }) {
           }
         ) }),
         /* @__PURE__ */ r("span", { className: "meso-skill__name", children: e.name }),
-        e.focus && e.focus.length > 0 && /* @__PURE__ */ o("span", { className: "meso-skill__focus", children: [
+        e.focus && e.focus.length > 0 && /* @__PURE__ */ n("span", { className: "meso-skill__focus", children: [
           "· ",
           e.focus.join(", ")
         ] }),
@@ -548,20 +548,20 @@ const De = {
   write: { label: "写入操作", confirmText: "确认执行" },
   destructive: { label: "危险操作", confirmText: "确认执行（不可撤销）" }
 };
-function We({ toolCall: e, onConfirm: t, onCancel: s }) {
-  const n = e.risk ?? "safe", a = De[n], c = Object.keys(e.args).length > 0;
-  return /* @__PURE__ */ o("div", { className: `meso-confirm-gate meso-confirm-gate--${n}`, role: "alertdialog", "aria-label": "工具执行确认", "data-testid": "meso-confirm-gate", children: [
-    /* @__PURE__ */ r("div", { className: "meso-confirm-gate__icon", children: /* @__PURE__ */ o("svg", { width: "20", height: "20", viewBox: "0 0 20 20", fill: "none", "aria-hidden": "true", children: [
+function Pe({ toolCall: e, onConfirm: t, onCancel: s }) {
+  const o = e.risk ?? "safe", l = De[o], a = Object.keys(e.args).length > 0;
+  return /* @__PURE__ */ n("div", { className: `meso-confirm-gate meso-confirm-gate--${o}`, role: "alertdialog", "aria-label": "工具执行确认", "data-testid": "meso-confirm-gate", children: [
+    /* @__PURE__ */ r("div", { className: "meso-confirm-gate__icon", children: /* @__PURE__ */ n("svg", { width: "20", height: "20", viewBox: "0 0 20 20", fill: "none", "aria-hidden": "true", children: [
       /* @__PURE__ */ r("circle", { cx: "10", cy: "10", r: "9", stroke: "currentColor", strokeWidth: "1.5" }),
       /* @__PURE__ */ r("path", { d: "M10 6v5M10 13.5v.5", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round" })
     ] }) }),
-    /* @__PURE__ */ o("div", { className: "meso-confirm-gate__body", children: [
-      /* @__PURE__ */ o("div", { className: "meso-confirm-gate__title", children: [
-        /* @__PURE__ */ r("span", { className: `meso-confirm-gate__risk-badge meso-confirm-gate__risk-badge--${n}`, children: a.label }),
+    /* @__PURE__ */ n("div", { className: "meso-confirm-gate__body", children: [
+      /* @__PURE__ */ n("div", { className: "meso-confirm-gate__title", children: [
+        /* @__PURE__ */ r("span", { className: `meso-confirm-gate__risk-badge meso-confirm-gate__risk-badge--${o}`, children: l.label }),
         /* @__PURE__ */ r("code", { className: "meso-confirm-gate__tool-name", children: e.name })
       ] }),
-      c && /* @__PURE__ */ r("pre", { className: "meso-confirm-gate__args", children: JSON.stringify(e.args, null, 2) }),
-      /* @__PURE__ */ o("div", { className: "meso-confirm-gate__actions", children: [
+      a && /* @__PURE__ */ r("pre", { className: "meso-confirm-gate__args", children: JSON.stringify(e.args, null, 2) }),
+      /* @__PURE__ */ n("div", { className: "meso-confirm-gate__actions", children: [
         /* @__PURE__ */ r(
           "button",
           {
@@ -573,16 +573,16 @@ function We({ toolCall: e, onConfirm: t, onCancel: s }) {
         /* @__PURE__ */ r(
           "button",
           {
-            className: `meso-confirm-gate__btn meso-confirm-gate__btn--confirm meso-confirm-gate__btn--${n}`,
+            className: `meso-confirm-gate__btn meso-confirm-gate__btn--confirm meso-confirm-gate__btn--${o}`,
             onClick: () => t(e.id),
-            children: a.confirmText
+            children: l.confirmText
           }
         )
       ] })
     ] })
   ] });
 }
-function je(e) {
+function We(e) {
   switch (e) {
     case "pending":
       return "pending";
@@ -596,7 +596,7 @@ function je(e) {
       return "error";
   }
 }
-function Pe(e) {
+function je(e) {
   switch (e) {
     case "pending":
       return "pending";
@@ -627,159 +627,237 @@ const ze = {
   api: "API",
   local: "本地"
 };
-function de({ toolCall: e, onConfirm: t, onCancel: s, className: n, "data-testid": a, simplify: c }) {
-  var d, p;
-  const [i, m] = C(!1), [h, _] = C((c != null && c.hideResultDetails, !1)), { call: l, result: u, status: f } = e, k = l.risk ?? "safe", N = Object.keys(l.args).length > 0, { hideMetadata: v, hideResultDetails: g } = c || {};
-  return /* @__PURE__ */ o(
+function de({ toolCall: e, onConfirm: t, onCancel: s, className: o, "data-testid": l, simplify: a }) {
+  var H, D;
+  const { call: c, result: i, status: u } = e, f = c.risk ?? "safe", d = Object.keys(c.args).length > 0, h = (a == null ? void 0 : a.verbosity) ?? (a != null && a.compact ? "compact" : "standard"), N = (a == null ? void 0 : a.hideMetadata) ?? !1, g = h === "compact", y = h === "standard", p = h === "detailed", v = (a == null ? void 0 : a.showDuration) ?? !g, m = (a == null ? void 0 : a.showProvider) ?? !g, _ = (a == null ? void 0 : a.showRiskLevel) ?? !g, w = (a == null ? void 0 : a.showExecutionTimeline) ?? p, S = (a == null ? void 0 : a.defaultParamsCollapsed) ?? (y || g), E = (a == null ? void 0 : a.defaultOutputCollapsed) ?? (y || g), L = (a == null ? void 0 : a.defaultMetadataCollapsed) ?? (y || g), [k, b] = C(
+    N || a != null && a.hideResultDetails ? !1 : !S
+  ), [T, K] = C(!E), [B, j] = C(!L), M = (H = i == null ? void 0 : i.metadata) == null ? void 0 : H.resultCount;
+  return /* @__PURE__ */ n(
     "div",
     {
-      className: `meso-tool meso-tool--${f} meso-tool--risk-${k}${n ? ` ${n}` : ""}`,
-      "data-testid": a ?? "meso-tool-call-block",
+      className: `meso-tool meso-tool--${u} meso-tool--risk-${f} meso-tool--${h}${o ? ` ${o}` : ""}`,
+      "data-testid": l ?? "meso-tool-call-block",
       children: [
-        /* @__PURE__ */ o("div", { className: "meso-tool__header", children: [
-          /* @__PURE__ */ r(A, { status: je(f), size: 14, className: "meso-tool__status-icon" }),
-          /* @__PURE__ */ r("span", { className: "meso-tool__name", children: l.name }),
-          l.provider && te[l.provider] && /* @__PURE__ */ r("span", { className: `meso-tool__provider meso-tool__provider--${l.provider}`, children: te[l.provider] }),
-          ((d = l.annotations) == null ? void 0 : d.open_world) && /* @__PURE__ */ r("span", { className: "meso-tool__annotation", title: "此工具会访问外部网络", children: "🌐" }),
-          k !== "safe" && /* @__PURE__ */ r("span", { className: `meso-tool__risk meso-tool__risk--${k}`, children: ze[k] }),
-          !v && (u == null ? void 0 : u.duration_ms) !== void 0 && /* @__PURE__ */ o("span", { className: "meso-tool__duration", children: [
-            u.duration_ms,
-            "ms"
+        /* @__PURE__ */ n("div", { className: "meso-tool__header", children: [
+          /* @__PURE__ */ r(W, { status: We(u), size: 14, className: "meso-tool__status-icon" }),
+          /* @__PURE__ */ r("span", { className: "meso-tool__name", children: c.name }),
+          g && M !== void 0 && /* @__PURE__ */ n("span", { className: "meso-tool__summary", children: [
+            "— ",
+            M,
+            " 项"
           ] }),
-          !v && N && /* @__PURE__ */ o(
+          g && (i == null ? void 0 : i.duration_ms) !== void 0 && /* @__PURE__ */ n("span", { className: "meso-tool__duration", children: [
+            "(",
+            i.duration_ms,
+            "ms)"
+          ] }),
+          !g && M !== void 0 && /* @__PURE__ */ n("span", { className: "meso-tool__summary", children: [
+            "— ",
+            M,
+            " 项"
+          ] }),
+          !g && v && (i == null ? void 0 : i.duration_ms) !== void 0 && /* @__PURE__ */ n("span", { className: "meso-tool__duration", children: [
+            "(",
+            i.duration_ms,
+            "ms)"
+          ] }),
+          !g && _ && f !== "safe" && /* @__PURE__ */ r("span", { className: `meso-tool__risk meso-tool__risk--${f}`, children: ze[f] }),
+          m && c.provider && te[c.provider] && /* @__PURE__ */ r("span", { className: `meso-tool__provider meso-tool__provider--${c.provider}`, children: te[c.provider] }),
+          ((D = c.annotations) == null ? void 0 : D.open_world) && /* @__PURE__ */ r("span", { className: "meso-tool__annotation", title: "此工具会访问外部网络", children: "🌐" }),
+          !g && d && /* @__PURE__ */ n(
             "button",
             {
               className: "meso-tool__toggle",
-              onClick: () => m((w) => !w),
-              "aria-expanded": i,
-              "aria-label": i ? "折叠参数" : "展开参数",
+              onClick: () => b(($) => !$),
+              "aria-expanded": k,
+              "aria-label": k ? "折叠参数" : "展开参数",
               children: [
-                i ? "▾" : "▸",
+                k ? "▾" : "▸",
                 " 参数"
               ]
             }
-          ),
-          v && N && ((p = u == null ? void 0 : u.metadata) == null ? void 0 : p.resultCount) !== void 0 && /* @__PURE__ */ o("span", { className: "meso-tool__summary", children: [
-            "— ",
-            u.metadata.resultCount,
-            " 项"
-          ] })
+          )
         ] }),
-        !v && i && N && /* @__PURE__ */ r("pre", { className: "meso-tool__args", children: JSON.stringify(l.args, null, 2) }),
-        f === "awaiting_confirm" && t && s && /* @__PURE__ */ r(
-          We,
+        !g && d && /* @__PURE__ */ n("details", { className: "meso-tool__params-details", open: k, children: [
+          /* @__PURE__ */ r(
+            "summary",
+            {
+              className: "meso-tool__params-summary",
+              onClick: ($) => {
+                $.preventDefault(), b((A) => !A);
+              },
+              children: /* @__PURE__ */ n("span", { className: "meso-tool__params-toggle", children: [
+                k ? "▾" : "▸",
+                " Input Parameters"
+              ] })
+            }
+          ),
+          k && /* @__PURE__ */ r("pre", { className: "meso-tool__args", children: JSON.stringify(c.args, null, p ? 2 : 1) })
+        ] }),
+        u === "awaiting_confirm" && t && s && /* @__PURE__ */ r(
+          Pe,
           {
-            toolCall: l,
+            toolCall: c,
             onConfirm: t,
             onCancel: s
           }
         ),
-        (f === "done" || f === "error") && u && !g && /* @__PURE__ */ o("div", { className: "meso-tool__result", children: [
-          /* @__PURE__ */ o(
-            "button",
+        (u === "done" || u === "error") && i && !g && /* @__PURE__ */ n("details", { className: "meso-tool__result-details", open: T, children: [
+          /* @__PURE__ */ r(
+            "summary",
             {
-              className: "meso-tool__toggle",
-              onClick: () => _((w) => !w),
-              "aria-expanded": h,
-              "aria-label": h ? "折叠结果" : "展开结果",
-              children: [
-                h ? "▾" : "▸",
+              className: "meso-tool__result-summary",
+              onClick: ($) => {
+                $.preventDefault(), K((A) => !A);
+              },
+              children: /* @__PURE__ */ n("span", { className: "meso-tool__result-toggle", children: [
+                T ? "▾" : "▸",
                 " ",
-                f === "error" ? "错误" : "结果"
-              ]
+                u === "error" ? "Error" : "Output"
+              ] })
             }
           ),
-          h && /* @__PURE__ */ r("pre", { className: `meso-tool__output${f === "error" ? " meso-tool__output--error" : ""}`, children: f === "error" ? u.error : u.output })
+          T && /* @__PURE__ */ r("pre", { className: `meso-tool__output${u === "error" ? " meso-tool__output--error" : ""}`, children: u === "error" ? i.error : p ? i.output : i.output.slice(0, 200) + (i.output.length > 200 ? "..." : "") })
+        ] }),
+        !g && (i == null ? void 0 : i.metadata) && /* @__PURE__ */ n("details", { className: "meso-tool__metadata-details", open: B, children: [
+          /* @__PURE__ */ r(
+            "summary",
+            {
+              className: "meso-tool__metadata-summary",
+              onClick: ($) => {
+                $.preventDefault(), j((A) => !A);
+              },
+              children: /* @__PURE__ */ n("span", { className: "meso-tool__metadata-toggle", children: [
+                B ? "▾" : "▸",
+                " Metadata"
+              ] })
+            }
+          ),
+          B && /* @__PURE__ */ n("div", { className: "meso-tool__metadata", children: [
+            i.metadata.resultCount !== void 0 && /* @__PURE__ */ n("div", { className: "meso-tool__metadata-row", children: [
+              /* @__PURE__ */ r("span", { className: "meso-tool__metadata-key", children: "resultCount:" }),
+              /* @__PURE__ */ r("span", { className: "meso-tool__metadata-value", children: i.metadata.resultCount })
+            ] }),
+            i.metadata.category !== void 0 && /* @__PURE__ */ n("div", { className: "meso-tool__metadata-row", children: [
+              /* @__PURE__ */ r("span", { className: "meso-tool__metadata-key", children: "category:" }),
+              /* @__PURE__ */ r("span", { className: "meso-tool__metadata-value", children: i.metadata.category })
+            ] }),
+            p && i.metadata.custom && /* @__PURE__ */ n("div", { className: "meso-tool__metadata-row", children: [
+              /* @__PURE__ */ r("span", { className: "meso-tool__metadata-key", children: "custom:" }),
+              /* @__PURE__ */ r("pre", { className: "meso-tool__metadata-custom", children: JSON.stringify(i.metadata.custom, null, 2) })
+            ] })
+          ] })
+        ] }),
+        p && w && (i == null ? void 0 : i.duration_ms) && /* @__PURE__ */ n("details", { className: "meso-tool__timeline-details", open: !1, children: [
+          /* @__PURE__ */ r("summary", { className: "meso-tool__timeline-summary", children: "Execution Timeline" }),
+          /* @__PURE__ */ r("div", { className: "meso-tool__timeline", children: /* @__PURE__ */ n("div", { className: "meso-tool__timeline-row", children: [
+            /* @__PURE__ */ r("span", { className: "meso-tool__timeline-label", children: "Duration:" }),
+            /* @__PURE__ */ n("span", { className: "meso-tool__timeline-value", children: [
+              i.duration_ms,
+              "ms"
+            ] })
+          ] }) })
         ] })
       ]
     }
   );
 }
-function ne({
+function ae({
   stream: e,
   defaultExpanded: t = "none",
-  onlyShowCurrent: s = !1,
-  simplify: n,
+  expandCount: s = 2,
+  onlyShowCurrent: o = !1,
+  simplify: l,
   onToolClick: a,
   onToolConfirm: c,
   onToolCancel: i,
-  renderSummary: m
+  renderSummary: u
 }) {
-  const h = e.toolCallOrder, _ = s && h.length > 0 ? [h[h.length - 1]] : h, [l, u] = C(() => t === "none" ? /* @__PURE__ */ new Set() : t === "all" ? new Set(_) : t === "current" && _.length > 0 ? /* @__PURE__ */ new Set([_[_.length - 1]]) : /* @__PURE__ */ new Set()), f = (N) => {
-    const v = new Set(l);
-    v.has(N) ? v.delete(N) : v.add(N), u(v), a == null || a(N);
-  }, k = (N, v) => {
-    var y;
-    const { call: g, result: d, status: p } = N;
-    if (m)
-      return String(m(N, v) ?? "");
-    const w = p === "error" ? "✗" : "✓", S = g.name, E = (y = d == null ? void 0 : d.metadata) != null && y.resultCount ? ` — ${d.metadata.resultCount} 项` : "", L = d != null && d.duration_ms ? ` (${d.duration_ms}ms)` : "";
-    return `${w} ${S}${E}${L}`;
+  const f = e.toolCallOrder, d = o && f.length > 0 ? [f[f.length - 1]] : f, [h, N] = C(() => {
+    if (t === "none") return /* @__PURE__ */ new Set();
+    if (t === "all") return new Set(d);
+    if (t === "current" && d.length > 0)
+      return /* @__PURE__ */ new Set([d[d.length - 1]]);
+    if (t === "last-n" && d.length > 0) {
+      const p = d.slice(-s);
+      return new Set(p);
+    }
+    return /* @__PURE__ */ new Set();
+  }), g = (p) => {
+    const v = new Set(h);
+    v.has(p) ? v.delete(p) : v.add(p), N(v), a == null || a(p);
+  }, y = (p, v) => {
+    var b;
+    const { call: m, result: _, status: w } = p;
+    if (u)
+      return String(u(p, v) ?? "");
+    const S = w === "error" ? "✗" : "✓", E = m.name, L = (b = _ == null ? void 0 : _.metadata) != null && b.resultCount ? ` — ${_.metadata.resultCount} 项` : "", k = _ != null && _.duration_ms ? ` (${_.duration_ms}ms)` : "";
+    return `${S} ${E}${L}${k}`;
   };
-  return _.length === 0 ? null : /* @__PURE__ */ r("div", { className: "meso-collapsible-tool-trace", children: _.map((N, v) => {
-    const g = e.toolCalls[N];
-    if (!g) return null;
-    const d = l.has(N), { status: p } = g;
-    return /* @__PURE__ */ o("div", { className: `meso-collapsible-tool__item meso-collapsible-tool__item--${p}`, children: [
-      /* @__PURE__ */ o(
+  return d.length === 0 ? null : /* @__PURE__ */ r("div", { className: "meso-collapsible-tool-trace", children: d.map((p, v) => {
+    const m = e.toolCalls[p];
+    if (!m) return null;
+    const _ = h.has(p), { status: w } = m;
+    return /* @__PURE__ */ n("div", { className: `meso-collapsible-tool__item meso-collapsible-tool__item--${w}`, children: [
+      /* @__PURE__ */ n(
         "button",
         {
           className: "meso-collapsible-tool__summary",
-          onClick: () => f(N),
-          "aria-expanded": d,
+          onClick: () => g(p),
+          "aria-expanded": _,
           children: [
-            /* @__PURE__ */ r("span", { className: "meso-collapsible-tool__toggle", children: d ? "▼" : "▶" }),
-            /* @__PURE__ */ r("span", { className: "meso-collapsible-tool__text", children: k(g, v) })
+            /* @__PURE__ */ r("span", { className: "meso-collapsible-tool__toggle", children: _ ? "▼" : "▶" }),
+            /* @__PURE__ */ r("span", { className: "meso-collapsible-tool__text", children: y(m, v) })
           ]
         }
       ),
-      d && /* @__PURE__ */ r("div", { className: "meso-collapsible-tool__details", children: /* @__PURE__ */ r(
+      _ && /* @__PURE__ */ r("div", { className: "meso-collapsible-tool__details", children: /* @__PURE__ */ r(
         de,
         {
-          toolCall: g,
+          toolCall: m,
           onConfirm: c,
           onCancel: i,
-          simplify: n
+          simplify: l
         }
       ) })
-    ] }, N);
+    ] }, p);
   }) });
 }
-function ae(e) {
+function oe(e) {
   return e === "html" || e === "html preview" ? { type: "html" } : e === "mermaid" ? { type: "mermaid" } : e === "markdown" ? { type: "markdown" } : e === "table" ? { type: "table" } : { type: "code", language: e };
 }
 function Ke(e) {
-  const t = e.toolCallOrder, s = t.length - 1, n = t.slice(0, s).filter((c) => e.toolCalls[c].result !== void 0), a = t[s];
-  return { frozenIds: n, currentId: a };
+  const t = e.toolCallOrder, s = t.length - 1, o = t.slice(0, s).filter((a) => e.toolCalls[a].result !== void 0), l = t[s];
+  return { frozenIds: o, currentId: l };
 }
 function Ue({
   stream: e,
   onToolConfirm: t,
   onToolCancel: s
 }) {
-  const { frozenIds: n, currentId: a } = ve(
+  const { frozenIds: o, currentId: l } = ge(
     () => Ke(e),
     [e.toolCallOrder, e.toolCalls]
   );
-  return e.toolCallOrder.length === 0 ? null : /* @__PURE__ */ o(M, { children: [
-    n.length > 0 && /* @__PURE__ */ r("div", { className: "meso-message-list__frozen-tools", children: /* @__PURE__ */ r(
-      ne,
+  return e.toolCallOrder.length === 0 ? null : /* @__PURE__ */ n(P, { children: [
+    o.length > 0 && /* @__PURE__ */ r("div", { className: "meso-message-list__frozen-tools", children: /* @__PURE__ */ r(
+      ae,
       {
         stream: {
           ...e,
-          toolCallOrder: n
+          toolCallOrder: o
         },
         streaming: !1,
         defaultExpanded: "all",
         simplify: void 0
       }
     ) }),
-    a && /* @__PURE__ */ r("div", { className: "meso-message-list__current-tool", children: /* @__PURE__ */ r(
-      ne,
+    l && /* @__PURE__ */ r("div", { className: "meso-message-list__current-tool", children: /* @__PURE__ */ r(
+      ae,
       {
         stream: {
           ...e,
-          toolCallOrder: [a]
+          toolCallOrder: [l]
         },
         streaming: e.status === "streaming",
         defaultExpanded: "all",
@@ -790,62 +868,62 @@ function Ue({
     ) })
   ] });
 }
-function or({
+function nr({
   messages: e,
   streaming: t,
   onArtifactCopy: s,
-  onArtifactDownload: n,
-  onToolConfirm: a,
-  onToolCancel: c,
-  emptyState: i,
-  emptyStateAlign: m = "center",
-  className: h,
-  renderExtension: _,
-  renderLiveTrace: l,
-  renderMarkdown: u,
-  renderMermaid: f,
-  highlightCode: k,
-  hiddenArtifactLangs: N
+  onArtifactDownload: o,
+  onToolConfirm: l,
+  onToolCancel: a,
+  emptyState: c,
+  emptyStateAlign: i = "center",
+  className: u,
+  renderExtension: f,
+  renderLiveTrace: d,
+  renderMarkdown: h,
+  renderMermaid: N,
+  highlightCode: g,
+  hiddenArtifactLangs: y
 }) {
-  const v = T(null);
-  R(() => {
-    var d;
-    (d = v.current) == null || d.scrollIntoView({ behavior: "smooth" });
+  const p = R(null);
+  I(() => {
+    var m;
+    (m = p.current) == null || m.scrollIntoView({ behavior: "smooth" });
   }, [e, t]);
-  const g = e.length > 0 || t && t.status !== "idle";
-  return /* @__PURE__ */ r("div", { className: `meso-message-list${h ? ` ${h}` : ""}`, children: /* @__PURE__ */ o("div", { className: "meso-message-list__inner", children: [
-    !g && i && /* @__PURE__ */ r("div", { className: `meso-message-list__empty${m === "top" ? " meso-message-list__empty--top" : ""}`, children: i }),
-    e.map((d) => /* @__PURE__ */ o(U.Fragment, { children: [
+  const v = e.length > 0 || t && t.status !== "idle";
+  return /* @__PURE__ */ r("div", { className: `meso-message-list${u ? ` ${u}` : ""}`, children: /* @__PURE__ */ n("div", { className: "meso-message-list__inner", children: [
+    !v && c && /* @__PURE__ */ r("div", { className: `meso-message-list__empty${i === "top" ? " meso-message-list__empty--top" : ""}`, children: c }),
+    e.map((m) => /* @__PURE__ */ n(F.Fragment, { children: [
       /* @__PURE__ */ r(
         re,
         {
-          role: d.role,
-          content: d.content,
-          timestamp: d.timestamp,
-          markdown: d.role === "assistant",
-          renderMarkdown: u
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp,
+          markdown: m.role === "assistant",
+          renderMarkdown: h
         }
       ),
-      d.artifacts && d.artifacts.length > 0 && d.artifacts.map((p) => {
-        const { type: w, language: S } = ae(p.lang);
+      m.artifacts && m.artifacts.length > 0 && m.artifacts.map((_) => {
+        const { type: w, language: S } = oe(_.lang);
         return /* @__PURE__ */ r(
           se,
           {
             type: w,
-            content: p.content,
+            content: _.content,
             language: S,
             onCopy: s,
-            onDownload: n,
-            renderMermaid: f,
-            highlightCode: k,
-            renderMarkdown: u
+            onDownload: o,
+            renderMermaid: N,
+            highlightCode: g,
+            renderMarkdown: h
           },
-          p.id
+          _.id
         );
       })
-    ] }, d.id)),
-    t && t.status !== "idle" && /* @__PURE__ */ r("div", { className: "meso-message-list__live", children: l ? l(t) : /* @__PURE__ */ o(M, { children: [
-      (t.activeSoul || t.activeSkill) && /* @__PURE__ */ o("div", { className: "meso-message-list__context-row", children: [
+    ] }, m.id)),
+    t && t.status !== "idle" && /* @__PURE__ */ r("div", { className: "meso-message-list__live", children: d ? d(t) : /* @__PURE__ */ n(P, { children: [
+      (t.activeSoul || t.activeSkill) && /* @__PURE__ */ n("div", { className: "meso-message-list__context-row", children: [
         t.activeSoul && /* @__PURE__ */ r(Me, { soul: t.activeSoul }),
         t.activeSkill && /* @__PURE__ */ r(Be, { skill: t.activeSkill })
       ] }),
@@ -853,11 +931,11 @@ function or({
         Ue,
         {
           stream: t,
-          onToolConfirm: a,
-          onToolCancel: c
+          onToolConfirm: l,
+          onToolCancel: a
         }
       ),
-      _ && t.extensionLog.length > 0 && /* @__PURE__ */ r("div", { className: "meso-message-list__extensions", children: t.extensionLog.map((d, p) => /* @__PURE__ */ r(U.Fragment, { children: _(d) }, p)) }),
+      f && t.extensionLog.length > 0 && /* @__PURE__ */ r("div", { className: "meso-message-list__extensions", children: t.extensionLog.map((m, _) => /* @__PURE__ */ r(F.Fragment, { children: f(m) }, _)) }),
       (t.textContent || t.status === "streaming") && /* @__PURE__ */ r(
         re,
         {
@@ -865,143 +943,143 @@ function or({
           content: t.textContent,
           streaming: t.status === "streaming" && t.artifactOrder.length === 0,
           markdown: !0,
-          renderMarkdown: u
+          renderMarkdown: h
         }
       ),
-      t.artifactOrder.map((d) => {
-        const p = t.artifacts[d];
-        if (!p || N != null && N.includes(p.lang)) return null;
-        const { type: w, language: S } = ae(p.lang);
+      t.artifactOrder.map((m) => {
+        const _ = t.artifacts[m];
+        if (!_ || y != null && y.includes(_.lang)) return null;
+        const { type: w, language: S } = oe(_.lang);
         return /* @__PURE__ */ r(
           se,
           {
             type: w,
-            content: p.content,
+            content: _.content,
             language: S,
-            streaming: !p.done,
+            streaming: !_.done,
             onCopy: s,
-            onDownload: n,
-            renderMermaid: f,
-            highlightCode: k,
-            renderMarkdown: u
+            onDownload: o,
+            renderMermaid: N,
+            highlightCode: g,
+            renderMarkdown: h
           },
-          d
+          m
         );
       }),
-      t.memorySaved.length > 0 && /* @__PURE__ */ r("div", { className: "meso-memory-saved", children: t.memorySaved.map((d) => /* @__PURE__ */ o("span", { className: "meso-memory-saved__chip", title: d.preview, children: [
+      t.memorySaved.length > 0 && /* @__PURE__ */ r("div", { className: "meso-memory-saved", children: t.memorySaved.map((m) => /* @__PURE__ */ n("span", { className: "meso-memory-saved__chip", title: m.preview, children: [
         /* @__PURE__ */ r("svg", { width: "10", height: "10", viewBox: "0 0 10 10", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", children: /* @__PURE__ */ r("path", { d: "M2 9V2a1 1 0 011-1h4a1 1 0 011 1v7L5 7.5 2 9z" }) }),
         "已记忆 [",
-        d.category,
+        m.category,
         "]"
-      ] }, d.id)) })
+      ] }, m.id)) })
     ] }) }),
-    /* @__PURE__ */ r("div", { ref: v })
+    /* @__PURE__ */ r("div", { ref: p })
   ] }) });
 }
 function Ve({ resourceRead: e, className: t }) {
-  const [s, n] = C(!1), { read: a, content: c, status: i } = e, m = a.name ?? a.uri, h = a.server;
-  return /* @__PURE__ */ o("div", { className: `meso-resource meso-resource--${i}${t ? ` ${t}` : ""}`, children: [
-    /* @__PURE__ */ o("div", { className: "meso-resource__header", children: [
-      /* @__PURE__ */ r(A, { status: Pe(i), size: 13, className: "meso-resource__status-icon" }),
-      /* @__PURE__ */ r("span", { className: "meso-resource__uri", title: a.uri, children: m }),
-      h && /* @__PURE__ */ r("span", { className: "meso-resource__server", children: h }),
-      (c == null ? void 0 : c.duration_ms) !== void 0 && /* @__PURE__ */ o("span", { className: "meso-resource__duration", children: [
-        c.duration_ms,
+  const [s, o] = C(!1), { read: l, content: a, status: c } = e, i = l.name ?? l.uri, u = l.server;
+  return /* @__PURE__ */ n("div", { className: `meso-resource meso-resource--${c}${t ? ` ${t}` : ""}`, children: [
+    /* @__PURE__ */ n("div", { className: "meso-resource__header", children: [
+      /* @__PURE__ */ r(W, { status: je(c), size: 13, className: "meso-resource__status-icon" }),
+      /* @__PURE__ */ r("span", { className: "meso-resource__uri", title: l.uri, children: i }),
+      u && /* @__PURE__ */ r("span", { className: "meso-resource__server", children: u }),
+      (a == null ? void 0 : a.duration_ms) !== void 0 && /* @__PURE__ */ n("span", { className: "meso-resource__duration", children: [
+        a.duration_ms,
         "ms"
       ] }),
-      (i === "done" || i === "error") && c && /* @__PURE__ */ o(
+      (c === "done" || c === "error") && a && /* @__PURE__ */ n(
         "button",
         {
           className: "meso-resource__toggle",
-          onClick: () => n((_) => !_),
+          onClick: () => o((f) => !f),
           "aria-expanded": s,
           "aria-label": s ? "折叠内容" : "展开内容",
           children: [
             s ? "▾" : "▸",
             " ",
-            i === "error" ? "错误" : "内容"
+            c === "error" ? "错误" : "内容"
           ]
         }
       )
     ] }),
-    s && c && /* @__PURE__ */ r("div", { className: "meso-resource__content", children: i === "error" ? /* @__PURE__ */ r("pre", { className: "meso-resource__text meso-resource__text--error", children: c.error }) : c.contents.map((_, l) => /* @__PURE__ */ o("div", { children: [
-      _.type === "text" && /* @__PURE__ */ r("pre", { className: "meso-resource__text", children: _.text }),
-      _.type === "image" && _.data && /* @__PURE__ */ r(
+    s && a && /* @__PURE__ */ r("div", { className: "meso-resource__content", children: c === "error" ? /* @__PURE__ */ r("pre", { className: "meso-resource__text meso-resource__text--error", children: a.error }) : a.contents.map((f, d) => /* @__PURE__ */ n("div", { children: [
+      f.type === "text" && /* @__PURE__ */ r("pre", { className: "meso-resource__text", children: f.text }),
+      f.type === "image" && f.data && /* @__PURE__ */ r(
         "img",
         {
           className: "meso-resource__image",
-          src: `data:${_.mime_type ?? "image/png"};base64,${_.data}`,
+          src: `data:${f.mime_type ?? "image/png"};base64,${f.data}`,
           alt: "resource"
         }
       ),
-      _.type === "blob" && /* @__PURE__ */ o("span", { className: "meso-resource__blob-label", children: [
+      f.type === "blob" && /* @__PURE__ */ n("span", { className: "meso-resource__blob-label", children: [
         "[",
-        _.mime_type ?? "binary",
+        f.mime_type ?? "binary",
         "]"
       ] })
-    ] }, l)) })
+    ] }, d)) })
   ] });
 }
 function lr({
   value: e,
   onChange: t,
   onSubmit: s,
-  onStop: n,
-  streaming: a = !1,
-  disabled: c = !1,
-  placeholder: i = "输入消息… (Ctrl+Enter 发送，Enter 换行)",
-  leadingSlot: m,
-  trailingActions: h,
-  maxRows: _ = 8
+  onStop: o,
+  streaming: l = !1,
+  disabled: a = !1,
+  placeholder: c = "输入消息… (Ctrl+Enter 发送，Enter 换行)",
+  leadingSlot: i,
+  trailingActions: u,
+  maxRows: f = 8
 }) {
-  const l = T(null), u = 22, f = () => {
-    const g = l.current;
-    g && (g.style.height = "auto", g.style.height = Math.min(g.scrollHeight, u * _) + "px");
+  const d = R(null), h = 22, N = () => {
+    const v = d.current;
+    v && (v.style.height = "auto", v.style.height = Math.min(v.scrollHeight, h * f) + "px");
   };
-  R(f, [e]);
-  const k = (g) => {
-    g.key === "Enter" && (g.ctrlKey || g.metaKey) && (g.preventDefault(), !c && !a && e.trim() && s());
-  }, N = !c && !a && e.trim().length > 0, v = /* @__PURE__ */ r(
+  I(N, [e]);
+  const g = (v) => {
+    v.key === "Enter" && (v.ctrlKey || v.metaKey) && (v.preventDefault(), !a && !l && e.trim() && s());
+  }, y = !a && !l && e.trim().length > 0, p = /* @__PURE__ */ r(
     "button",
     {
-      className: `meso-composer__send${a ? " meso-composer__send--stop" : ""}`,
-      onClick: a ? n : s,
-      disabled: a ? !1 : !N,
-      "aria-label": a ? "停止生成" : "发送",
-      title: a ? "停止生成" : "Ctrl+Enter",
-      children: a ? (
+      className: `meso-composer__send${l ? " meso-composer__send--stop" : ""}`,
+      onClick: l ? o : s,
+      disabled: l ? !1 : !y,
+      "aria-label": l ? "停止生成" : "发送",
+      title: l ? "停止生成" : "Ctrl+Enter",
+      children: l ? (
         /* Stop square */
         /* @__PURE__ */ r("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "currentColor", children: /* @__PURE__ */ r("rect", { x: "4", y: "4", width: "16", height: "16", rx: "2" }) })
       ) : (
         /* Send arrow */
-        /* @__PURE__ */ o("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+        /* @__PURE__ */ n("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
           /* @__PURE__ */ r("line", { x1: "12", y1: "19", x2: "12", y2: "5" }),
           /* @__PURE__ */ r("polyline", { points: "5,12 12,5 19,12" })
         ] })
       )
     }
   );
-  return /* @__PURE__ */ r("div", { className: "meso-composer", children: /* @__PURE__ */ o("div", { className: "meso-composer__box", children: [
+  return /* @__PURE__ */ r("div", { className: "meso-composer", children: /* @__PURE__ */ n("div", { className: "meso-composer__box", children: [
     /* @__PURE__ */ r(
       "textarea",
       {
-        ref: l,
+        ref: d,
         className: "meso-composer__textarea",
         value: e,
-        onChange: (g) => {
-          t(g.target.value), f();
+        onChange: (v) => {
+          t(v.target.value), N();
         },
-        onKeyDown: k,
-        placeholder: i,
+        onKeyDown: g,
+        placeholder: c,
         rows: 1,
-        disabled: c && !a,
+        disabled: a && !l,
         "aria-label": "消息输入框"
       }
     ),
-    /* @__PURE__ */ o("div", { className: "meso-composer__toolbar", children: [
-      /* @__PURE__ */ r("div", { className: "meso-composer__leading", children: m }),
+    /* @__PURE__ */ n("div", { className: "meso-composer__toolbar", children: [
+      /* @__PURE__ */ r("div", { className: "meso-composer__leading", children: i }),
       /* @__PURE__ */ r("span", { className: "meso-composer__hint", children: e.length > 0 && `${e.length} 字` }),
-      /* @__PURE__ */ r("div", { className: "meso-composer__trailing", children: h ?? v })
+      /* @__PURE__ */ r("div", { className: "meso-composer__trailing", children: u ?? p })
     ] })
   ] }) });
 }
@@ -1009,56 +1087,56 @@ function me({
   system: e,
   resetOnTurnStart: t = !1
 }) {
-  const [s, n] = C(null), a = T(e);
-  return R(() => {
-    t && !a.current && e && n(null), a.current = e;
+  const [s, o] = C(null), l = R(e);
+  return I(() => {
+    t && !l.current && e && o(null), l.current = e;
   }, [e, t]), {
     open: s !== null ? s : e,
-    setOpen: (i) => n(i),
-    toggle: () => n((i) => i !== null ? !i : !e),
-    clearIntent: () => n(null),
+    setOpen: (c) => o(c),
+    toggle: () => o((c) => c !== null ? !c : !e),
+    clearIntent: () => o(null),
     hasUserIntent: s !== null
   };
 }
 function Ge(e) {
   const t = /* @__PURE__ */ new Map(), s = [];
-  for (const n of e.toolCallOrder) {
-    const a = e.toolCalls[n];
-    if (!a) continue;
-    const c = a.groupId ? `${a.groupKind ?? "group"}:${a.groupId}` : `__single__:${n}`;
-    t.has(c) || (t.set(c, {
-      key: c,
-      groupId: a.groupId,
-      groupKind: a.groupKind,
+  for (const o of e.toolCallOrder) {
+    const l = e.toolCalls[o];
+    if (!l) continue;
+    const a = l.groupId ? `${l.groupKind ?? "group"}:${l.groupId}` : `__single__:${o}`;
+    t.has(a) || (t.set(a, {
+      key: a,
+      groupId: l.groupId,
+      groupKind: l.groupKind,
       ids: []
-    }), s.push(c)), t.get(c).ids.push(n);
+    }), s.push(a)), t.get(a).ids.push(o);
   }
-  return s.map((n) => t.get(n));
+  return s.map((o) => t.get(o));
 }
 function Fe(e) {
   const t = e.toolCallOrder.length + e.workflowRunOrder.reduce(
-    (a, c) => {
-      var i;
-      return a + (((i = e.workflowRuns[c]) == null ? void 0 : i.nodeOrder.length) ?? 0);
+    (l, a) => {
+      var c;
+      return l + (((c = e.workflowRuns[a]) == null ? void 0 : c.nodeOrder.length) ?? 0);
     },
     0
-  ), s = e.toolCallOrder.filter((a) => {
-    var c;
-    return ((c = e.toolCalls[a]) == null ? void 0 : c.status) === "error";
-  }).length + e.workflowRunOrder.reduce((a, c) => {
-    const i = e.workflowRuns[c];
-    return i ? a + i.nodeOrder.filter((m) => {
-      var h;
-      return ((h = i.nodes[m]) == null ? void 0 : h.state) === "error";
-    }).length : a;
-  }, 0), n = [];
-  return e.phaseOrder.length > 0 && n.push(`${e.phaseOrder.length} 阶段`), t > 0 && n.push(`${t} 步`), s > 0 && n.push(`${s} 项失败`), n.length > 0 ? n.join(" · ") : "执行过程";
+  ), s = e.toolCallOrder.filter((l) => {
+    var a;
+    return ((a = e.toolCalls[l]) == null ? void 0 : a.status) === "error";
+  }).length + e.workflowRunOrder.reduce((l, a) => {
+    const c = e.workflowRuns[a];
+    return c ? l + c.nodeOrder.filter((i) => {
+      var u;
+      return ((u = c.nodes[i]) == null ? void 0 : u.state) === "error";
+    }).length : l;
+  }, 0), o = [];
+  return e.phaseOrder.length > 0 && o.push(`${e.phaseOrder.length} 阶段`), t > 0 && o.push(`${t} 步`), s > 0 && o.push(`${s} 项失败`), o.length > 0 ? o.join(" · ") : "执行过程";
 }
 function Je(e, t) {
   const s = !!(e.thinkContent || e.pinnedThink);
-  return /* @__PURE__ */ o("div", { className: "meso-process-trace__phase", "data-testid": `meso-phase-${e.id}`, children: [
-    /* @__PURE__ */ o("div", { className: "meso-process-trace__phase-header", children: [
-      /* @__PURE__ */ r(A, { status: He(e.state), size: 14 }),
+  return /* @__PURE__ */ n("div", { className: "meso-process-trace__phase", "data-testid": `meso-phase-${e.id}`, children: [
+    /* @__PURE__ */ n("div", { className: "meso-process-trace__phase-header", children: [
+      /* @__PURE__ */ r(W, { status: He(e.state), size: 14 }),
       /* @__PURE__ */ r("span", { className: "meso-process-trace__phase-name", children: e.name })
     ] }),
     s && /* @__PURE__ */ r(
@@ -1074,43 +1152,43 @@ function Je(e, t) {
     e.body && /* @__PURE__ */ r("div", { className: "meso-process-trace__phase-body", children: e.body })
   ] });
 }
-function ir({
+function cr({
   stream: e,
   streaming: t = !1,
   turnStreaming: s = !1,
-  defaultCollapsed: n = !1,
-  className: a,
-  onToolConfirm: c,
-  onToolCancel: i,
-  renderToolCall: m,
-  renderPhase: h,
-  renderWorkflow: _,
-  simplify: l
+  defaultCollapsed: o = !1,
+  className: l,
+  onToolConfirm: a,
+  onToolCancel: c,
+  renderToolCall: i,
+  renderPhase: u,
+  renderWorkflow: f,
+  simplify: d
 }) {
-  const u = me({
-    system: !n,
+  const h = me({
+    system: !o,
     resetOnTurnStart: s
   });
   if (!(!!e.thinkContent || e.phaseOrder.length > 0 || e.memorySnippets.length > 0 || e.resourceReadOrder.length > 0 || e.toolCallOrder.length > 0 || e.workflowRunOrder.length > 0)) return null;
-  const k = Fe(e), N = e.workflowRunOrder.map((d) => e.workflowRuns[d]).filter(Boolean), v = Ge(e), g = e.phaseOrder.map((d) => e.phases[d]).filter(Boolean).map(we);
-  return /* @__PURE__ */ o(
+  const g = Fe(e), y = e.workflowRunOrder.map((m) => e.workflowRuns[m]).filter(Boolean), p = Ge(e), v = e.phaseOrder.map((m) => e.phases[m]).filter(Boolean).map(we);
+  return /* @__PURE__ */ n(
     "div",
     {
-      className: `meso-process-trace${a ? ` ${a}` : ""}`,
+      className: `meso-process-trace${l ? ` ${l}` : ""}`,
       "data-testid": "meso-process-trace",
       children: [
-        /* @__PURE__ */ o(
+        /* @__PURE__ */ n(
           "button",
           {
             className: "meso-process-trace__header",
-            onClick: u.toggle,
-            "aria-expanded": u.open,
-            "aria-label": u.open ? "折叠执行过程" : "展开执行过程",
+            onClick: h.toggle,
+            "aria-expanded": h.open,
+            "aria-label": h.open ? "折叠执行过程" : "展开执行过程",
             children: [
               /* @__PURE__ */ r(
                 "svg",
                 {
-                  className: `meso-process-trace__chevron${u.open ? " meso-process-trace__chevron--open" : ""}`,
+                  className: `meso-process-trace__chevron${h.open ? " meso-process-trace__chevron--open" : ""}`,
                   width: "14",
                   height: "14",
                   viewBox: "0 0 14 14",
@@ -1122,19 +1200,19 @@ function ir({
                   children: /* @__PURE__ */ r("polyline", { points: "3,5 7,9 11,5" })
                 }
               ),
-              /* @__PURE__ */ r("span", { className: "meso-process-trace__summary", children: k }),
+              /* @__PURE__ */ r("span", { className: "meso-process-trace__summary", children: g }),
               t && /* @__PURE__ */ r("span", { className: "meso-process-trace__dot", "aria-label": "执行中" })
             ]
           }
         ),
-        u.open && /* @__PURE__ */ o("div", { className: "meso-process-trace__body", children: [
-          g.length > 0 && /* @__PURE__ */ r($e, { compact: !0, stages: g }),
-          e.memorySnippets.length > 0 && /* @__PURE__ */ r("div", { className: "meso-memory-chips", children: e.memorySnippets.map((d, p) => /* @__PURE__ */ o("span", { className: "meso-memory-chip", title: d.content, children: [
+        h.open && /* @__PURE__ */ n("div", { className: "meso-process-trace__body", children: [
+          v.length > 0 && /* @__PURE__ */ r($e, { compact: !0, stages: v }),
+          e.memorySnippets.length > 0 && /* @__PURE__ */ r("div", { className: "meso-memory-chips", children: e.memorySnippets.map((m, _) => /* @__PURE__ */ n("span", { className: "meso-memory-chip", title: m.content, children: [
             "[",
-            d.category,
+            m.category,
             "] ",
-            d.content
-          ] }, p)) }),
+            m.content
+          ] }, _)) }),
           e.thinkContent && /* @__PURE__ */ r(
             le,
             {
@@ -1145,108 +1223,108 @@ function ir({
               turnStreaming: s
             }
           ),
-          e.phaseOrder.length > 0 && /* @__PURE__ */ r("div", { className: "meso-process-trace__phases", children: e.phaseOrder.map((d) => {
-            const p = e.phases[d];
-            if (!p) return null;
-            const w = h == null ? void 0 : h(p);
-            return w != null ? /* @__PURE__ */ r("div", { children: w }, d) : /* @__PURE__ */ r("div", { children: Je(p, t) }, d);
+          e.phaseOrder.length > 0 && /* @__PURE__ */ r("div", { className: "meso-process-trace__phases", children: e.phaseOrder.map((m) => {
+            const _ = e.phases[m];
+            if (!_) return null;
+            const w = u == null ? void 0 : u(_);
+            return w != null ? /* @__PURE__ */ r("div", { children: w }, m) : /* @__PURE__ */ r("div", { children: Je(_, t) }, m);
           }) }),
-          e.resourceReadOrder.length > 0 && /* @__PURE__ */ r("div", { className: "meso-process-trace__resources", children: e.resourceReadOrder.map((d) => {
-            const p = e.resourceReads[d];
-            return p ? /* @__PURE__ */ r(Ve, { resourceRead: p }, d) : null;
+          e.resourceReadOrder.length > 0 && /* @__PURE__ */ r("div", { className: "meso-process-trace__resources", children: e.resourceReadOrder.map((m) => {
+            const _ = e.resourceReads[m];
+            return _ ? /* @__PURE__ */ r(Ve, { resourceRead: _ }, m) : null;
           }) }),
-          v.length > 0 && /* @__PURE__ */ r("div", { className: "meso-process-trace__tools", children: v.map((d) => /* @__PURE__ */ o(
+          p.length > 0 && /* @__PURE__ */ r("div", { className: "meso-process-trace__tools", children: p.map((m) => /* @__PURE__ */ n(
             "div",
             {
-              className: `meso-process-trace__tool-group${d.groupId ? " meso-process-trace__tool-group--grouped" : ""}`,
-              "data-group-id": d.groupId,
-              "data-group-kind": d.groupKind,
+              className: `meso-process-trace__tool-group${m.groupId ? " meso-process-trace__tool-group--grouped" : ""}`,
+              "data-group-id": m.groupId,
+              "data-group-kind": m.groupKind,
               children: [
-                d.groupId && /* @__PURE__ */ o("div", { className: "meso-process-trace__tool-group-label", children: [
-                  d.groupKind ?? "group",
+                m.groupId && /* @__PURE__ */ n("div", { className: "meso-process-trace__tool-group-label", children: [
+                  m.groupKind ?? "group",
                   ": ",
-                  d.groupId
+                  m.groupId
                 ] }),
-                d.ids.map((p) => {
-                  const w = e.toolCalls[p];
+                m.ids.map((_) => {
+                  const w = e.toolCalls[_];
                   if (!w) return null;
-                  const S = m == null ? void 0 : m(w);
-                  return S != null ? /* @__PURE__ */ r("div", { children: S }, p) : /* @__PURE__ */ r(
+                  const S = i == null ? void 0 : i(w);
+                  return S != null ? /* @__PURE__ */ r("div", { children: S }, _) : /* @__PURE__ */ r(
                     de,
                     {
                       toolCall: w,
-                      onConfirm: c,
-                      onCancel: i,
-                      simplify: l
+                      onConfirm: a,
+                      onCancel: c,
+                      simplify: d
                     },
-                    p
+                    _
                   );
                 })
               ]
             },
-            d.key
+            m.key
           )) }),
-          N.length > 0 && ((_ == null ? void 0 : _(e)) ?? /* @__PURE__ */ r(Ie, { runs: N }))
+          y.length > 0 && ((f == null ? void 0 : f(e)) ?? /* @__PURE__ */ r(Ie, { runs: y }))
         ] })
       ]
     }
   );
 }
-function cr({
+function ir({
   name: e,
   email: t,
   avatarText: s,
-  menuItems: n = [],
-  onSignOut: a
+  menuItems: o = [],
+  onSignOut: l
 }) {
-  const [c, i] = C(!1), m = T(null);
-  R(() => {
-    if (!c) return;
-    const l = (u) => {
-      m.current && !m.current.contains(u.target) && i(!1);
+  const [a, c] = C(!1), i = R(null);
+  I(() => {
+    if (!a) return;
+    const d = (h) => {
+      i.current && !i.current.contains(h.target) && c(!1);
     };
-    return document.addEventListener("mousedown", l), () => document.removeEventListener("mousedown", l);
-  }, [c]);
-  const h = s ?? e.charAt(0).toUpperCase(), _ = [
-    ...n,
-    ...a ? [{ label: "退出登录", onClick: () => {
-      i(!1), a();
+    return document.addEventListener("mousedown", d), () => document.removeEventListener("mousedown", d);
+  }, [a]);
+  const u = s ?? e.charAt(0).toUpperCase(), f = [
+    ...o,
+    ...l ? [{ label: "退出登录", onClick: () => {
+      c(!1), l();
     }, danger: !0 }] : []
   ];
-  return /* @__PURE__ */ o("div", { className: "meso-user-menu", ref: m, children: [
-    c && /* @__PURE__ */ o("div", { className: "meso-user-menu__popup", role: "menu", children: [
-      /* @__PURE__ */ o("div", { className: "meso-user-menu__identity", children: [
+  return /* @__PURE__ */ n("div", { className: "meso-user-menu", ref: i, children: [
+    a && /* @__PURE__ */ n("div", { className: "meso-user-menu__popup", role: "menu", children: [
+      /* @__PURE__ */ n("div", { className: "meso-user-menu__identity", children: [
         /* @__PURE__ */ r("span", { className: "meso-user-menu__identity-name", children: e }),
         t && /* @__PURE__ */ r("span", { className: "meso-user-menu__identity-email", children: t })
       ] }),
-      _.length > 0 && /* @__PURE__ */ r("div", { className: "meso-user-menu__sep", role: "separator" }),
-      _.map((l, u) => /* @__PURE__ */ o(
+      f.length > 0 && /* @__PURE__ */ r("div", { className: "meso-user-menu__sep", role: "separator" }),
+      f.map((d, h) => /* @__PURE__ */ n(
         "button",
         {
-          className: `meso-user-menu__item${l.danger ? " meso-user-menu__item--danger" : ""}`,
+          className: `meso-user-menu__item${d.danger ? " meso-user-menu__item--danger" : ""}`,
           role: "menuitem",
           onClick: () => {
-            i(!1), l.onClick();
+            c(!1), d.onClick();
           },
           children: [
-            l.icon && /* @__PURE__ */ r("span", { className: "meso-user-menu__item-icon", children: l.icon }),
-            l.label
+            d.icon && /* @__PURE__ */ r("span", { className: "meso-user-menu__item-icon", children: d.icon }),
+            d.label
           ]
         },
-        u
+        h
       ))
     ] }),
-    /* @__PURE__ */ o(
+    /* @__PURE__ */ n(
       "button",
       {
         className: "meso-user-menu__trigger",
-        onClick: () => i((l) => !l),
+        onClick: () => c((d) => !d),
         "aria-haspopup": "menu",
-        "aria-expanded": c,
+        "aria-expanded": a,
         title: e,
         children: [
-          /* @__PURE__ */ r("div", { className: "meso-user-menu__avatar", children: h }),
-          /* @__PURE__ */ o("div", { className: "meso-user-menu__info", children: [
+          /* @__PURE__ */ r("div", { className: "meso-user-menu__avatar", children: u }),
+          /* @__PURE__ */ n("div", { className: "meso-user-menu__info", children: [
             /* @__PURE__ */ r("span", { className: "meso-user-menu__name", children: e }),
             t && /* @__PURE__ */ r("span", { className: "meso-user-menu__email", children: t })
           ] })
@@ -1259,59 +1337,59 @@ function dr({
   tabs: e,
   activeTabId: t,
   onTabChange: s,
-  autoSelectFirstReady: n = !1
+  autoSelectFirstReady: o = !1
 }) {
-  var u;
-  const a = t !== void 0, [c, i] = C(((u = e[0]) == null ? void 0 : u.id) ?? ""), m = a ? t : c, h = T(!1);
-  R(() => {
-    if (!n || h.current) return;
-    const f = e.find((k) => k.ready);
-    f && (h.current = !0, a || i(f.id), s == null || s(f.id));
-  }, [e, n, a, s]);
-  const _ = (f) => {
-    a || i(f), s == null || s(f);
-  }, l = e.find((f) => f.id === m) ?? e[0];
-  return e.length === 0 ? null : /* @__PURE__ */ o("div", { className: "meso-artifact-shell", children: [
-    /* @__PURE__ */ r("div", { className: "meso-artifact-shell__tabs", role: "tablist", children: e.map((f) => /* @__PURE__ */ o(
+  var h;
+  const l = t !== void 0, [a, c] = C(((h = e[0]) == null ? void 0 : h.id) ?? ""), i = l ? t : a, u = R(!1);
+  I(() => {
+    if (!o || u.current) return;
+    const N = e.find((g) => g.ready);
+    N && (u.current = !0, l || c(N.id), s == null || s(N.id));
+  }, [e, o, l, s]);
+  const f = (N) => {
+    l || c(N), s == null || s(N);
+  }, d = e.find((N) => N.id === i) ?? e[0];
+  return e.length === 0 ? null : /* @__PURE__ */ n("div", { className: "meso-artifact-shell", children: [
+    /* @__PURE__ */ r("div", { className: "meso-artifact-shell__tabs", role: "tablist", children: e.map((N) => /* @__PURE__ */ n(
       "button",
       {
         role: "tab",
-        "aria-selected": f.id === m,
-        className: `meso-artifact-shell__tab${f.id === m ? " meso-artifact-shell__tab--active" : ""}`,
-        onClick: () => _(f.id),
+        "aria-selected": N.id === i,
+        className: `meso-artifact-shell__tab${N.id === i ? " meso-artifact-shell__tab--active" : ""}`,
+        onClick: () => f(N.id),
         children: [
-          f.label,
-          f.ready === !1 && /* @__PURE__ */ r("span", { className: "meso-artifact-shell__tab-dot", "aria-label": "加载中" })
+          N.label,
+          N.ready === !1 && /* @__PURE__ */ r("span", { className: "meso-artifact-shell__tab-dot", "aria-label": "加载中" })
         ]
       },
-      f.id
+      N.id
     )) }),
-    /* @__PURE__ */ r("div", { className: "meso-artifact-shell__content", role: "tabpanel", children: l == null ? void 0 : l.content })
+    /* @__PURE__ */ r("div", { className: "meso-artifact-shell__content", role: "tabpanel", children: d == null ? void 0 : d.content })
   ] });
 }
-function mr({ status: e, primary: t, outcome: s, detail: n, className: a, "data-testid": c }) {
-  const i = n !== void 0 && n !== "", m = me({ system: !1 });
-  return /* @__PURE__ */ o("div", { className: `meso-log-line${a ? ` ${a}` : ""}`, "data-testid": c ?? "meso-log-line", children: [
-    /* @__PURE__ */ o(
+function mr({ status: e, primary: t, outcome: s, detail: o, className: l, "data-testid": a }) {
+  const c = o !== void 0 && o !== "", i = me({ system: !1 });
+  return /* @__PURE__ */ n("div", { className: `meso-log-line${l ? ` ${l}` : ""}`, "data-testid": a ?? "meso-log-line", children: [
+    /* @__PURE__ */ n(
       "div",
       {
-        className: `meso-log-line__row${i ? " meso-log-line__row--clickable" : ""}`,
-        onClick: i ? m.toggle : void 0,
-        role: i ? "button" : void 0,
-        tabIndex: i ? 0 : void 0,
-        onKeyDown: i ? (h) => {
-          (h.key === "Enter" || h.key === " ") && m.toggle();
+        className: `meso-log-line__row${c ? " meso-log-line__row--clickable" : ""}`,
+        onClick: c ? i.toggle : void 0,
+        role: c ? "button" : void 0,
+        tabIndex: c ? 0 : void 0,
+        onKeyDown: c ? (u) => {
+          (u.key === "Enter" || u.key === " ") && i.toggle();
         } : void 0,
-        "aria-expanded": i ? m.open : void 0,
-        "aria-label": i ? `${t}，${m.open ? "折叠" : "展开"}详情` : void 0,
+        "aria-expanded": c ? i.open : void 0,
+        "aria-label": c ? `${t}，${i.open ? "折叠" : "展开"}详情` : void 0,
         children: [
-          /* @__PURE__ */ r(A, { status: e, size: 14, className: "meso-log-line__icon" }),
+          /* @__PURE__ */ r(W, { status: e, size: 14, className: "meso-log-line__icon" }),
           /* @__PURE__ */ r("span", { className: "meso-log-line__primary", children: t }),
           s && /* @__PURE__ */ r("span", { className: "meso-log-line__outcome", children: s }),
-          i && /* @__PURE__ */ r(
+          c && /* @__PURE__ */ r(
             "svg",
             {
-              className: `meso-log-line__chevron${m.open ? " meso-log-line__chevron--open" : ""}`,
+              className: `meso-log-line__chevron${i.open ? " meso-log-line__chevron--open" : ""}`,
               width: "12",
               height: "12",
               viewBox: "0 0 12 12",
@@ -1327,181 +1405,181 @@ function mr({ status: e, primary: t, outcome: s, detail: n, className: a, "data-
         ]
       }
     ),
-    i && m.open && /* @__PURE__ */ r("pre", { className: "meso-log-line__detail", children: n })
+    c && i.open && /* @__PURE__ */ r("pre", { className: "meso-log-line__detail", children: o })
   ] });
 }
 const Ye = /* @__PURE__ */ new Set(["text", "think"]);
 function Ze(e, t, s) {
-  var n, a, c, i, m, h, _, l, u, f, k, N, v, g, d, p;
+  var o, l, a, c, i, u, f, d, h, N, g, y, p, v, m, _;
   if (s)
     switch (e.type) {
       case "capabilities":
-        (n = s.onCapabilities) == null || n.call(s, e.payload);
+        (o = s.onCapabilities) == null || o.call(s, e.payload);
         break;
       case "phase":
-        (a = s.onPhaseChange) == null || a.call(s, e.payload);
+        (l = s.onPhaseChange) == null || l.call(s, e.payload);
         break;
       case "memory":
-        (c = s.onMemoryRecalled) == null || c.call(s, e.payload.snippets);
+        (a = s.onMemoryRecalled) == null || a.call(s, e.payload.snippets);
         break;
       case "memory_saved":
-        (i = s.onMemorySaved) == null || i.call(s, e.payload);
+        (c = s.onMemorySaved) == null || c.call(s, e.payload);
         break;
       case "soul":
-        (m = s.onSoulActivated) == null || m.call(s, e.payload);
+        (i = s.onSoulActivated) == null || i.call(s, e.payload);
         break;
       case "skill_active":
-        (h = s.onSkillActivated) == null || h.call(s, e.payload);
+        (u = s.onSkillActivated) == null || u.call(s, e.payload);
         break;
       case "tool_call":
-        (_ = s.onToolCall) == null || _.call(s, e.payload);
+        (f = s.onToolCall) == null || f.call(s, e.payload);
         break;
       case "tool_result":
-        (l = s.onToolResult) == null || l.call(s, e.payload);
+        (d = s.onToolResult) == null || d.call(s, e.payload);
         break;
       case "resource_read":
-        (u = s.onResourceRead) == null || u.call(s, e.payload);
+        (h = s.onResourceRead) == null || h.call(s, e.payload);
         break;
       case "resource_content":
-        (f = s.onResourceContent) == null || f.call(s, e.payload);
+        (N = s.onResourceContent) == null || N.call(s, e.payload);
         break;
       case "text":
-        (k = s.onText) == null || k.call(s, e.payload.delta, t);
+        (g = s.onText) == null || g.call(s, e.payload.delta, t);
         break;
       case "think":
-        (N = s.onThink) == null || N.call(s, e.payload.delta, t);
+        (y = s.onThink) == null || y.call(s, e.payload.delta, t);
         break;
       case "artifact": {
         const w = t.artifacts[e.payload.id];
-        w && ((v = s.onArtifact) == null || v.call(s, w));
+        w && ((p = s.onArtifact) == null || p.call(s, w));
         break;
       }
       case "extension":
-        (g = s.onExtensionEvent) == null || g.call(s, e);
+        (v = s.onExtensionEvent) == null || v.call(s, e);
         break;
       case "error":
-        (d = s.onError) == null || d.call(s, e.payload.message, e.payload.code);
+        (m = s.onError) == null || m.call(s, e.payload.message, e.payload.code);
         break;
       case "done":
-        (p = s.onDone) == null || p.call(s, t);
+        (_ = s.onDone) == null || _.call(s, t);
         break;
     }
 }
 function ur(e, t) {
-  const [s, n] = C(K), a = T(null), c = T(!1), i = T(t);
-  i.current = t;
-  const m = W(() => {
-    var l;
-    (l = a.current) == null || l.abort(), c.current = !1, n((u) => ({ ...u, status: "idle" }));
-  }, []), h = W(() => {
-    var l;
-    (l = a.current) == null || l.abort(), c.current = !1, n(K());
-  }, []), _ = W(async (l) => {
-    var d, p, w, S, E, L;
-    if (c.current) return;
-    c.current = !0;
-    const u = typeof (l == null ? void 0 : l.reconnect) == "object" ? l.reconnect : { maxAttempts: 3, baseDelayMs: 1e3 }, f = l != null && l.reconnect ? u.maxAttempts ?? 3 : 0, k = u.baseDelayMs ?? 1e3, N = (l == null ? void 0 : l.batchMs) === void 0 ? 16 : l.batchMs;
-    let v = 0;
-    const g = async () => {
+  const [s, o] = C(G), l = R(null), a = R(!1), c = R(t);
+  c.current = t;
+  const i = V(() => {
+    var d;
+    (d = l.current) == null || d.abort(), a.current = !1, o((h) => ({ ...h, status: "idle" }));
+  }, []), u = V(() => {
+    var d;
+    (d = l.current) == null || d.abort(), a.current = !1, o(G());
+  }, []), f = V(async (d) => {
+    var m, _, w, S, E, L;
+    if (a.current) return;
+    a.current = !0;
+    const h = typeof (d == null ? void 0 : d.reconnect) == "object" ? d.reconnect : { maxAttempts: 3, baseDelayMs: 1e3 }, N = d != null && d.reconnect ? h.maxAttempts ?? 3 : 0, g = h.baseDelayMs ?? 1e3, y = (d == null ? void 0 : d.batchMs) === void 0 ? 16 : d.batchMs;
+    let p = 0;
+    const v = async () => {
       var Z;
-      (Z = a.current) == null || Z.abort();
-      const y = new AbortController();
-      a.current = y;
-      const b = { ...K(), status: "streaming" };
-      n(b);
-      let O = b;
-      const G = (l == null ? void 0 : l.method) ?? (l != null && l.body ? "POST" : "GET"), j = (l == null ? void 0 : l.watchdogMs) === void 0 ? 12e4 : l.watchdogMs;
-      let P = null;
-      const H = () => {
-        P && clearTimeout(P);
-      }, F = () => {
-        H(), j != null && (P = setTimeout(() => {
-          var $, D;
-          y.abort();
-          const x = `SSE stream timed out after ${j}ms of inactivity`;
-          n((B) => ({ ...B, status: "error", errorMessage: x, errorCode: "WATCHDOG_TIMEOUT" })), (D = ($ = i.current) == null ? void 0 : $.onError) == null || D.call($, x, "WATCHDOG_TIMEOUT");
-        }, j));
-      }, z = [];
-      let I = null;
-      const J = (x) => {
-        const $ = ye(O, x);
-        if (O = $, n($), Ze(x, $, i.current), x.type === "done" || x.type === "error")
-          return H(), x.type;
+      (Z = l.current) == null || Z.abort();
+      const k = new AbortController();
+      l.current = k;
+      const b = { ...G(), status: "streaming" };
+      o(b);
+      let T = b;
+      const K = (d == null ? void 0 : d.method) ?? (d != null && d.body ? "POST" : "GET"), B = (d == null ? void 0 : d.watchdogMs) === void 0 ? 12e4 : d.watchdogMs;
+      let j = null;
+      const M = () => {
+        j && clearTimeout(j);
+      }, H = () => {
+        M(), B != null && (j = setTimeout(() => {
+          var O, U;
+          k.abort();
+          const x = `SSE stream timed out after ${B}ms of inactivity`;
+          o((z) => ({ ...z, status: "error", errorMessage: x, errorCode: "WATCHDOG_TIMEOUT" })), (U = (O = c.current) == null ? void 0 : O.onError) == null || U.call(O, x, "WATCHDOG_TIMEOUT");
+        }, B));
+      }, D = [];
+      let $ = null;
+      const A = (x) => {
+        const O = be(T, x);
+        if (T = O, o(O), Ze(x, O, c.current), x.type === "done" || x.type === "error")
+          return M(), x.type;
       }, Y = () => {
-        for (; z.length > 0; ) {
-          const x = z.shift(), $ = J(x);
-          if ($) return $;
+        for (; D.length > 0; ) {
+          const x = D.shift(), O = A(x);
+          if (O) return O;
         }
       }, _e = (x) => {
-        if (N != null && Ye.has(x.type)) {
-          z.push(x), I || (I = setTimeout(() => {
-            I = null, Y();
-          }, N));
+        if (y != null && Ye.has(x.type)) {
+          D.push(x), $ || ($ = setTimeout(() => {
+            $ = null, Y();
+          }, y));
           return;
         }
-        return J(x);
+        return A(x);
       };
       try {
         const x = await fetch(e, {
-          method: G,
+          method: K,
           headers: {
-            ...G === "POST" ? { "Content-Type": "application/json" } : {},
-            ...l == null ? void 0 : l.headers
+            ...K === "POST" ? { "Content-Type": "application/json" } : {},
+            ...d == null ? void 0 : d.headers
           },
-          body: l != null && l.body ? JSON.stringify(l.body) : void 0,
-          signal: y.signal
+          body: d != null && d.body ? JSON.stringify(d.body) : void 0,
+          signal: k.signal
         });
         if (!x.ok) throw new Error(`HTTP ${x.status}`);
-        const $ = x.body.getReader(), D = new TextDecoder();
-        let B = "";
-        for (F(); ; ) {
-          const { done: fe, value: pe } = await $.read();
+        const O = x.body.getReader(), U = new TextDecoder();
+        let z = "";
+        for (H(); ; ) {
+          const { done: fe, value: pe } = await O.read();
           if (fe) break;
-          F(), B += D.decode(pe, { stream: !0 });
-          const Q = B.split(`
+          H(), z += U.decode(pe, { stream: !0 });
+          const Q = z.split(`
 `);
-          B = Q.pop() ?? "";
-          for (const ge of Q) {
-            const X = ke(ge);
+          z = Q.pop() ?? "";
+          for (const ve of Q) {
+            const X = ke(ve);
             if (!X) continue;
             const ee = _e(X);
             if (ee) return ee;
           }
         }
-        I && (clearTimeout(I), I = null);
+        $ && (clearTimeout($), $ = null);
         const q = Y();
         return q || "interrupted";
       } catch (x) {
         if (x.name === "AbortError") return "interrupted";
         throw x;
       } finally {
-        H(), I && clearTimeout(I);
+        M(), $ && clearTimeout($);
       }
     };
     try {
       for (; ; ) {
         try {
-          const y = await g();
-          if (y === "done" || y === "error") return;
-          if (!(l != null && l.reconnect) || v >= f) {
+          const k = await v();
+          if (k === "done" || k === "error") return;
+          if (!(d != null && d.reconnect) || p >= N) {
             const b = "SSE stream ended unexpectedly";
-            n((O) => ({ ...O, status: "error", errorMessage: b, errorCode: "STREAM_ENDED" })), (p = (d = i.current) == null ? void 0 : d.onError) == null || p.call(d, b, "STREAM_ENDED");
+            o((T) => ({ ...T, status: "error", errorMessage: b, errorCode: "STREAM_ENDED" })), (_ = (m = c.current) == null ? void 0 : m.onError) == null || _.call(m, b, "STREAM_ENDED");
             return;
           }
-        } catch (y) {
-          if (!(l != null && l.reconnect) || v >= f) {
-            const b = y.message;
-            n((O) => ({ ...O, status: "error", errorMessage: b })), (S = (w = i.current) == null ? void 0 : w.onError) == null || S.call(w, b);
+        } catch (k) {
+          if (!(d != null && d.reconnect) || p >= N) {
+            const b = k.message;
+            o((T) => ({ ...T, status: "error", errorMessage: b })), (S = (w = c.current) == null ? void 0 : w.onError) == null || S.call(w, b);
             return;
           }
         }
-        v += 1, (L = (E = i.current) == null ? void 0 : E.onReconnect) == null || L.call(E, v), await new Promise((y) => setTimeout(y, k * Math.pow(2, v - 1)));
+        p += 1, (L = (E = c.current) == null ? void 0 : E.onReconnect) == null || L.call(E, p), await new Promise((k) => setTimeout(k, g * Math.pow(2, p - 1)));
       }
     } finally {
-      c.current = !1;
+      a.current = !1;
     }
   }, [e]);
-  return { state: s, start: _, abort: m, reset: h };
+  return { state: s, start: f, abort: i, reset: u };
 }
 const ue = "meso-theme";
 function qe() {
@@ -1512,11 +1590,11 @@ function Qe(e) {
 }
 function hr() {
   const [e, t] = C(qe);
-  R(() => {
+  I(() => {
     Qe(e);
   }, [e]);
-  const s = W(() => {
-    t((n) => n === "light" ? "dark" : "light");
+  const s = V(() => {
+    t((o) => o === "light" ? "dark" : "light");
   }, []);
   return { theme: e, toggle: s };
 }
@@ -1553,7 +1631,7 @@ const he = {
 }, er = {
   "zh-CN": he,
   "en-US": Xe
-}, V = Ne({
+}, J = Ne({
   locale: "zh-CN",
   labels: he
 });
@@ -1562,48 +1640,48 @@ function _r({
   labels: t,
   children: s
 }) {
-  const n = { ...er[e], ...t };
-  return /* @__PURE__ */ r(V.Provider, { value: { locale: e, labels: n }, children: s });
+  const o = { ...er[e], ...t };
+  return /* @__PURE__ */ r(J.Provider, { value: { locale: e, labels: o }, children: s });
 }
 function fr() {
-  return oe(V).labels;
+  return ne(J).labels;
 }
 function pr() {
-  return oe(V);
+  return ne(J);
 }
 export {
   dr as ArtifactPaneShell,
   se as ArtifactPanel,
   re as ChatBubble,
   lr as ChatComposer,
-  ne as CollapsibleToolTrace,
-  We as ConfirmGate,
+  ae as CollapsibleToolTrace,
+  Pe as ConfirmGate,
   mr as LogLine,
   _r as MesoLocaleProvider,
-  or as MessageList,
+  nr as MessageList,
   Nr as PROTOCOL_VERSION,
-  ir as ProcessTrace,
+  cr as ProcessTrace,
   Ve as ResourceReadBlock,
-  cr as SidebarUserMenu,
+  ir as SidebarUserMenu,
   Be as SkillIndicator,
   Me as SoulIndicator,
   $e as StageTimeline,
-  A as StatusIcon,
-  ar as StreamingCursor,
+  W as StatusIcon,
+  or as StreamingCursor,
   le as ThinkBlock,
-  nr as ThreeColumnLayout,
+  ar as ThreeColumnLayout,
   de as ToolCallBlock,
   Ie as WorkflowTimeline,
-  ye as applyEvent,
+  be as applyEvent,
   wr as assertCompatibleVersion,
-  K as createInitialStreamState,
+  G as createInitialStreamState,
   kr as createStreamStateWithArtifacts,
   er as defaultLabelsByLocale,
   Xe as enUSLabels,
-  yr as isCompatibleVersion,
+  br as isCompatibleVersion,
   ke as parseSSELine,
   we as phaseRecordToStage,
-  br as streamStateHasArtifacts,
+  yr as streamStateHasArtifacts,
   me as useFoldState,
   fr as useMesoLabels,
   pr as useMesoLocale,

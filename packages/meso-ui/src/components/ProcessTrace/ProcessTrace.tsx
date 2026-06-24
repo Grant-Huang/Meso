@@ -13,9 +13,22 @@ import { phaseStateToIcon } from '../../utils/statusMapping'
 import './ProcessTrace.css'
 
 export interface SimplifyOptions {
+  // ← OLD (backward compatibility)
   hideMetadata?: boolean
   hideResultDetails?: boolean
   compact?: boolean
+
+  // ← NEW: Explicit verbosity level (overrides old properties)
+  verbosity?: 'compact' | 'standard' | 'detailed'
+
+  // ← NEW: Fine-grained controls
+  showDuration?: boolean
+  showProvider?: boolean
+  showRiskLevel?: boolean
+  showExecutionTimeline?: boolean
+  defaultParamsCollapsed?: boolean
+  defaultOutputCollapsed?: boolean
+  defaultMetadataCollapsed?: boolean
 }
 
 export interface ProcessTraceProps {

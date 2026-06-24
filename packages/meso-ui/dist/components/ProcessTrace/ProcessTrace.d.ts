@@ -5,6 +5,14 @@ export interface SimplifyOptions {
     hideMetadata?: boolean;
     hideResultDetails?: boolean;
     compact?: boolean;
+    verbosity?: 'compact' | 'standard' | 'detailed';
+    showDuration?: boolean;
+    showProvider?: boolean;
+    showRiskLevel?: boolean;
+    showExecutionTimeline?: boolean;
+    defaultParamsCollapsed?: boolean;
+    defaultOutputCollapsed?: boolean;
+    defaultMetadataCollapsed?: boolean;
 }
 export interface ProcessTraceProps {
     stream: StreamState;

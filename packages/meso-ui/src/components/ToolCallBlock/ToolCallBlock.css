@@ -176,3 +176,147 @@
 .meso-tool__btn--confirm.meso-tool__btn--destructive {
   background: var(--color-error);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Verbosity levels */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.meso-tool--compact {
+  font-size: 12px;
+}
+
+.meso-tool--compact .meso-tool__header {
+  padding: 6px 10px;
+}
+
+.meso-tool--standard {
+  font-size: 12px;
+}
+
+.meso-tool--detailed {
+  font-size: 12px;
+}
+
+/* Collapsible details/summary */
+.meso-tool__params-details,
+.meso-tool__result-details,
+.meso-tool__metadata-details,
+.meso-tool__timeline-details {
+  border-top: 1px solid var(--color-border-light);
+  padding: 0;
+}
+
+.meso-tool__params-summary,
+.meso-tool__result-summary,
+.meso-tool__metadata-summary,
+.meso-tool__timeline-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--color-bg-elevated);
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.meso-tool__params-summary:hover,
+.meso-tool__result-summary:hover,
+.meso-tool__metadata-summary:hover,
+.meso-tool__timeline-summary:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.meso-tool__params-toggle,
+.meso-tool__result-toggle,
+.meso-tool__metadata-toggle,
+.meso-tool__timeline-toggle {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  width: 12px;
+}
+
+/* Expanded/collapsed states */
+.meso-tool__params-details[open] .meso-tool__params-summary,
+.meso-tool__result-details[open] .meso-tool__result-summary,
+.meso-tool__metadata-details[open] .meso-tool__metadata-summary,
+.meso-tool__timeline-details[open] .meso-tool__timeline-summary {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text);
+}
+
+/* Summary content in compact mode */
+.meso-tool__summary {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Metadata display */
+.meso-tool__metadata {
+  padding: 8px 12px;
+  background: var(--color-code-bg);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--color-code-text);
+}
+
+.meso-tool__metadata-row {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 0;
+}
+
+.meso-tool__metadata-key {
+  font-weight: 600;
+  color: var(--color-code-keyword, #c586c0);
+  min-width: 100px;
+}
+
+.meso-tool__metadata-value {
+  color: var(--color-code-text);
+}
+
+.meso-tool__metadata-custom {
+  margin: 4px 0 0 0;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--color-code-bg) 70%, transparent);
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Timeline display */
+.meso-tool__timeline {
+  padding: 8px 12px;
+  background: var(--color-code-bg);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--color-code-text);
+}
+
+.meso-tool__timeline-row {
+  display: flex;
+  gap: 12px;
+  margin: 4px 0;
+  align-items: baseline;
+}
+
+.meso-tool__timeline-label {
+  font-weight: 600;
+  color: var(--color-code-keyword, #c586c0);
+  min-width: 100px;
+}
+
+.meso-tool__timeline-value {
+  color: var(--color-code-text);
+}

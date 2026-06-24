@@ -1,4 +1,4 @@
-import { MessageList, ChatComposer, ProcessTrace, SoulIndicator, SkillIndicator } from '@meso.ai/ui'
+import { MessageList, ChatComposer, CollapsibleToolTrace, SoulIndicator, SkillIndicator } from '@meso.ai/ui'
 import type { Message, ExtensionEvent, StreamState } from '@meso.ai/ui'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import React from 'react'
@@ -106,7 +106,7 @@ function renderTextLines(value: string, keyBase: string) {
   ))
 }
 
-/** 自定义流式渲染：Soul/Skill → ProcessTrace（执行过程+确认门）→ citation → text 主线（含链接卡片）→ memorySaved */
+/** 自定义流式渲染：Soul/Skill → CollapsibleToolTrace（执行过程+确认门，默认折叠）→ citation → text 主线（含链接卡片）→ memorySaved */
 function buildRenderLiveTrace(opts: {
   openArtifactTab: (id: string) => void
   onToolConfirm: (id: string) => void
@@ -123,17 +123,27 @@ function buildRenderLiveTrace(opts: {
             {stream.activeSkill && <SkillIndicator skill={stream.activeSkill} />}
           </div>
         )}
-        <ProcessTrace
-          stream={stream}
-          streaming={stream.status === 'streaming'}
-          turnStreaming={stream.status === 'streaming'}
-          onToolConfirm={opts.onToolConfirm}
-          onToolCancel={opts.onToolCancel}
-        />
+        <div style={{ marginBottom: 12 }}>
+          <CollapsibleToolTrace
+            stream={stream}
+            streaming={stream.status === 'streaming'}
+            defaultExpanded="none"
+            simplify={{ hideMetadata: false }}
+            onToolConfirm={opts.onToolConfirm}
+            onToolCancel={opts.onToolCancel}
+            renderSummary={(tc, index) => {
+              const icon = tc.status === 'error' ? '✗' : (tc.status === 'pending' ? '◆' : '✓')
+              const name = tc.call.name
+              const count = tc.result?.metadata?.resultCount ? ` — ${tc.result.metadata.resultCount} 项` : ''
+              const duration = tc.result?.duration_ms ? ` (${tc.result.duration_ms}ms)` : ''
+              return `${icon} ${name}${count}${duration}`
+            }}
+          />
+        </div>
         {opts.renderExtension && stream.extensionLog.length > 0 && (() => {
           const renderExt = opts.renderExtension!
           return (
-            <div className="meso-message-list__extensions">
+            <div style={{ marginBottom: 12 }}>
               {stream.extensionLog.map((ext, i) => (
                 <React.Fragment key={i}>{renderExt(ext)}</React.Fragment>
               ))}
@@ -158,18 +168,15 @@ function buildRenderLiveTrace(opts: {
                         alignItems: 'center',
                         gap: 6,
                         margin: '6px 0',
-                        padding: '6px 12px',
-                        border: '1px solid var(--color-accent)',
-                        borderRadius: 8,
-                        background: 'rgba(42,122,79,0.08)',
+                        padding: '4px 8px',
+                        borderLeft: '2px solid var(--color-accent)',
+                        background: 'transparent',
                         color: 'var(--color-accent)',
                         fontSize: 12,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         cursor: 'pointer',
-                        width: 'fit-content',
                       }} onClick={() => opts.openArtifactTab(seg.id)}>
-                        <span aria-hidden="true">↗</span>
-                        <span>打开右侧「{seg.label}」</span>
+                        <span>› {seg.label}</span>
                       </div>
                     )
                   })

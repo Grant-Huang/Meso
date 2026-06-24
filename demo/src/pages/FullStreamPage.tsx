@@ -1,6 +1,7 @@
-import { MessageList, ChatComposer } from '@meso.ai/ui'
-import type { Message, ExtensionEvent } from '@meso.ai/ui'
-import { useState, useEffect } from 'react'
+import { MessageList, ChatComposer, CollapsibleToolTrace } from '@meso.ai/ui'
+import type { Message, ExtensionEvent, StreamState } from '@meso.ai/ui'
+import { useState, useEffect, useCallback } from 'react'
+import React from 'react'
 import { useFullStream } from '../hooks/useFullStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
@@ -18,15 +19,14 @@ function renderCitation(event: ExtensionEvent) {
   return (
     <div style={{
       margin: '8px 0',
-      padding: '10px 12px',
-      border: '1px solid var(--color-border)',
-      borderRadius: 8,
-      background: 'var(--color-bg-elevated)',
+      padding: '8px 0',
+      borderLeft: '2px solid var(--color-accent)',
+      paddingLeft: '12px',
     }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 4 }}>
         引用来源（{data.sources.length}）
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {data.sources.map(s => (
           <a
             key={s.id}
@@ -35,33 +35,70 @@ function renderCitation(event: ExtensionEvent) {
             rel="noreferrer"
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 12,
+              alignItems: 'flex-start',
+              gap: 6,
+              fontSize: 11,
               color: 'var(--color-text)',
               textDecoration: 'none',
-              padding: '3px 0',
+              padding: '2px 0',
             }}
           >
             <span style={{
               flexShrink: 0,
-              padding: '1px 6px',
-              borderRadius: 4,
-              background: 'rgba(42,122,79,0.12)',
               color: 'var(--color-accent)',
               fontSize: 10,
               fontWeight: 600,
-              minWidth: 36,
-              textAlign: 'center',
+              minWidth: 24,
+              textAlign: 'right',
             }}>
               {(s.score * 100).toFixed(0)}%
             </span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{s.title}</span>
           </a>
         ))}
       </div>
     </div>
   )
+}
+
+function buildRenderLiveTrace(opts: {
+  onToolConfirm: (id: string) => void
+  onToolCancel: (id: string) => void
+  renderExtension?: (event: ExtensionEvent) => React.ReactNode
+}) {
+  return (stream: StreamState): React.ReactNode => {
+    return (
+      <>
+        <div style={{ marginBottom: 12 }}>
+          <CollapsibleToolTrace
+            stream={stream}
+            streaming={stream.status === 'streaming'}
+            defaultExpanded="none"
+            simplify={{ hideMetadata: false }}
+            onToolConfirm={opts.onToolConfirm}
+            onToolCancel={opts.onToolCancel}
+            renderSummary={(tc, index) => {
+              const icon = tc.status === 'error' ? '✗' : (tc.status === 'pending' ? '◆' : '✓')
+              const name = tc.call.name
+              const count = tc.result?.metadata?.resultCount ? ` — ${tc.result.metadata.resultCount} 项` : ''
+              const duration = tc.result?.duration_ms ? ` (${tc.result.duration_ms}ms)` : ''
+              return `${icon} ${name}${count}${duration}`
+            }}
+          />
+        </div>
+        {opts.renderExtension && stream.extensionLog.length > 0 && (() => {
+          const renderExt = opts.renderExtension!
+          return (
+            <div style={{ marginBottom: 12 }}>
+              {stream.extensionLog.map((ext, i) => (
+                <React.Fragment key={i}>{renderExt(ext)}</React.Fragment>
+              ))}
+            </div>
+          )
+        })()}
+      </>
+    )
+  }
 }
 
 export function FullStreamPage() {
@@ -71,6 +108,15 @@ export function FullStreamPage() {
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
+
+  const renderLiveTrace = useCallback(
+    buildRenderLiveTrace({
+      onToolConfirm: confirmTool,
+      onToolCancel: cancelTool,
+      renderExtension: renderCitation,
+    }),
+    [confirmTool, cancelTool],
+  )
 
   // 流结束后把报告存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
   useEffect(() => {
@@ -263,6 +309,7 @@ export function FullStreamPage() {
           streaming={state.status !== 'idle' ? state : undefined}
           onToolConfirm={confirmTool}
           onToolCancel={cancelTool}
+          renderLiveTrace={renderLiveTrace}
           onArtifactCopy={content => navigator.clipboard.writeText(content).catch(() => {})}
           onArtifactDownload={content => {
             const blob = new Blob([content], { type: 'text/markdown' })

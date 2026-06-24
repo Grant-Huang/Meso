@@ -8,18 +8,33 @@ import './CollapsibleToolTrace.css'
 export interface CollapsibleToolTraceProps {
   stream: StreamState
   streaming?: boolean
-  defaultExpanded?: 'all' | 'current' | 'none'
+
+  /** Expansion strategy: 'none' = all collapsed, 'current' = last item expanded, 'all' = all expanded, 'last-n' = last N expanded */
+  defaultExpanded?: 'all' | 'current' | 'none' | 'last-n'
+  /** Number of items to expand when defaultExpanded='last-n' (default: 2) */
+  expandCount?: number
+
+  /** Show only the most recent tool call */
   onlyShowCurrent?: boolean
+
+  /** Verbosity and display options */
   simplify?: SimplifyOptions
+
+  /** Called when user clicks a tool summary to expand */
   onToolClick?: (toolCallId: string) => void
+  /** Called when user approves tool confirmation */
   onToolConfirm?: (toolCallId: string) => void
+  /** Called when user cancels tool confirmation */
   onToolCancel?: (toolCallId: string) => void
+
+  /** Custom summary rendering for each tool */
   renderSummary?: (tc: ToolCallState, index: number) => ReactNode
 }
 
 export function CollapsibleToolTrace({
   stream,
   defaultExpanded = 'none',
+  expandCount = 2,
   onlyShowCurrent = false,
   simplify,
   onToolClick,
@@ -37,6 +52,10 @@ export function CollapsibleToolTrace({
     if (defaultExpanded === 'all') return new Set(visibleToolIds)
     if (defaultExpanded === 'current' && visibleToolIds.length > 0) {
       return new Set([visibleToolIds[visibleToolIds.length - 1]])
+    }
+    if (defaultExpanded === 'last-n' && visibleToolIds.length > 0) {
+      const lastN = visibleToolIds.slice(-expandCount)
+      return new Set(lastN)
     }
     return new Set()
   })

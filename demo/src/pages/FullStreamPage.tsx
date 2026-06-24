@@ -18,15 +18,14 @@ function renderCitation(event: ExtensionEvent) {
   return (
     <div style={{
       margin: '8px 0',
-      padding: '10px 12px',
-      border: '1px solid var(--color-border)',
-      borderRadius: 8,
-      background: 'var(--color-bg-elevated)',
+      padding: '8px 0',
+      borderLeft: '2px solid var(--color-accent)',
+      paddingLeft: '12px',
     }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 4 }}>
         引用来源（{data.sources.length}）
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {data.sources.map(s => (
           <a
             key={s.id}
@@ -35,28 +34,25 @@ function renderCitation(event: ExtensionEvent) {
             rel="noreferrer"
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 12,
+              alignItems: 'flex-start',
+              gap: 6,
+              fontSize: 11,
               color: 'var(--color-text)',
               textDecoration: 'none',
-              padding: '3px 0',
+              padding: '2px 0',
             }}
           >
             <span style={{
               flexShrink: 0,
-              padding: '1px 6px',
-              borderRadius: 4,
-              background: 'rgba(42,122,79,0.12)',
               color: 'var(--color-accent)',
               fontSize: 10,
               fontWeight: 600,
-              minWidth: 36,
-              textAlign: 'center',
+              minWidth: 24,
+              textAlign: 'right',
             }}>
               {(s.score * 100).toFixed(0)}%
             </span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{s.title}</span>
           </a>
         ))}
       </div>
@@ -71,21 +67,20 @@ export function FullStreamPage() {
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
+  const [verbosity, setVerbosity] = useState<'compact' | 'standard' | 'detailed'>('detailed')
+  const [renderingMode, setRenderingMode] = useState<'blend' | 'block'>('blend')
 
-  // 流结束后把报告存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
+  // 流结束后把整轮 trace 存为 assistant 消息：committed 轮次走与 live 相同的
+  // blend 路径（工具+文本交错持久化），done 时无回写、执行过程不丢失。
   useEffect(() => {
     if (state.status === 'done') {
-      const artifacts = state.artifactOrder
-        .map(id => state.artifacts[id])
-        .filter((a): a is NonNullable<typeof a> => !!a)
-        .map(a => ({ id: a.id, lang: a.lang, content: a.content }))
       const content = state.textContent || '研究完成，详见下方产物。'
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'assistant',
         content,
         timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        artifacts: artifacts.length > 0 ? artifacts : undefined,
+        trace: { ...state, status: 'done' },
       }])
       reset()
     }
@@ -131,7 +126,7 @@ export function FullStreamPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Provider / Key 配置条 */}
+      {/* Provider / Key / Verbosity 配置条 */}
       <div style={{
         padding: '6px 16px',
         background: 'var(--color-bg-elevated)',
@@ -142,6 +137,52 @@ export function FullStreamPage() {
         flexShrink: 0,
         flexWrap: 'wrap',
       }}>
+        <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>
+          显示模式：
+        </label>
+        <select
+          value={verbosity}
+          onChange={e => setVerbosity(e.target.value as any)}
+          style={{
+            padding: '4px 8px',
+            border: '1px solid var(--color-border)',
+            borderRadius: 4,
+            background: 'var(--color-bg)',
+            color: 'var(--color-text)',
+            fontSize: 12,
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          <option value="compact">Compact（最小化）</option>
+          <option value="standard">Standard（均衡）</option>
+          <option value="detailed">Detailed（完整）</option>
+        </select>
+
+        <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginLeft: 12 }}>
+          渲染模式：
+        </label>
+        <select
+          value={renderingMode}
+          onChange={e => setRenderingMode(e.target.value as any)}
+          style={{
+            padding: '4px 8px',
+            border: '1px solid var(--color-border)',
+            borderRadius: 4,
+            background: 'var(--color-bg)',
+            color: 'var(--color-text)',
+            fontSize: 12,
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          <option value="blend">Blend（融合）</option>
+          <option value="block">Block（分离）</option>
+        </select>
+
+        <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginLeft: 12 }}>
+          模型：
+        </label>
         <select
           value={provider.id}
           onChange={e => handleProviderChange(PROVIDERS.find(p => p.id === e.target.value)!)}
@@ -261,6 +302,7 @@ export function FullStreamPage() {
         <MessageList
           messages={messages}
           streaming={state.status !== 'idle' ? state : undefined}
+          renderingMode={renderingMode === 'block' ? 'block' : undefined}
           onToolConfirm={confirmTool}
           onToolCancel={cancelTool}
           onArtifactCopy={content => navigator.clipboard.writeText(content).catch(() => {})}
@@ -274,6 +316,7 @@ export function FullStreamPage() {
             URL.revokeObjectURL(url)
           }}
           renderExtension={renderCitation}
+          simplify={{ verbosity }}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🔬</div>

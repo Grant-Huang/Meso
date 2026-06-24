@@ -242,6 +242,15 @@ export interface ToolCallPayload {
   groupId?: string
   /** Semantic kind of the group (e.g. "subtopic", "parallel_search"). */
   groupKind?: string
+  /** Structured metadata for tool display summary and categorization. */
+  metadata?: {
+    /** Result count hint (for search, query results). */
+    resultCount?: number
+    /** Category hint: "search" | "fetch" | "compute" | custom. */
+    category?: string
+    /** Application-specific extensions. */
+    custom?: Record<string, unknown>
+  }
 }
 /** LLM decided to call a tool — emitted before execution starts. */
 export type ToolCallEvent = Envelope<'tool_call', ToolCallPayload>
@@ -263,6 +272,12 @@ export interface ToolResultPayload {
     /** Application-specific extensions. */
     custom?: Record<string, unknown>
   }
+  /**
+   * Self-describing narrative text emitted by the tool executor.
+   * When present, UI layer automatically converts this to a text event.
+   * Example: "✓ web_search 返回 8 个结果" or "✗ 网络超时，建议重试".
+   */
+  narration?: string
 }
 /** Tool execution completed (success or error). */
 export type ToolResultEvent = Envelope<'tool_result', ToolResultPayload>
@@ -312,6 +327,12 @@ export interface ResourceContentPayload {
   /** Present only on failure. */
   error?: string
   duration_ms?: number
+  /**
+   * Self-describing narrative text emitted by the resource provider.
+   * When present, UI layer automatically converts this to a text event.
+   * Example: "✓ MES 数据：OEE 71%，可用率 82%".
+   */
+  narration?: string
 }
 /** Resource content arrived (or failed). */
 export type ResourceContentEvent = Envelope<'resource_content', ResourceContentPayload>
@@ -347,6 +368,12 @@ export interface WorkflowNodePayload {
   duration_ms?: number
   /** Arbitrary domain-specific metadata (e.g. input/output summaries). */
   metadata?: Record<string, unknown>
+  /**
+   * Self-describing narrative text emitted by the DAG orchestrator.
+   * When present, UI layer automatically converts this to a text event.
+   * Used for cross-node insights when workflow completes.
+   */
+  narration?: string
 }
 /** Fine-grained workflow node progress — developer-facing, not shown to end users. */
 export type WorkflowNodeEvent = Envelope<'workflow_node', WorkflowNodePayload>
@@ -446,6 +473,13 @@ export interface PhasePayload {
   started_at?: number
   /** Unix ms timestamp when this phase ended. */
   ended_at?: number
+  /**
+   * Self-describing narrative text emitted by the orchestrator.
+   * When present, UI layer automatically converts this to a text event.
+   * Enables "who executes, who describes" design: orchestrator fills this
+   * with context-aware narration (e.g. "采集完成：MCP 返回 2400 字…").
+   */
+  narration?: string
 }
 /** Phase lifecycle event — emitted at start (state:"running") and end (state:"done"/"error"). */
 export type PhaseEvent = Envelope<'phase', PhasePayload>

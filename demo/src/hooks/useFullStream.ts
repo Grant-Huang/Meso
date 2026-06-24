@@ -252,7 +252,14 @@ export function useFullStream() {
       emit(ev({ type: 'phase', payload: { id: 'analyze', name: '分析研究计划', state: 'done', pinned_think: thinkParts.join(''), ended_at: t + 350 + thinkParts.length * 300 } }))
 
       // 2c 多源并行采集（workflow DAG + resource + tool）
-      emit(ev({ type: 'phase', payload: { id: 'collect', name: '多源采集', state: 'running', started_at: t + 350 + thinkParts.length * 300 } }))
+      // narration 字段由编排层填写，UI 自动转发为 text 事件
+      emit(ev({ type: 'phase', payload: {
+        id: 'collect',
+        name: '多源采集',
+        state: 'running',
+        started_at: t + 350 + thinkParts.length * 300,
+        narration: `现在开始从多个来源采集关于"${topic}"的信息。`
+      } }))
 
       // workflow: orchestrator + 3 个并行采集节点
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'orchestrator', name: '采集编排', state: 'active', started_at: t } }))
@@ -260,7 +267,7 @@ export function useFullStream() {
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'kb_search', parent_id: 'orchestrator', name: 'KB 检索', state: 'active', started_at: t } }))
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'web_fetch', parent_id: 'orchestrator', name: '网页抓取', state: 'active', started_at: t } }))
 
-      // 标准事件展示采集明细
+      // 第一步：MCP 资源 + web_search 工具
       emit(ev({ type: 'resource_read', payload: { id: 'rr1', uri: `research://docs/${slug(topic)}`, server: 'research-srv' } }))
       emit(ev({ type: 'tool_call', payload: { id: 'tc1', name: 'web_search', args: { query: topic }, risk: 'safe', provider: 'builtin' } }))
       emit(ev({ type: 'tool_status', payload: { id: 'tc1', status: 'running' } }))
@@ -268,13 +275,24 @@ export function useFullStream() {
       await delay(450)
 
       if (ctrl.signal.aborted) return
-      emit(ev({ type: 'resource_content', payload: { resource_read_id: 'rr1', contents: [{ type: 'text', text: buildMcpContent(topic) }], duration_ms: 430 } }))
-      emit(ev({ type: 'tool_result', payload: { tool_call_id: 'tc1', output: buildKbResult(topic), duration_ms: 450 } }))
+      emit(ev({ type: 'resource_content', payload: {
+        resource_read_id: 'rr1',
+        contents: [{ type: 'text', text: buildMcpContent(topic) }],
+        duration_ms: 430,
+        narration: `✓ MCP 返回 2400 字`
+      } }))
+      emit(ev({ type: 'tool_result', payload: {
+        tool_call_id: 'tc1',
+        output: buildKbResult(topic),
+        metadata: { resultCount: 8 },
+        duration_ms: 450,
+        narration: `✓ 知识库命中 8 条`
+      } }))
 
       // workflow 节点完成
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'mcp_fetch', name: 'MCP 文档', parent_id: 'orchestrator', state: 'done', duration_ms: 430, metadata: { chars: 2400 } } }))
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'kb_search', name: 'KB 检索', parent_id: 'orchestrator', state: 'done', duration_ms: 450, metadata: { hits: 8 } } }))
-      emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'web_fetch', name: '网页抓取', parent_id: 'orchestrator', state: 'done', duration_ms: 510, metadata: { pages: 5 } } }))
+      emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'web_fetch', name: '网页抓取', parent_id: 'orchestrator', state: 'done', duration_ms: 510, metadata: { pages: 5 }, narration: `✓ 网页抓取 5 页` } }))
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'orchestrator', name: '采集编排', state: 'done', duration_ms: 510 } }))
 
       // citation（extension 事件）
@@ -283,8 +301,12 @@ export function useFullStream() {
       emit(ev({ type: 'phase', payload: { id: 'collect', name: '多源采集', state: 'done', pinned_think: 'MCP 返回 2400 字，KB 命中 8 条，网页抓取 5 页' } }))
 
       // ── 幕三：综合生成 ──
-      emit(ev({ type: 'phase', payload: { id: 'synthesize', name: '综合生成', state: 'running' } }))
-      emit(ev({ type: 'text', payload: { delta: `关于"${topic}"，我已整合 MCP 文档、知识库与网络来源，以下是研究报告：\n\n` } }))
+      emit(ev({ type: 'phase', payload: {
+        id: 'synthesize',
+        name: '综合生成',
+        state: 'running',
+        narration: `现在根据采集到的信息生成结构化研究报告：`
+      } }))
 
       // 真实 LLM 生成报告 markdown → artifact 流式
       await streamLlm([

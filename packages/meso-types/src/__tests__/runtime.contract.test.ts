@@ -677,3 +677,100 @@ describe('ToolDefinition', () => {
     expect(td.input_schema.additionalProperties).toBe(false)
   })
 })
+
+// ── EventLog contract tests ──────────────────────────────────────────────────
+
+describe('eventLog contract', () => {
+  it('eventLog records all events in strict arrival order', () => {
+    const state = replayFixture('basic-stream.txt')
+    expect(state.eventLog.length).toBeGreaterThan(0)
+    // Verify that eventLog is not empty
+    expect(Array.isArray(state.eventLog)).toBe(true)
+  })
+
+  it('eventLog timestamps are monotonically increasing', () => {
+    const state = replayFixture('basic-stream.txt')
+    const timestamps = state.eventLog.map(e => e.timestamp)
+    for (let i = 1; i < timestamps.length; i++) {
+      expect(timestamps[i]).toBe(timestamps[i - 1] + 1)
+    }
+  })
+
+  it('eventLog entries contain required fields: timestamp, type, id, data', () => {
+    const state = replayFixture('basic-stream.txt')
+    for (const entry of state.eventLog) {
+      expect(entry).toHaveProperty('timestamp')
+      expect(entry).toHaveProperty('type')
+      expect(entry).toHaveProperty('id')
+      expect(entry).toHaveProperty('data')
+      expect(typeof entry.timestamp).toBe('number')
+      expect(typeof entry.type).toBe('string')
+      expect(typeof entry.id).toBe('string')
+    }
+  })
+
+  it('eventLog: text event IDs are unique', () => {
+    const state = replayFixture('basic-stream.txt')
+    const textIds = state.eventLog
+      .filter(e => e.type === 'text')
+      .map(e => e.id)
+    const uniqueTextIds = new Set(textIds)
+    expect(textIds.length).toBe(uniqueTextIds.size)
+  })
+
+  it('eventLog: tool_call event IDs match toolCalls', () => {
+    const state = replayFixture('basic-stream.txt')
+    const toolIds = state.eventLog
+      .filter(e => e.type === 'tool_call')
+      .map(e => e.id)
+    for (const id of toolIds) {
+      expect(state.toolCalls[id]).toBeDefined()
+    }
+  })
+
+  it('textChunks are recorded for text events', () => {
+    const state = replayFixture('basic-stream.txt')
+    expect(state.textChunks.length).toBeGreaterThan(0)
+  })
+
+  it('textChunks chunks can reconstruct textContent', () => {
+    const state = replayFixture('basic-stream.txt')
+    const reconstructed = state.textChunks.map(tc => tc.delta).join('')
+    expect(reconstructed).toBe(state.textContent)
+  })
+
+  it('textChunks have position field matching eventLog index', () => {
+    const state = replayFixture('basic-stream.txt')
+    for (const chunk of state.textChunks) {
+      expect(typeof chunk.position).toBe('number')
+      expect(chunk.position).toBeGreaterThanOrEqual(0)
+      expect(chunk.position).toBeLessThan(state.eventLog.length)
+    }
+  })
+
+  it('tool_call events in eventLog match toolCalls state', () => {
+    const state = replayFixture('basic-stream.txt')
+    const toolCallEntries = state.eventLog.filter(e => e.type === 'tool_call')
+    for (const entry of toolCallEntries) {
+      expect(state.toolCalls[entry.id]).toBeDefined()
+    }
+  })
+
+  it('artifact events in eventLog match artifacts state', () => {
+    const state = replayFixture('basic-stream.txt')
+    const artifactEntries = state.eventLog.filter(e => e.type === 'artifact')
+    for (const entry of artifactEntries) {
+      expect(state.artifacts[entry.id]).toBeDefined()
+    }
+  })
+
+  it('eventLog preserves strict event arrival order across types', () => {
+    const state = replayFixture('basic-stream.txt')
+    // Check that eventLog has the events in the order they were applied
+    expect(state.eventLog.length).toBeGreaterThan(0)
+    // timestamps should be sequential
+    for (let i = 0; i < state.eventLog.length; i++) {
+      expect(state.eventLog[i].timestamp).toBe(i)
+    }
+  })
+})

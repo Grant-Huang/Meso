@@ -2,32 +2,137 @@ import type { SSEEvent } from './protocol'
 import type { StreamState } from './streamState'
 
 /**
+ * Extract unique ID from event for logging purposes.
+ */
+function extractEventId(event: SSEEvent): string {
+  const payload = event.payload as Record<string, unknown>
+  switch (event.type) {
+    case 'tool_call':
+      return (payload.id as string) ?? 'unknown'
+    case 'tool_result':
+      return (payload.tool_call_id as string) ?? 'unknown'
+    case 'resource_read':
+      return (payload.id as string) ?? 'unknown'
+    case 'resource_content':
+      return (payload.resource_read_id as string) ?? 'unknown'
+    case 'artifact':
+      return (payload.id as string) ?? 'unknown'
+    case 'phase':
+      return (payload.id as string) ?? 'unknown'
+    case 'workflow_node':
+      return (payload.node_id as string) ?? 'unknown'
+    case 'text':
+      return `text-${extractEventMetadata(event).textChunkIndex}`
+    case 'extension':
+      return `ext-${(payload.name as string) ?? 'unknown'}`
+    default:
+      return event.type
+  }
+}
+
+/**
+ * Extract metadata and state for event logging.
+ */
+function extractEventMetadata(event: SSEEvent): {
+  textChunkIndex: number
+  [key: string]: unknown
+} {
+  const payload = event.payload as Record<string, unknown>
+  return {
+    textChunkIndex: 0, // will be updated when processing text events
+    ...payload,
+  }
+}
+
+/**
+ * Record event to eventLog and handle special cases (text chunks).
+ */
+function recordEvent(
+  nextState: StreamState,
+  event: SSEEvent,
+  eventId: string,
+): StreamState {
+  const eventEntry = {
+    timestamp: nextState.eventLog.length,
+    type: event.type as SSEEvent['type'],
+    id: eventId,
+    data: (event.payload as Record<string, unknown>) ?? {},
+  }
+
+  // Special handling for text events: also track in textChunks
+  if (event.type === 'text' && typeof (event.payload as any)?.delta === 'string') {
+    const delta = (event.payload as any).delta
+    const textChunkId = `text-${nextState.textChunks.length}`
+    return {
+      ...nextState,
+      eventLog: [...nextState.eventLog, { ...eventEntry, id: textChunkId }],
+      textChunks: [
+        ...nextState.textChunks,
+        {
+          id: textChunkId,
+          delta,
+          position: nextState.eventLog.length,
+        },
+      ],
+    }
+  }
+
+  return {
+    ...nextState,
+    eventLog: [...nextState.eventLog, eventEntry],
+  }
+}
+
+/**
  * Pure state machine reducer.
  * Apply one SSE event to the current StreamState and return the next state.
  * Does not mutate the input state.
+ *
+ * Supports narration field: if any event payload has narration?: string,
+ * it is automatically converted to a text event and applied first.
+ * This enables "who executes, who describes" design pattern.
  */
 export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
+  // ── Auto-forward narration → text (self-describing events) ──
+  // If the event carries narration (orchestrator's context-aware description),
+  // emit it as a text event before processing the event itself.
+  const payload = event.payload as Record<string, unknown>
+  if (payload && typeof payload.narration === 'string' && payload.narration.length > 0) {
+    state = applyEvent(state, {
+      type: 'text',
+      schema_version: '1.0',
+      payload: { delta: payload.narration + '\n\n' },
+    })
+  }
+
+  let nextState: StreamState
+
   switch (event.type) {
     case 'capabilities':
-      return { ...state, availableCapabilities: event.payload }
+      nextState = { ...state, availableCapabilities: event.payload }
+      break
 
     case 'memory':
-      return { ...state, memorySnippets: event.payload.snippets }
+      nextState = { ...state, memorySnippets: event.payload.snippets }
+      break
 
     case 'memory_saved':
-      return { ...state, memorySaved: [...state.memorySaved, event.payload] }
+      nextState = { ...state, memorySaved: [...state.memorySaved, event.payload] }
+      break
 
     case 'soul':
-      return { ...state, activeSoul: event.payload }
+      nextState = { ...state, activeSoul: event.payload }
+      break
 
     case 'skill_active':
-      return { ...state, activeSkill: event.payload }
+      nextState = { ...state, activeSkill: event.payload }
+      break
 
     case 'tool_call': {
       const { id, groupId, groupKind, risk, requires_confirm } = event.payload
       const needsConfirm = requires_confirm === true || risk === 'destructive' || risk === 'write'
       const status = needsConfirm ? 'awaiting_confirm' : 'pending'
-      return {
+      nextState = {
         ...state,
         toolCallOrder: state.toolCallOrder.includes(id)
           ? state.toolCallOrder
@@ -37,26 +142,28 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           [id]: { call: event.payload, status, groupId, groupKind },
         },
       }
+      break
     }
 
     case 'tool_status': {
       const { id, status } = event.payload
       const existing = state.toolCalls[id]
       if (!existing) return state
-      return {
+      nextState = {
         ...state,
         toolCalls: {
           ...state.toolCalls,
           [id]: { ...existing, status },
         },
       }
+      break
     }
 
     case 'tool_result': {
       const { tool_call_id } = event.payload
       const existing = state.toolCalls[tool_call_id]
       const status = event.payload.error ? 'error' : 'done'
-      return {
+      nextState = {
         ...state,
         toolCalls: {
           ...state.toolCalls,
@@ -69,11 +176,12 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           },
         },
       }
+      break
     }
 
     case 'resource_read': {
       const { id } = event.payload
-      return {
+      nextState = {
         ...state,
         resourceReadOrder: state.resourceReadOrder.includes(id)
           ? state.resourceReadOrder
@@ -83,13 +191,14 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           [id]: { read: event.payload, status: 'pending' },
         },
       }
+      break
     }
 
     case 'resource_content': {
       const { resource_read_id } = event.payload
       const existing = state.resourceReads[resource_read_id]
       const status = event.payload.error ? 'error' : 'done'
-      return {
+      nextState = {
         ...state,
         resourceReads: {
           ...state.resourceReads,
@@ -100,6 +209,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           },
         },
       }
+      break
     }
 
     case 'think': {
@@ -107,7 +217,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       if (phase_id) {
         const existingPhase = state.phases[phase_id]
         if (!existingPhase) return state
-        return {
+        nextState = {
           ...state,
           phases: {
             ...state.phases,
@@ -117,18 +227,20 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
             },
           },
         }
+      } else {
+        nextState = {
+          ...state,
+          thinkContent: state.thinkContent + delta,
+          thinkDone: done ?? false,
+        }
       }
-      return {
-        ...state,
-        thinkContent: state.thinkContent + delta,
-        thinkDone: done ?? false,
-      }
+      break
     }
 
     case 'phase': {
       const { id, name, state: phaseState, body, pinned_think, started_at, ended_at } = event.payload
       const existing = state.phases[id]
-      return {
+      nextState = {
         ...state,
         phaseOrder: state.phaseOrder.includes(id)
           ? state.phaseOrder
@@ -147,10 +259,13 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           },
         },
       }
+      break
     }
 
-    case 'text':
-      return { ...state, textContent: state.textContent + event.payload.delta }
+    case 'text': {
+      nextState = { ...state, textContent: state.textContent + event.payload.delta }
+      break
+    }
 
     case 'artifact': {
       const { id, lang, delta, done } = event.payload
@@ -158,7 +273,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       const artifactOrder = state.artifactOrder.includes(id)
         ? state.artifactOrder
         : [...state.artifactOrder, id]
-      return {
+      nextState = {
         ...state,
         artifactOrder,
         artifacts: {
@@ -171,6 +286,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           },
         },
       }
+      break
     }
 
     case 'workflow_node': {
@@ -179,7 +295,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       const nodeOrder = existingRun.nodeOrder.includes(node_id)
         ? existingRun.nodeOrder
         : [...existingRun.nodeOrder, node_id]
-      return {
+      nextState = {
         ...state,
         workflowRunOrder: state.workflowRunOrder.includes(run_id)
           ? state.workflowRunOrder
@@ -196,22 +312,25 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
           },
         },
       }
+      break
     }
 
     case 'done':
-      return { ...state, status: 'done' }
+      nextState = { ...state, status: 'done' }
+      break
 
     case 'error':
-      return {
+      nextState = {
         ...state,
         status: 'error',
         errorMessage: event.payload.message,
         errorCode: event.payload.code ?? null,
       }
+      break
 
     case 'extension': {
       const { name } = event.payload
-      return {
+      nextState = {
         ...state,
         extensions: {
           ...state.extensions,
@@ -219,9 +338,14 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
         },
         extensionLog: [...state.extensionLog, event],
       }
+      break
     }
 
     default:
       return state
   }
+
+  // Record event to eventLog and handle textChunks
+  const eventId = extractEventId(event)
+  return recordEvent(nextState, event, eventId)
 }

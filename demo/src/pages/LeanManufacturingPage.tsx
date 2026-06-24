@@ -131,7 +131,7 @@ function buildRenderLiveTrace(opts: {
             simplify={{ hideMetadata: false }}
             onToolConfirm={opts.onToolConfirm}
             onToolCancel={opts.onToolCancel}
-            renderSummary={(tc, index) => {
+            renderSummary={(tc) => {
               const icon = tc.status === 'error' ? '✗' : (tc.status === 'pending' ? '◆' : '✓')
               const name = tc.call.name
               const count = tc.result?.metadata?.resultCount ? ` — ${tc.result.metadata.resultCount} 项` : ''

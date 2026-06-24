@@ -1,6 +1,11 @@
 import { type ReactNode } from 'react';
 import type { StreamState, ToolCallState, PhaseRecord } from '../../runtime';
 import './ProcessTrace.css';
+export interface SimplifyOptions {
+    hideMetadata?: boolean;
+    hideResultDetails?: boolean;
+    compact?: boolean;
+}
 export interface ProcessTraceProps {
     stream: StreamState;
     streaming?: boolean;
@@ -12,5 +17,6 @@ export interface ProcessTraceProps {
     renderToolCall?: (toolCall: ToolCallState) => ReactNode;
     renderPhase?: (phase: PhaseRecord) => ReactNode;
     renderWorkflow?: (stream: StreamState) => ReactNode;
+    simplify?: SimplifyOptions;
 }
-export declare function ProcessTrace({ stream, streaming, turnStreaming, defaultCollapsed, className, onToolConfirm, onToolCancel, renderToolCall, renderPhase, renderWorkflow, }: ProcessTraceProps): import("react/jsx-runtime").JSX.Element | null;
+export declare function ProcessTrace({ stream, streaming, turnStreaming, defaultCollapsed, className, onToolConfirm, onToolCancel, renderToolCall, renderPhase, renderWorkflow, simplify, }: ProcessTraceProps): import("react/jsx-runtime").JSX.Element | null;

@@ -22,8 +22,9 @@ import ResourcesPage from './pages/ResourcesPage'
 import ExtensionPage from './pages/ExtensionPage'
 import { FullStreamPage } from './pages/FullStreamPage'
 import { LeanManufacturingPage } from './pages/LeanManufacturingPage'
+import { ProcessTraceEnhancementsPage } from './pages/ProcessTraceEnhancementsPage'
 
-type Page = 'full-stream' | 'lean' | 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools' | 'persona' | 'resources' | 'extension'
+type Page = 'full-stream' | 'lean' | 'streaming' | 'layout' | 'live-chat' | 'typography' | 'components' | 'memory' | 'plugin' | 'docgen' | 'workflow' | 'quickstart' | 'tools' | 'persona' | 'resources' | 'extension' | 'trace-enhancements'
 
 function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
   if (lang === 'html' || lang === 'html preview') return { type: 'html' }
@@ -33,7 +34,7 @@ function langToArtifactType(lang: string): { type: ArtifactType; language?: stri
   return { type: 'code', language: lang }
 }
 
-const ALL_PAGES = new Set<Page>(['full-stream', 'lean', 'streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'])
+const ALL_PAGES = new Set<Page>(['full-stream', 'lean', 'streaming', 'layout', 'live-chat', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension', 'trace-enhancements'])
 
 const PAGE_SESSIONS: Record<Page, Session[]> = {
   'full-stream': [{ id: 'full-1', title: '深度研究', lastTime: '今天' }],
@@ -59,6 +60,7 @@ const PAGE_SESSIONS: Record<Page, Session[]> = {
   persona: [{ id: 'persona-1', title: 'Soul · Skill 演示', lastTime: '今天' }],
   resources: [{ id: 'res-1', title: 'MCP 资源读取', lastTime: '今天' }],
   extension: [{ id: 'ext-1', title: 'Extension Events', lastTime: '今天' }],
+  'trace-enhancements': [{ id: 'trace-1', title: '流式 UI 增强', lastTime: '今天' }],
 }
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -78,6 +80,7 @@ const PAGE_TITLES: Record<Page, string> = {
   persona: 'Soul · Skill · Capabilities',
   resources: 'MCP Resource Reads',
   extension: 'Extension Events',
+  'trace-enhancements': '流式 UI 增强',
 }
 
 // SVG icons
@@ -98,6 +101,7 @@ const Icons = {
   persona: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="5.5" r="3"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/></svg>,
   resources: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4" opacity=".6"/><line x1="5" y1="8" x2="11" y2="8" opacity=".7"/><line x1="5" y1="11" x2="9" y2="11" opacity=".7"/></svg>,
   extension: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2" opacity=".6"/><rect x="2" y="9" width="5" height="5" rx="1.2" opacity=".6"/><path d="M9 11.5h4M11 9.5v4" strokeWidth="1.8"/></svg>,
+  traceEnhancements: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="14" y2="8"/><circle cx="4" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="12" cy="8" r="1.5"/></svg>,
 }
 
 function getPageFromHash(): Page {
@@ -170,10 +174,11 @@ function AppShell() {
     { id: 'persona',     label: 'Soul / Skill', icon: Icons.persona,   active: page === 'persona',     onClick: () => navigate('persona') },
     { id: 'resources',   label: 'MCP 资源',   icon: Icons.resources,   active: page === 'resources',   onClick: () => navigate('resources') },
     { id: 'extension',   label: 'Extension',  icon: Icons.extension,   active: page === 'extension',   onClick: () => navigate('extension') },
+    { id: 'trace-enhancements', label: '流式UI增强', icon: Icons.traceEnhancements, active: page === 'trace-enhancements', onClick: () => navigate('trace-enhancements') },
   ]
 
   // Static showcase pages don't need a session column "new" button
-  const isStaticPage = ['layout', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension'].includes(page)
+  const isStaticPage = ['layout', 'typography', 'components', 'memory', 'plugin', 'docgen', 'workflow', 'quickstart', 'tools', 'persona', 'resources', 'extension', 'trace-enhancements'].includes(page)
 
   // 右栏 artifact 面板：仅 lean 页有共享 artifacts 时渲染
   const artifactTabs = useMemo(() => artifacts.map((art: SharedArtifact) => {
@@ -255,6 +260,7 @@ function AppShell() {
         {page === 'persona'    && <PersonaPage />}
         {page === 'resources'  && <ResourcesPage />}
         {page === 'extension'  && <ExtensionPage />}
+        {page === 'trace-enhancements' && <ProcessTraceEnhancementsPage />}
       </ThreeColumnLayout>
     </div>
   )

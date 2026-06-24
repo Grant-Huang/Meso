@@ -1,4 +1,5 @@
 import type { ToolCallState } from '../../runtime';
+import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace';
 import './ToolCallBlock.css';
 export interface ToolCallBlockProps {
     toolCall: ToolCallState;
@@ -8,5 +9,6 @@ export interface ToolCallBlockProps {
     onCancel?: (toolCallId: string) => void;
     className?: string;
     'data-testid'?: string;
+    simplify?: SimplifyOptions;
 }
-export declare function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-testid': testId }: ToolCallBlockProps): import("react/jsx-runtime").JSX.Element;
+export declare function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-testid': testId, simplify }: ToolCallBlockProps): import("react/jsx-runtime").JSX.Element;

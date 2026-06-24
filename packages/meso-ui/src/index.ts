@@ -42,7 +42,10 @@ export { ChatComposer } from './components/ChatComposer'
 export type { ChatComposerProps } from './components/ChatComposer'
 
 export { ProcessTrace } from './components/ProcessTrace'
-export type { ProcessTraceProps } from './components/ProcessTrace'
+export type { ProcessTraceProps, SimplifyOptions } from './components/ProcessTrace'
+
+export { CollapsibleToolTrace } from './components/CollapsibleToolTrace'
+export type { CollapsibleToolTraceProps } from './components/CollapsibleToolTrace'
 
 export { SidebarUserMenu } from './components/SidebarUserMenu'
 export type { SidebarUserMenuProps, SidebarMenuItemDef } from './components/SidebarUserMenu'

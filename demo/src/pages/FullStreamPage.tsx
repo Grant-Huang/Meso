@@ -68,6 +68,7 @@ export function FullStreamPage() {
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
   const [verbosity, setVerbosity] = useState<'compact' | 'standard' | 'detailed'>('detailed')
+  const [renderingMode, setRenderingMode] = useState<'blend' | 'block'>('blend')
 
   // 流结束后把报告存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
   useEffect(() => {
@@ -159,6 +160,27 @@ export function FullStreamPage() {
           <option value="compact">Compact（最小化）</option>
           <option value="standard">Standard（均衡）</option>
           <option value="detailed">Detailed（完整）</option>
+        </select>
+
+        <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginLeft: 12 }}>
+          渲染模式：
+        </label>
+        <select
+          value={renderingMode}
+          onChange={e => setRenderingMode(e.target.value as any)}
+          style={{
+            padding: '4px 8px',
+            border: '1px solid var(--color-border)',
+            borderRadius: 4,
+            background: 'var(--color-bg)',
+            color: 'var(--color-text)',
+            fontSize: 12,
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          <option value="blend">Blend（融合）</option>
+          <option value="block">Block（分离）</option>
         </select>
 
         <label style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginLeft: 12 }}>
@@ -283,6 +305,7 @@ export function FullStreamPage() {
         <MessageList
           messages={messages}
           streaming={state.status !== 'idle' ? state : undefined}
+          renderingMode={renderingMode === 'block' ? 'block' : undefined}
           onToolConfirm={confirmTool}
           onToolCancel={cancelTool}
           onArtifactCopy={content => navigator.clipboard.writeText(content).catch(() => {})}

@@ -85,3 +85,72 @@
   font-size: 10px;
   color: var(--color-success);
 }
+
+/* ── Context-Blend 模式样式（默认） ── */
+
+.meso-message-list--mode-blend .meso-message-list__interleaved {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 融合模式：已完成工具内联样式 */
+.meso-message-list--mode-blend .meso-event-tool--frozen .meso-tool {
+  border: none;
+  border-left: 3px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  border-radius: 2px;
+  padding: 6px 8px;
+  margin: 0;
+}
+
+.meso-message-list--mode-blend .meso-event-tool--frozen .meso-tool__header {
+  padding: 0;
+  background: transparent;
+  font-size: 11px;
+  margin-bottom: 4px;
+  gap: 4px;
+}
+
+/* 已完成工具的参数/结果默认折叠 */
+.meso-message-list--mode-blend .meso-event-tool--frozen .meso-tool__params-details,
+.meso-message-list--mode-blend .meso-event-tool--frozen .meso-tool__result-details {
+  border: none;
+  background: none;
+  margin-top: 4px;
+  display: none;
+}
+
+/* 已完成工具展开时显示详情 */
+.meso-message-list--mode-blend .meso-event-tool--frozen.expanded .meso-tool__params-details,
+.meso-message-list--mode-blend .meso-event-tool--frozen.expanded .meso-tool__result-details {
+  display: block;
+}
+
+/* 当前工具保持大框（等待确认时可见） */
+.meso-message-list--mode-blend .meso-event-tool--current .meso-tool {
+  /* 保留默认样式 */
+}
+
+/* 文本在融合模式自然流动 */
+.meso-message-list--mode-blend .meso-event-text {
+  line-height: 1.5;
+}
+
+/* 制品在融合模式中间距 */
+.meso-message-list--mode-blend .meso-event-artifact {
+  margin: 8px 0;
+  border-radius: 8px;
+}
+
+/* ── 节点冻结样式 ── */
+/* 已完成的 token 节点禁止修改 */
+[data-frozen="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  pointer-events: auto;
+}
+
+[data-frozen="true"] * {
+  pointer-events: auto;
+}

@@ -9,7 +9,6 @@
 import { useState, useCallback } from 'react'
 import { ProcessTrace, CollapsibleToolTrace, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState } from '@meso.ai/ui'
-import './demo-page.css'
 
 const SSE_EVENTS = [
   `data: {"type":"capabilities","schema_version":"1.0","payload":{"tools":[{"name":"web_search","description":"搜索网络信息","provider":"mcp","risk":"safe"},{"name":"code_generator","description":"生成代码片段","provider":"mcp","risk":"safe"},{"name":"database_query","description":"查询数据库","provider":"api","risk":"safe"}]}}`,

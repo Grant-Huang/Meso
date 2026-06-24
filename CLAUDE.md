@@ -115,7 +115,7 @@ applyEvent(state: StreamState, raw: string): StreamState
 
 | 组件 | 说明 |
 |------|------|
-| `MessageList` | 消息列表，接受 `messages` + `streaming` 状态；支持 `renderLiveTrace` 自定义执行区 |
+| `MessageList` | 消息列表，接受 `messages` + `streaming` 状态；默认 **blend** 上下文融合渲染（工具/文本按到达顺序交错，`renderingMode="block"` 切回旧版式）；`simplify` 控制内联工具详情，`Message.trace` 持久化整轮快照（streaming→done 同源、零回写）；仍支持 `renderLiveTrace` 自定义执行区。详见 `docs/29-context-blend-rendering.md` |
 | `ChatBubble` | 气泡，支持 Markdown 渲染（传 `renderMarkdown` prop） |
 | `ThinkBlock` | 推理块，`collapseWhen="done"` 时自动折叠 |
 | `StageTimeline` | 阶段进度条 |

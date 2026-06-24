@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import { ChatBubble } from '../ChatBubble'
 import { ArtifactPanel } from '../ArtifactPanel'
 import { SoulIndicator } from '../SoulIndicator'
 import { SkillIndicator } from '../SkillIndicator'
-import { ProcessTrace } from '../ProcessTrace'
+import { CollapsibleToolTrace } from '../CollapsibleToolTrace'
 import type { StreamState, ExtensionEvent } from '../../runtime'
 import type { ArtifactDef } from '@meso.ai/types'
 import type { ArtifactType } from '../ArtifactPanel'
@@ -42,6 +42,86 @@ function langToArtifactType(lang: string): { type: ArtifactType; language?: stri
   if (lang === 'markdown') return { type: 'markdown' }
   if (lang === 'table') return { type: 'table' }
   return { type: 'code', language: lang }
+}
+
+/**
+ * 计算已冻结和当前的工具调用
+ * 已冻结：有result且不是最后一个（已完成，不会再改变）
+ * 当前：最后一个工具（可能还在执行或等待确认）
+ */
+function splitToolCalls(stream: StreamState) {
+  const toolIds = stream.toolCallOrder
+  const currentIndex = toolIds.length - 1
+
+  const frozenIds = toolIds.slice(0, currentIndex).filter(id => {
+    const tc = stream.toolCalls[id]
+    return tc.result !== undefined
+  })
+
+  const currentId = toolIds[currentIndex]
+
+  return { frozenIds, currentId }
+}
+
+/**
+ * LinearStreamingTools - 方案A：线性追加式工具显示
+ *
+ * 分离已完成（冻结）和当前进行中的工具：
+ * - 已冻结的工具：不传 onConfirm/onCancel，永不改变位置
+ * - 当前工具：可能显示确认门，可能改变状态
+ */
+function LinearStreamingTools({
+  stream,
+  onToolConfirm,
+  onToolCancel,
+}: {
+  stream: StreamState
+  onToolConfirm?: (toolCallId: string) => void
+  onToolCancel?: (toolCallId: string) => void
+}) {
+  const { frozenIds, currentId } = useMemo(
+    () => splitToolCalls(stream),
+    [stream.toolCallOrder, stream.toolCalls],
+  )
+
+  if (stream.toolCallOrder.length === 0) return null
+
+  return (
+    <>
+      {/* Part A: 已冻结的工具调用（从不改变位置） */}
+      {frozenIds.length > 0 && (
+        <div className="meso-message-list__frozen-tools">
+          <CollapsibleToolTrace
+            stream={{
+              ...stream,
+              toolCallOrder: frozenIds,
+            }}
+            streaming={false}
+            defaultExpanded="all"
+            simplify={undefined}
+            // 已完成的工具不需要交互回调
+          />
+        </div>
+      )}
+
+      {/* Part B: 当前进行中的工具（可能显示确认门） */}
+      {currentId && (
+        <div className="meso-message-list__current-tool">
+          <CollapsibleToolTrace
+            stream={{
+              ...stream,
+              toolCallOrder: [currentId],
+            }}
+            streaming={stream.status === 'streaming'}
+            defaultExpanded="all"
+            simplify={undefined}
+            onToolConfirm={onToolConfirm}
+            onToolCancel={onToolCancel}
+          />
+        </div>
+      )}
+    </>
+  )
 }
 
 export function MessageList({
@@ -116,13 +196,14 @@ export function MessageList({
                     {streaming.activeSkill && <SkillIndicator skill={streaming.activeSkill} />}
                   </div>
                 )}
-                <ProcessTrace
+
+                {/* 分离已冻结和当前的工具调用（方案A：线性追加） */}
+                <LinearStreamingTools
                   stream={streaming}
-                  streaming={streaming.status === 'streaming'}
-                  turnStreaming={streaming.status === 'streaming'}
                   onToolConfirm={onToolConfirm}
                   onToolCancel={onToolCancel}
                 />
+
                 {renderExtension && streaming.extensionLog.length > 0 && (
                   <div className="meso-message-list__extensions">
                     {streaming.extensionLog.map((ext, i) => (

@@ -891,12 +891,13 @@ export function useLeanStream() {
       emit(ev({ type: 'phase', payload: { id: 'understand', name: '理解投诉', state: 'done', ended_at: t + 300 } }))
 
       // ── 幕二：多系统取证 ──
-      emit(ev({ type: 'phase', payload: { id: 'evidence', name: '多系统取证', state: 'running', started_at: t + 300 } }))
-
-      // ──────────────────────────────────────────────────────
-      // 文本穿插 1：取证开始前的介绍
-      emit(ev({ type: 'text', payload: { delta: `现在从 5 个数据源对 ${line} 进行全面取证。\n\n` } }))
-      await delay(100)
+      emit(ev({ type: 'phase', payload: {
+        id: 'evidence',
+        name: '多系统取证',
+        state: 'running',
+        started_at: t + 300,
+        narration: `现在从 5 个数据源对 ${line} 进行全面取证。`
+      } }))
 
       // workflow DAG：coordinator + 4 个并行取证节点
       emit(ev({ type: 'workflow_node', payload: { run_id: 'diag', node_id: 'coordinator', name: '取证协调', state: 'active', started_at: t } }))
@@ -937,18 +938,15 @@ export function useLeanStream() {
         emit(ev({ type: 'resource_read', payload: { id: rid, uri, server } }))
         await delay(80)
         const contents = await provider.readResource(uri)
+        // narration 由资源提供者（编排层）填写，UI 自动转发为 text 事件
         emit(ev({ type: 'resource_content', payload: {
           resource_read_id: rid,
           contents,
           duration_ms: 280 + Math.floor(Math.random() * 120),
+          narration: summary
         } }))
-        // ──────────────────────────────────────────────────────
-        // 文本穿插：每个资源完成后发一条总结文本
-        emit(ev({ type: 'text', payload: { delta: `${summary}\n` } }))
         await delay(120)
       }
-      emit(ev({ type: 'text', payload: { delta: '\n' } }))
-      await delay(80)
 
       // KB 检索（tool_call safe）
       if (ctrl.signal.aborted) return
@@ -963,12 +961,13 @@ export function useLeanStream() {
       }
       emit(ev({ type: 'workflow_node', payload: { run_id: 'diag', node_id: 'coordinator', name: '取证协调', state: 'done', duration_ms: 510 } }))
 
-      emit(ev({ type: 'tool_result', payload: { tool_call_id: 'tc1', output: buildKbResult(sig), metadata: { resultCount: 3 }, duration_ms: 400 } }))
-
-      // ──────────────────────────────────────────────────────
-      // 文本穿插：KB 检索完成后的小结
-      emit(ev({ type: 'text', payload: { delta: `✓ 精益知识库：找到 3 篇改善方案\n\n` } }))
-      await delay(100)
+      emit(ev({ type: 'tool_result', payload: {
+        tool_call_id: 'tc1',
+        output: buildKbResult(sig),
+        metadata: { resultCount: 3 },
+        duration_ms: 400,
+        narration: `✓ 精益知识库：找到 3 篇改善方案`
+      } }))
 
       // citation（4 数据源 + KB）
       emit(ev({ type: 'extension', payload: { name: 'citation', version: '1.0', data: buildCitations(sig) } }))
@@ -978,10 +977,12 @@ export function useLeanStream() {
       emit(ev({ type: 'phase', payload: { id: 'evidence', name: '多系统取证', state: 'done', pinned_think: `取证完成：OEE 7 连降（${mom.drop_points}pp），${ANOMALY_LABELS[sig.anomaly]}为主，${topDowntime.reason} ${topDowntime.minutes} 分钟，${erp.root_hint}；${sig.equipment}健康度 ${acquire.health_score}${alarmCount > 0 ? `（${alarmCount} 项告警）` : ''}` } }))
 
       // ── 幕三：综合诊断 + 多产物 ──
-      emit(ev({ type: 'phase', payload: { id: 'diagnose', name: '综合诊断', state: 'running' } }))
-      // ──────────────────────────────────────────────────────
-      // 文本穿插：综合诊断前的前言
-      emit(ev({ type: 'text', payload: { delta: `基于以上取证数据与精益知识库，针对 ${line}（${ANOMALY_LABELS[sig.anomaly]}）的 OEE 异常诊断如下：\n\n` } }))
+      emit(ev({ type: 'phase', payload: {
+        id: 'diagnose',
+        name: '综合诊断',
+        state: 'running',
+        narration: `基于以上取证数据与精益知识库，针对 ${line}（${ANOMALY_LABELS[sig.anomaly]}）的 OEE 异常诊断如下：`
+      } }))
 
       // artifact 1: HTML 诊断报告（LLM 流式生成）
       await streamLlm([

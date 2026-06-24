@@ -143,6 +143,23 @@
   border-radius: 8px;
 }
 
+/* MCP 资源读取卡片在融合模式中的间距 */
+.meso-message-list--mode-blend .meso-event-resource {
+  margin: 2px 0;
+}
+
+/* 已提交（committed）助手轮次：复用与 live 完全相同的 blend 视觉，
+   仅作为历史条目存在。done 时 live 容器被替换为此容器，但因为渲染组件
+   与样式同源，用户看到的是"同一内容冻结在原地"，无回写、无跳变。 */
+.meso-message-list--mode-blend .meso-message-list__committed {
+  display: flex;
+  flex-direction: column;
+}
+
+.meso-message-list--mode-blend .meso-message-list__committed .meso-bubble__timestamp {
+  margin-top: 2px;
+}
+
 /* ── 节点冻结样式 ── */
 /* 已完成的 token 节点禁止修改 */
 [data-frozen="true"] {

@@ -1,4 +1,4 @@
-import { MessageList, ChatComposer, ProcessTrace } from '@meso.ai/ui'
+import { MessageList, ChatComposer } from '@meso.ai/ui'
 import type { Message, ExtensionEvent } from '@meso.ai/ui'
 import { useState, useEffect, useRef } from 'react'
 import { useLeanStream, SYS_NAMES } from '../hooks/useLeanStream'
@@ -106,34 +106,28 @@ export function LeanManufacturingPage() {
       return
     }
     if (abortedWithContent) {
-      const artifacts = state.artifactOrder
-        .map(id => state.artifacts[id])
-        .filter((a): a is NonNullable<typeof a> => !!a)
-        .map(a => ({ id: a.id, lang: a.lang, content: a.content }))
       const content = state.textContent || '（会话已中止）'
+      // 存整轮 trace 快照（不可变）：committed 轮次走与 live 相同的 blend 路径，
+      // 工具+文本保持交错留在历史，done/abort 不再丢失执行过程。
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'assistant',
         content,
         timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        artifacts: artifacts.length > 0 ? artifacts : undefined,
+        trace: { ...state, status: 'done' },
       }])
       lastHandledStatusRef.current = state.status
       reset()
       return
     }
     if (isTerminal && state.status === 'done') {
-      const artifacts = state.artifactOrder
-        .map(id => state.artifacts[id])
-        .filter((a): a is NonNullable<typeof a> => !!a)
-        .map(a => ({ id: a.id, lang: a.lang, content: a.content }))
       const content = state.textContent || '诊断完成，详见下方产物。'
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'assistant',
         content,
         timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        artifacts: artifacts.length > 0 ? artifacts : undefined,
+        trace: { ...state, status: 'done' },
       }])
       lastHandledStatusRef.current = state.status
       reset()
@@ -352,15 +346,7 @@ export function LeanManufacturingPage() {
             URL.revokeObjectURL(url)
           }}
           renderExtension={renderCitation}
-          renderLiveTrace={stream => (
-            <ProcessTrace
-              stream={stream}
-              streaming={true}
-              simplify={{ verbosity }}
-              onToolConfirm={confirmTool}
-              onToolCancel={cancelTool}
-            />
-          )}
+          simplify={{ verbosity }}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🏭</div>

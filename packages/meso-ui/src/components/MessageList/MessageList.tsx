@@ -4,6 +4,9 @@ import { ArtifactPanel } from '../ArtifactPanel'
 import { SoulIndicator } from '../SoulIndicator'
 import { SkillIndicator } from '../SkillIndicator'
 import { CollapsibleToolTrace } from '../CollapsibleToolTrace'
+import { ThinkBlock } from '../ThinkBlock'
+import { ResourceReadBlock } from '../ResourceReadBlock'
+import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
 import type { StreamState, ExtensionEvent } from '../../runtime'
 import type { ArtifactDef } from '@meso.ai/types'
 import type { ArtifactType } from '../ArtifactPanel'
@@ -16,6 +19,13 @@ export interface Message {
   timestamp?: string
   /** Persisted artifacts attached to a committed message (rendered with ArtifactPanel). */
   artifacts?: ArtifactDef[]
+  /**
+   * Frozen StreamState snapshot for a completed assistant turn.
+   * When present, the message renders through the SAME blend path as the live
+   * stream (with streaming=false), so tools + text stay interleaved in history
+   * and nothing is rewritten on the streaming→done transition.
+   */
+  trace?: StreamState
 }
 
 export interface MessageListProps {
@@ -37,6 +47,8 @@ export interface MessageListProps {
   /** Rendering mode: 'block' for legacy behavior (tools then text),
    * undefined or default for blend mode (tools and text interleaved) */
   renderingMode?: 'block'
+  /** Verbosity / display options threaded into inline blend tool cards. */
+  simplify?: SimplifyOptions
 }
 
 function langToArtifactType(lang: string): { type: ArtifactType; language?: string } {
@@ -128,15 +140,69 @@ function LinearStreamingTools({
 }
 
 /**
- * InterleavedStreamingContent - Context-Blend 模式：混合流式渲染
+ * Render item produced by walking eventLog. Consecutive text deltas are
+ * coalesced into a single text run so prose flows naturally and Markdown can
+ * be rendered on a complete run, while tool/artifact cards break the runs to
+ * preserve interleaving (context-blend).
+ */
+type BlendItem =
+  | { kind: 'text'; key: string; text: string }
+  | { kind: 'tool'; key: string; id: string }
+  | { kind: 'artifact'; key: string; id: string }
+  | { kind: 'resource'; key: string; id: string }
+
+function buildBlendItems(stream: StreamState, hiddenArtifactLangs?: string[]): BlendItem[] {
+  const items: BlendItem[] = []
+  let textBuf = ''
+  let textKey: string | null = null
+
+  const flushText = () => {
+    if (textKey !== null && textBuf.length > 0) {
+      items.push({ kind: 'text', key: textKey, text: textBuf })
+    }
+    textBuf = ''
+    textKey = null
+  }
+
+  for (const entry of stream.eventLog) {
+    const { type, id } = entry
+    if (type === 'text') {
+      const chunk = stream.textChunks.find(tc => tc.id === id)
+      if (!chunk) continue
+      if (textKey === null) textKey = `text-${id}`
+      textBuf += chunk.delta
+    } else if (type === 'tool_call') {
+      if (!stream.toolCalls[id]) continue
+      flushText()
+      items.push({ kind: 'tool', key: `tool-${id}`, id })
+    } else if (type === 'resource_read') {
+      if (!stream.resourceReads[id]) continue
+      flushText()
+      items.push({ kind: 'resource', key: `resource-${id}`, id })
+    } else if (type === 'artifact') {
+      const art = stream.artifacts[id]
+      if (!art) continue
+      if (hiddenArtifactLangs?.includes(art.lang)) continue
+      flushText()
+      items.push({ kind: 'artifact', key: `artifact-${id}`, id })
+    }
+  }
+  flushText()
+  return items
+}
+
+/**
+ * InterleavedStreamingContent - Context-Blend 模式：混合渲染（live + committed 同一路径）
  *
  * 遵循 eventLog 的严格到达顺序，将工具和文本交错显示。
- * - 已冻结的工具：内联显示，折叠状态（可点击展开）
- * - 当前工具：展开显示（可能显示确认门）
- * - 文本和制品：按到达顺序渲染
+ * - 连续文本 delta 合并为一段（保持叙述连贯 + Markdown 渲染）
+ * - 工具/制品卡片打断文本段，保留交错（blend）
+ * - streaming=true：最后一个工具为 "current"，展开、可显示确认门
+ * - streaming=false：committed 轮次，所有工具折叠、原地可展开，无回写
  */
 function InterleavedStreamingContent({
   stream,
+  streaming,
   onToolConfirm,
   onToolCancel,
   renderExtension,
@@ -146,8 +212,10 @@ function InterleavedStreamingContent({
   highlightCode,
   renderMarkdown,
   hiddenArtifactLangs,
+  simplify,
 }: {
   stream: StreamState
+  streaming: boolean
   onToolConfirm?: (toolCallId: string) => void
   onToolCancel?: (toolCallId: string) => void
   renderExtension?: (event: ExtensionEvent) => React.ReactNode
@@ -157,12 +225,22 @@ function InterleavedStreamingContent({
   highlightCode?: (code: string, lang: string) => string
   renderMarkdown?: (source: string) => string
   hiddenArtifactLangs?: string[]
+  simplify?: SimplifyOptions
 }) {
-  const { frozenIds, currentId } = useMemo(
+  const { currentId } = useMemo(
     () => splitToolCalls(stream),
     [stream.toolCallOrder, stream.toolCalls],
   )
-  const frozenSet = new Set(frozenIds)
+  const items = useMemo(
+    () => buildBlendItems(stream, hiddenArtifactLangs),
+    [stream.eventLog, stream.textChunks, stream.artifacts, stream.toolCalls, stream.resourceReads, hiddenArtifactLangs],
+  )
+  const lastTextKey = useMemo(() => {
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].kind === 'text') return items[i].key
+    }
+    return null
+  }, [items])
 
   return (
     <div className="meso-message-list__interleaved">
@@ -174,73 +252,98 @@ function InterleavedStreamingContent({
         </div>
       )}
 
-      {/* 主循环：遵循 eventLog 顺序渲染 */}
-      {stream.eventLog.map((logEntry) => {
-        const { type, id } = logEntry
+      {/* 召回的记忆片段（轮次开头） */}
+      {stream.memorySnippets.length > 0 && (
+        <div className="meso-memory-chips">
+          {stream.memorySnippets.map((snippet, i) => (
+            <span key={i} className="meso-memory-chip" title={snippet.content}>
+              [{snippet.category}] {snippet.content}
+            </span>
+          ))}
+        </div>
+      )}
 
-        switch (type) {
-          case 'text': {
-            const chunk = stream.textChunks.find(tc => tc.id === id)
-            if (!chunk) return null
-            return (
-              <div key={`text-${id}`} className="meso-event-text">
-                {chunk.delta}
-              </div>
-            )
-          }
+      {/* 推理（think）：轮次开头的可折叠思考块 */}
+      {stream.thinkContent && (
+        <ThinkBlock
+          content={stream.thinkContent}
+          streaming={streaming && !stream.thinkDone}
+          collapseWhen="streamEnd"
+          defaultOpen={true}
+        />
+      )}
 
-          case 'tool_call': {
-            const tc = stream.toolCalls[id]
-            if (!tc) return null
-            const isFrozen = frozenSet.has(id)
-            const isCurrent = id === currentId
-
-            return (
-              <div
-                key={`tool-${id}`}
-                className={`meso-event-tool meso-event-tool--${isFrozen ? 'frozen' : 'current'}`}
-              >
-                <CollapsibleToolTrace
-                  stream={{
-                    ...stream,
-                    toolCallOrder: [id],
-                  }}
-                  streaming={isCurrent && stream.status === 'streaming'}
-                  defaultExpanded={isCurrent ? 'all' : 'none'}
-                  simplify={undefined}
-                  onToolConfirm={isCurrent ? onToolConfirm : undefined}
-                  onToolCancel={isCurrent ? onToolCancel : undefined}
-                />
-              </div>
-            )
-          }
-
-          case 'artifact': {
-            const art = stream.artifacts[id]
-            if (!art) return null
-            if (hiddenArtifactLangs?.includes(art.lang)) return null
-
-            const { type: artType, language } = langToArtifactType(art.lang)
-            return (
-              <div key={`artifact-${id}`} className="meso-event-artifact">
-                <ArtifactPanel
-                  type={artType}
-                  content={art.content}
-                  language={language}
-                  streaming={!art.done}
-                  onCopy={onArtifactCopy}
-                  onDownload={onArtifactDownload}
-                  renderMermaid={renderMermaid}
-                  highlightCode={highlightCode}
-                  renderMarkdown={renderMarkdown}
-                />
-              </div>
-            )
-          }
-
-          default:
-            return null
+      {/* 主循环：遵循 eventLog 顺序渲染合并后的条目 */}
+      {items.map((item) => {
+        if (item.kind === 'text') {
+          const useMd = typeof renderMarkdown === 'function'
+          const isTail = streaming && item.key === lastTextKey && stream.artifactOrder.length === 0
+          return (
+            <div key={item.key} className="meso-event-text" data-streaming-role="content">
+              {useMd ? (
+                <div className="meso-bubble__md" dangerouslySetInnerHTML={{ __html: renderMarkdown!(item.text) }} />
+              ) : (
+                <>
+                  {item.text}
+                  {isTail && <span className="meso-bubble__cursor" aria-hidden="true">▋</span>}
+                </>
+              )}
+            </div>
+          )
         }
+
+        if (item.kind === 'tool') {
+          const tc = stream.toolCalls[item.id]
+          if (!tc) return null
+          // committed (streaming=false): 全部折叠、无 current；live: 最后一个为 current
+          const isCurrent = streaming && item.id === currentId
+          return (
+            <div
+              key={item.key}
+              className={`meso-event-tool meso-event-tool--${isCurrent ? 'current' : 'frozen'}`}
+              data-streaming-role="content"
+            >
+              <CollapsibleToolTrace
+                stream={{ ...stream, toolCallOrder: [item.id] }}
+                streaming={isCurrent && stream.status === 'streaming'}
+                defaultExpanded={isCurrent ? 'all' : 'none'}
+                simplify={simplify}
+                onToolConfirm={isCurrent ? onToolConfirm : undefined}
+                onToolCancel={isCurrent ? onToolCancel : undefined}
+              />
+            </div>
+          )
+        }
+
+        if (item.kind === 'resource') {
+          const rr = stream.resourceReads[item.id]
+          if (!rr) return null
+          return (
+            <div key={item.key} className="meso-event-resource" data-streaming-role="content">
+              <ResourceReadBlock resourceRead={rr} />
+            </div>
+          )
+        }
+
+        // artifact
+        const art = stream.artifacts[item.id]
+        if (!art) return null
+        const { type: artType, language } = langToArtifactType(art.lang)
+        return (
+          <div key={item.key} className="meso-event-artifact" data-streaming-role="content">
+            <ArtifactPanel
+              type={artType}
+              content={art.content}
+              language={language}
+              streaming={streaming && !art.done}
+              onCopy={onArtifactCopy}
+              onDownload={onArtifactDownload}
+              renderMermaid={renderMermaid}
+              highlightCode={highlightCode}
+              renderMarkdown={renderMarkdown}
+            />
+          </div>
+        )
       })}
 
       {/* Extensions in order */}
@@ -286,6 +389,7 @@ export function MessageList({
   highlightCode,
   hiddenArtifactLangs,
   renderingMode,
+  simplify,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const isBlendMode = renderingMode !== 'block'
@@ -320,33 +424,56 @@ export function MessageList({
           </div>
         )}
 
-        {messages.map((m) => (
-          <React.Fragment key={m.id}>
-            <ChatBubble
-              role={m.role}
-              content={m.content}
-              timestamp={m.timestamp}
-              markdown={m.role === 'assistant'}
-              renderMarkdown={renderMarkdown}
-            />
-            {m.artifacts && m.artifacts.length > 0 && m.artifacts.map(art => {
-              const { type, language } = langToArtifactType(art.lang)
-              return (
-                <ArtifactPanel
-                  key={art.id}
-                  type={type}
-                  content={art.content}
-                  language={language}
-                  onCopy={onArtifactCopy}
-                  onDownload={onArtifactDownload}
+        {messages.map((m) => {
+          // 已完成助手轮次带 trace：走与 live 相同的 blend 渲染路径（streaming=false）。
+          // done 只是"同组件 streaming 从 true 变 false"，工具+文本保持交错，零回写。
+          if (m.role === 'assistant' && m.trace && isBlendMode) {
+            return (
+              <div key={m.id} className="meso-message-list__committed">
+                <InterleavedStreamingContent
+                  stream={m.trace}
+                  streaming={false}
+                  renderExtension={renderExtension}
+                  onArtifactCopy={onArtifactCopy}
+                  onArtifactDownload={onArtifactDownload}
                   renderMermaid={renderMermaid}
                   highlightCode={highlightCode}
                   renderMarkdown={renderMarkdown}
+                  hiddenArtifactLangs={hiddenArtifactLangs}
+                  simplify={simplify}
                 />
-              )
-            })}
-          </React.Fragment>
-        ))}
+                {m.timestamp && <div className="meso-bubble__timestamp">{m.timestamp}</div>}
+              </div>
+            )
+          }
+          return (
+            <React.Fragment key={m.id}>
+              <ChatBubble
+                role={m.role}
+                content={m.content}
+                timestamp={m.timestamp}
+                markdown={m.role === 'assistant'}
+                renderMarkdown={renderMarkdown}
+              />
+              {m.artifacts && m.artifacts.length > 0 && m.artifacts.map(art => {
+                const { type, language } = langToArtifactType(art.lang)
+                return (
+                  <ArtifactPanel
+                    key={art.id}
+                    type={type}
+                    content={art.content}
+                    language={language}
+                    onCopy={onArtifactCopy}
+                    onDownload={onArtifactDownload}
+                    renderMermaid={renderMermaid}
+                    highlightCode={highlightCode}
+                    renderMarkdown={renderMarkdown}
+                  />
+                )
+              })}
+            </React.Fragment>
+          )
+        })}
 
         {streaming && streaming.status !== 'idle' && (
           <div className="meso-message-list__live">
@@ -355,6 +482,7 @@ export function MessageList({
                 {isBlendMode ? (
                   <InterleavedStreamingContent
                     stream={streaming}
+                    streaming={streaming.status === 'streaming'}
                     onToolConfirm={onToolConfirm}
                     onToolCancel={onToolCancel}
                     renderExtension={renderExtension}
@@ -364,6 +492,7 @@ export function MessageList({
                     highlightCode={highlightCode}
                     renderMarkdown={renderMarkdown}
                     hiddenArtifactLangs={hiddenArtifactLangs}
+                    simplify={simplify}
                   />
                 ) : (
                   <>

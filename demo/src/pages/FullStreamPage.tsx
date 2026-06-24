@@ -65,16 +65,18 @@ function buildRenderLiveTrace(opts: {
   onToolConfirm: (id: string) => void
   onToolCancel: (id: string) => void
   renderExtension?: (event: ExtensionEvent) => React.ReactNode
+  displayMode?: 'detailed' | 'simplified'
 }) {
   return (stream: StreamState): React.ReactNode => {
+    const isSimplified = opts.displayMode === 'simplified'
     return (
       <>
         <div style={{ marginBottom: 12 }}>
           <CollapsibleToolTrace
             stream={stream}
             streaming={stream.status === 'streaming'}
-            defaultExpanded="none"
-            simplify={{ hideMetadata: false }}
+            defaultExpanded={isSimplified ? 'none' : 'all'}
+            simplify={isSimplified ? { hideMetadata: true, hideResultDetails: true } : { hideMetadata: false }}
             onToolConfirm={opts.onToolConfirm}
             onToolCancel={opts.onToolCancel}
             renderSummary={(tc) => {
@@ -108,14 +110,16 @@ export function FullStreamPage() {
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
   const [showConfig, setShowConfig] = useState(false)
+  const [displayMode, setDisplayMode] = useState<'detailed' | 'simplified'>('detailed')
 
   const renderLiveTrace = useCallback(
     buildRenderLiveTrace({
       onToolConfirm: confirmTool,
       onToolCancel: cancelTool,
       renderExtension: renderCitation,
+      displayMode,
     }),
-    [confirmTool, cancelTool],
+    [confirmTool, cancelTool, displayMode],
   )
 
   // 流结束后把报告存为 assistant 消息（artifacts 保留渲染，不降级为纯文本）
@@ -220,6 +224,29 @@ export function FullStreamPage() {
         >
           {hasKey ? '✓ API Key 已配置' : '⚠ 配置 API Key'}
         </button>
+
+        <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>显示模式：</span>
+          {(['detailed', 'simplified'] as const).map(mode => (
+            <button
+              key={mode}
+              onClick={() => setDisplayMode(mode)}
+              style={{
+                padding: '3px 8px',
+                border: '1px solid var(--color-border)',
+                borderRadius: 4,
+                background: displayMode === mode ? 'var(--color-accent)' : 'transparent',
+                color: displayMode === mode ? '#fff' : 'var(--color-text)',
+                fontSize: 11,
+                fontWeight: displayMode === mode ? 600 : 400,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {mode === 'detailed' ? '📋 详细' : '📄 简化'}
+            </button>
+          ))}
+        </div>
 
         {state.status === 'streaming' && (
           <button

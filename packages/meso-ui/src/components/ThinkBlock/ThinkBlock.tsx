@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { StreamingCursor } from '../StreamingCursor'
+import { resolveVerbosity } from '../../utils/verbosity'
+import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
 import './ThinkBlock.css'
 
 export interface ThinkBlockProps {
@@ -39,6 +42,14 @@ export interface ThinkBlockProps {
    * of the thinking, not a static "已思考").
    */
   summary?: string
+  /**
+   * Verbosity options. When provided, derives defaultOpen and collapseWhen
+   * from the verbosity level unless explicitly overridden by those props:
+   *   compact  → defaultOpen=false
+   *   standard → defaultOpen=true, collapseWhen='streamEnd'
+   *   detailed → defaultOpen=true, collapseWhen='never'
+   */
+  simplify?: SimplifyOptions
 }
 
 /**
@@ -59,16 +70,22 @@ export function ThinkBlock({
   streaming = false,
   turnStreaming,
   autoCollapseDelay = 1500,
-  defaultOpen = true,
+  defaultOpen,
   open,
   onOpenChange,
-  collapseWhen = 'streamEnd',
+  collapseWhen,
   summary,
+  simplify,
 }: ThinkBlockProps) {
+  // Derive defaultOpen / collapseWhen from verbosity when not explicitly set.
+  const verbosity = resolveVerbosity(simplify)
+  const effectiveDefaultOpen = defaultOpen ?? (verbosity !== 'compact')
+  const effectiveCollapseWhen = collapseWhen ?? (verbosity === 'detailed' ? 'never' : 'streamEnd')
+
   const isControlled = open !== undefined
 
   // System open state — managed by auto-collapse timer
-  const [systemOpen, setSystemOpen] = useState(defaultOpen)
+  const [systemOpen, setSystemOpen] = useState(effectiveDefaultOpen)
   // User intent: null = follow system; true/false = user has explicitly toggled
   const [userIntent, setUserIntent] = useState<boolean | null>(null)
   const userIntentRef = useRef<boolean | null>(null)
@@ -87,7 +104,7 @@ export function ThinkBlock({
 
   // Auto-collapse: updates system default; user intent overrides it
   useEffect(() => {
-    if (collapseWhen === 'never') return
+    if (effectiveCollapseWhen === 'never') return
     if (autoCollapseDelay === null) return
     if (prevStreaming.current && !streaming) {
       const timer = setTimeout(() => {
@@ -98,7 +115,7 @@ export function ThinkBlock({
       return () => clearTimeout(timer)
     }
     prevStreaming.current = streaming
-  }, [streaming, autoCollapseDelay, collapseWhen, isControlled, onOpenChange])
+  }, [streaming, autoCollapseDelay, effectiveCollapseWhen, isControlled, onOpenChange])
 
   // Reset user intent when the turn ends so the next turn starts fresh
   useEffect(() => {
@@ -129,7 +146,7 @@ export function ThinkBlock({
         <div className="meso-think__content">
           {displayContent}
           {streaming && (
-            <span className="meso-think__cursor" aria-hidden="true">▋</span>
+            <StreamingCursor />
           )}
         </div>
       </div>

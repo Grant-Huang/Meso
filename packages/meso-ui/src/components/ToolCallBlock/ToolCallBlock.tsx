@@ -3,6 +3,7 @@ import type { ToolCallState, ToolRisk, CapabilityProvider } from '../../runtime'
 import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
 import { ConfirmGate } from '../ConfirmGate'
 import { StatusIcon } from '../StatusIcon'
+import { ChevronIcon } from '../ChevronIcon'
 import { toolCallStatusToIcon } from '../../utils/statusMapping'
 import './ToolCallBlock.css'
 
@@ -61,7 +62,6 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
   const [metadataOpen, setMetadataOpen] = useState(!defaultMetadataCollapsed)
 
   const summaryCount = result?.metadata?.resultCount
-  const narration = result?.narration
 
   return (
     <div
@@ -94,16 +94,18 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
           </span>
         )}
         {call.annotations?.open_world && (
-          <span className="meso-tool__annotation" title="此工具会访问外部网络">🌐</span>
+          <span className="meso-tool__annotation" title="此工具会访问外部网络" aria-label="访问外部网络">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </span>
         )}
       </div>
 
-      {/* Narration: shown in all modes (when available) */}
-      {narration && (
-        <div className="meso-tool__narration">
-          {narration}
-        </div>
-      )}
+      {/* Narration is emitted into the text stream by applyEvent (single source).
+          Do NOT render it inline here to avoid double display. */}
 
       {/* Parameters section: shown in all modes (Standard/Detailed have it in header, Compact via details) */}
       {hasArgs && (
@@ -116,7 +118,7 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
             }}
           >
             <span className="meso-tool__params-toggle">
-              {argsOpen ? '▾' : '▸'} Input Parameters
+              <ChevronIcon open={argsOpen} size={13} /> Input Parameters
             </span>
           </summary>
           {argsOpen && (
@@ -147,7 +149,7 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
             }}
           >
             <span className="meso-tool__result-toggle">
-              {resultOpen ? '▾' : '▸'} {status === 'error' ? 'Error' : 'Output'}
+              <ChevronIcon open={resultOpen} size={13} /> {status === 'error' ? 'Error' : 'Output'}
             </span>
           </summary>
           {resultOpen && (
@@ -171,7 +173,7 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
             }}
           >
             <span className="meso-tool__metadata-toggle">
-              {metadataOpen ? '▾' : '▸'} Metadata
+              <ChevronIcon open={metadataOpen} size={13} /> Metadata
             </span>
           </summary>
           {metadataOpen && (
@@ -203,7 +205,7 @@ export function ToolCallBlock({ toolCall, onConfirm, onCancel, className, 'data-
 
       {/* Execution timeline: detailed mode only */}
       {isDetailed && showExecutionTimeline && result?.duration_ms && (
-        <details className="meso-tool__timeline-details" open={false}>
+        <details className="meso-tool__timeline-details" open={true}>
           <summary className="meso-tool__timeline-summary">Execution Timeline</summary>
           <div className="meso-tool__timeline">
             <div className="meso-tool__timeline-row">

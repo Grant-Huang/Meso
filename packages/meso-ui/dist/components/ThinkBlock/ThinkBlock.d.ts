@@ -1,3 +1,4 @@
+import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace';
 import './ThinkBlock.css';
 export interface ThinkBlockProps {
     content: string;
@@ -37,5 +38,13 @@ export interface ThinkBlockProps {
      * of the thinking, not a static "已思考").
      */
     summary?: string;
+    /**
+     * Verbosity options. When provided, derives defaultOpen and collapseWhen
+     * from the verbosity level unless explicitly overridden by those props:
+     *   compact  → defaultOpen=false
+     *   standard → defaultOpen=true, collapseWhen='streamEnd'
+     *   detailed → defaultOpen=true, collapseWhen='never'
+     */
+    simplify?: SimplifyOptions;
 }
-export declare function ThinkBlock({ content, pinnedContent, streaming, turnStreaming, autoCollapseDelay, defaultOpen, open, onOpenChange, collapseWhen, summary, }: ThinkBlockProps): import("react/jsx-runtime").JSX.Element;
+export declare function ThinkBlock({ content, pinnedContent, streaming, turnStreaming, autoCollapseDelay, defaultOpen, open, onOpenChange, collapseWhen, summary, simplify, }: ThinkBlockProps): import("react/jsx-runtime").JSX.Element;

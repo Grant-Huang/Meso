@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { MessageList, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState } from '@meso.ai/types'
+import { ArrowRightIcon, CheckIcon, AlertTriangleIcon, PlayIcon } from '../components/Icons'
 
 const evt = (type: string, payload: object) =>
   `data: ${JSON.stringify({ type, schema_version: '1.0', payload })}`
@@ -170,12 +171,12 @@ export default function ResourcesPage() {
             </div>
             <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
-                { color: '#6b7280', dot: '→', text: 'resource_read', sub: '宣告即将读取的资源（id + uri）' },
-                { color: 'var(--color-accent)', dot: '✓', text: 'resource_content', sub: '资源内容到达（可乱序，用 id 关联）' },
-                { color: '#ef4444', dot: '✗', text: 'resource_content (error)', sub: '读取失败，含 error 字段' },
+                { color: '#6b7280', dot: <ArrowRightIcon size={14} />, text: 'resource_read', sub: '宣告即将读取的资源（id + uri）' },
+                { color: 'var(--color-accent)', dot: <CheckIcon size={14} />, text: 'resource_content', sub: '资源内容到达（可乱序，用 id 关联）' },
+                { color: '#ef4444', dot: <AlertTriangleIcon size={14} />, text: 'resource_content (error)', sub: '读取失败，含 error 字段' },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 14, color: item.color, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{item.dot}</span>
+                  <span style={{ fontSize: 14, color: item.color, fontWeight: 700, flexShrink: 0, marginTop: 1, display: 'inline-flex' }}>{item.dot}</span>
                   <div>
                     <code style={{ fontSize: 11.5, color: 'var(--color-accent)', fontWeight: 600 }}>{item.text}</code>
                     <div style={{ fontSize: 11.5, color: 'var(--color-text-muted)', marginTop: 2 }}>{item.sub}</div>
@@ -289,7 +290,7 @@ import { ResourceReadBlock } from '@meso.ai/ui'
                 background: isStreaming ? 'var(--color-border)' : 'var(--color-accent)',
                 color: isStreaming ? 'var(--color-text-muted)' : '#fff',
                 transition: 'background .15s',
-              }}>{phase === 'done' ? '▶ 再次播放' : isStreaming ? '读取中…' : '▶ 播放演示'}</button>
+              }}>{phase === 'done' ? (<><PlayIcon size={12} /> 再次播放</>) : isStreaming ? '读取中…' : (<><PlayIcon size={12} /> 播放演示</>)}</button>
             </div>
           </div>
 

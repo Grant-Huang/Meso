@@ -231,7 +231,10 @@ export interface ToolResultPayload {
     /**
      * Self-describing narrative text emitted by the tool executor.
      * When present, UI layer automatically converts this to a text event.
-     * Example: "✓ web_search 返回 8 个结果" or "✗ 网络超时，建议重试".
+     *
+     * Pure prose — do NOT include status symbol prefixes (✓/✗). Status is
+     * rendered by the UI layer (StatusIcon). Example: "web_search 返回 8 个结果"
+     * or "网络超时，建议重试".
      */
     narration?: string;
 }
@@ -275,7 +278,9 @@ export interface ResourceContentPayload {
     /**
      * Self-describing narrative text emitted by the resource provider.
      * When present, UI layer automatically converts this to a text event.
-     * Example: "✓ MES 数据：OEE 71%，可用率 82%".
+     *
+     * Pure prose — do NOT include status symbol prefixes (✓/✗). Status is
+     * rendered by the UI layer (StatusIcon). Example: "MES 数据：OEE 71%，可用率 82%".
      */
     narration?: string;
 }
@@ -302,6 +307,9 @@ export interface WorkflowNodePayload {
      * Self-describing narrative text emitted by the DAG orchestrator.
      * When present, UI layer automatically converts this to a text event.
      * Used for cross-node insights when workflow completes.
+     *
+     * Pure prose — do NOT include status symbol prefixes (✓/✗). Status is
+     * rendered by the UI layer (StatusIcon).
      */
     narration?: string;
 }
@@ -378,6 +386,9 @@ export interface PhasePayload {
      * When present, UI layer automatically converts this to a text event.
      * Enables "who executes, who describes" design: orchestrator fills this
      * with context-aware narration (e.g. "采集完成：MCP 返回 2400 字…").
+     *
+     * Pure prose — do NOT include status symbol prefixes (✓/✗). Status is
+     * rendered by the UI layer (StatusIcon).
      */
     narration?: string;
 }

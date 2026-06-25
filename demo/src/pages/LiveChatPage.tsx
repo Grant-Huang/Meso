@@ -5,6 +5,7 @@ import { Composer } from '../components/Composer'
 import { useLlmStream } from '../hooks/useLlmStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
+import { CheckIcon, AlertTriangleIcon, PlugIcon } from '../components/Icons'
 
 interface LiveChatPageProps {
   /** The currently active session. Changes when the user picks a different session
@@ -141,7 +142,7 @@ export function LiveChatPage({ sessionId }: LiveChatPageProps) {
             cursor: 'pointer',
           }}
         >
-          {hasKey ? '✓ API Key 已配置' : '⚠ 配置 API Key'}
+          {hasKey ? (<><CheckIcon size={12} /> API Key 已配置</>) : (<><AlertTriangleIcon size={12} /> 配置 API Key</>)}
         </button>
 
         {state.status === 'streaming' && (
@@ -230,7 +231,7 @@ export function LiveChatPage({ sessionId }: LiveChatPageProps) {
           streaming={state.status !== 'idle' ? state : undefined}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🔌</div>
+              <div style={{ fontSize: 32, marginBottom: 12, color: 'var(--color-text-muted)', display: 'flex', justifyContent: 'center' }}><PlugIcon size={32} /></div>
               <div style={{ fontSize: 14, marginBottom: 6 }}>接入真实 LLM API</div>
               <div style={{ fontSize: 12 }}>
                 {hasKey

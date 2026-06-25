@@ -1,0 +1,10 @@
+.meso-chevron-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: middle;
+  transition: transform 0.12s ease;
+}
+
+.meso-chevron-icon--open {
+  /* already pointing down via the path swap; keep class for targeted styling */
+}

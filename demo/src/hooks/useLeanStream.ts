@@ -918,11 +918,11 @@ export function useLeanStream() {
       // 5 轮 MCP 资源读取（MES/MOM/ERP/PLM + 智能采集）
       // 改为穿插显示：每个资源后都跟一条文本总结
       const mcpUris: Array<[string, string, string, string]> = [
-        ['rr1', `mes://realtime/${line}`, 'mes-srv', `✓ MES 现场数据：OEE ${mes.oee_now}%`],
-        ['rr2', `mom://history/${line}?days=7`, 'mom-srv', `✓ MOM 趋势数据：7 天下降 ${mom.drop_points}pp`],
-        ['rr3', `erp://workorders/${line}`, 'erp-srv', `✓ ERP 工单数据：${erp.delayed_count} 个延误`],
-        ['rr4', `plm://sop/${line}/${sig.equipmentType}`, 'plm-srv', `✓ PLM 工艺参数：${plm.params.length} 项规范`],
-        ['rr5', `acquire://devices/${line}/${sig.equipmentType}`, 'acquire-srv', `✓ 智能采集：${sig.equipment} 健康度 ${acquire.health_score}`],
+        ['rr1', `mes://realtime/${line}`, 'mes-srv', `MES 现场数据：OEE ${mes.oee_now}%`],
+        ['rr2', `mom://history/${line}?days=7`, 'mom-srv', `MOM 趋势数据：7 天下降 ${mom.drop_points}pp`],
+        ['rr3', `erp://workorders/${line}`, 'erp-srv', `ERP 工单数据：${erp.delayed_count} 个延误`],
+        ['rr4', `plm://sop/${line}/${sig.equipmentType}`, 'plm-srv', `PLM 工艺参数：${plm.params.length} 项规范`],
+        ['rr5', `acquire://devices/${line}/${sig.equipmentType}`, 'acquire-srv', `智能采集：${sig.equipment} 健康度 ${acquire.health_score}`],
       ]
 
       const nodeMetadata: Record<string, Record<string, unknown>> = {
@@ -966,7 +966,7 @@ export function useLeanStream() {
         output: buildKbResult(sig),
         metadata: { resultCount: 3 },
         duration_ms: 400,
-        narration: `✓ 精益知识库：找到 3 篇改善方案`
+        narration: `精益知识库：找到 3 篇改善方案`
       } }))
 
       // citation（4 数据源 + KB）
@@ -995,15 +995,15 @@ export function useLeanStream() {
 
       // 报告生成完毕 → 主窗口显示"打开右侧"链接 + 核心结论摘要（驱动叙事顺序）
       if (ctrl.signal.aborted) return
-      emit(ev({ type: 'text', payload: { delta: `📋 诊断报告已生成\n${artifactLink(LEAN_ARTIFACT_IDS.report, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.report])}\n${buildReportSummary(sig, mes, mom, erp, acquire)}\n\n` } }))
+      emit(ev({ type: 'text', payload: { delta: `诊断报告已生成\n${artifactLink(LEAN_ARTIFACT_IDS.report, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.report])}\n${buildReportSummary(sig, mes, mom, erp, acquire)}\n\n` } }))
 
       // artifact 2: OEE 数据明细 table（一次性）
       emit(ev({ type: 'artifact', payload: { id: LEAN_ARTIFACT_IDS.oeeTable, lang: 'table', delta: JSON.stringify(buildOeeTable(mom)), done: true } }))
-      emit(ev({ type: 'text', payload: { delta: `📊 OEE 明细表已生成\n${artifactLink(LEAN_ARTIFACT_IDS.oeeTable, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.oeeTable])}\n${buildOeeTableSummary(mom)}\n\n` } }))
+      emit(ev({ type: 'text', payload: { delta: `OEE 明细表已生成\n${artifactLink(LEAN_ARTIFACT_IDS.oeeTable, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.oeeTable])}\n${buildOeeTableSummary(mom)}\n\n` } }))
 
       // artifact 3: 看板 HTML（一次性，含 Chart.js CDN）
       emit(ev({ type: 'artifact', payload: { id: LEAN_ARTIFACT_IDS.dashboard, lang: 'html', delta: buildDashboardHtml(mes, mom), done: true } }))
-      emit(ev({ type: 'text', payload: { delta: `📈 OEE 看板已生成\n${artifactLink(LEAN_ARTIFACT_IDS.dashboard, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.dashboard])}\n${buildDashboardSummary(mes, acquire)}\n\n` } }))
+      emit(ev({ type: 'text', payload: { delta: `OEE 看板已生成\n${artifactLink(LEAN_ARTIFACT_IDS.dashboard, LEAN_ARTIFACT_LABELS[LEAN_ARTIFACT_IDS.dashboard])}\n${buildDashboardSummary(mes, acquire)}\n\n` } }))
 
       emit(ev({ type: 'phase', payload: { id: 'diagnose', name: '综合诊断', state: 'done' } }))
 
@@ -1062,7 +1062,7 @@ export function useLeanStream() {
       emit(ev({ type: 'memory_saved', payload: { id: 'case2', category: 'intervention', preview: `${line} ${ANOMALY_LABELS[sig.anomaly]}：已派工 + 边缘OS下发「${edgeCmd.command}」至${sig.equipment}` } }))
 
       // ── 收尾总结陈词（闭环回顾，动态生成） ──
-      emit(ev({ type: 'text', payload: { delta: `\n\n---\n\n✅ **诊断闭环完成**。${line} 当前 OEE ${mes.oee_now}%（较目标低 ${(mes.target_oee - mes.oee_now).toFixed(1)}pp），根因定位为 **${topDowntime.reason}**（${topDowntime.minutes} 分钟 / ${topDowntime.count} 次）${alarmCount > 0 ? `，${sig.equipment} 健康度仅 ${acquire.health_score}（${alarmCount} 项告警）` : ''}。已完成两步处置：派发 ${mes.shift}班组专项改善工单、向 ${sig.equipment} 下发现场干预指令（预计 ${effectMin} 分钟生效）。\n\n建议持续跟踪 OEE 回升趋势，若 24 小时内未见改善则升级为 ${ANOMALY_LABELS[sig.anomaly]} 专项攻关，并将本次处置沉淀为标准应对预案。` } }))
+      emit(ev({ type: 'text', payload: { delta: `\n\n---\n\n**诊断闭环完成**。${line} 当前 OEE ${mes.oee_now}%（较目标低 ${(mes.target_oee - mes.oee_now).toFixed(1)}pp），根因定位为 **${topDowntime.reason}**（${topDowntime.minutes} 分钟 / ${topDowntime.count} 次）${alarmCount > 0 ? `，${sig.equipment} 健康度仅 ${acquire.health_score}（${alarmCount} 项告警）` : ''}。已完成两步处置：派发 ${mes.shift}班组专项改善工单、向 ${sig.equipment} 下发现场干预指令（预计 ${effectMin} 分钟生效）。\n\n建议持续跟踪 OEE 回升趋势，若 24 小时内未见改善则升级为 ${ANOMALY_LABELS[sig.anomaly]} 专项攻关，并将本次处置沉淀为标准应对预案。` } }))
 
       emit(ev({ type: 'done', payload: {} }))
     } catch (err) {

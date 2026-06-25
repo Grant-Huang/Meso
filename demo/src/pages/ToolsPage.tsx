@@ -8,6 +8,7 @@ import { useState, useRef, useCallback } from 'react'
 import { MessageList, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState } from '@meso.ai/ui'
 import type { Message } from '@meso.ai/ui'
+import { PlayIcon, RotateCcwIcon, SquareIcon, SatelliteDishIcon, BuildingIcon, PlugIcon } from '../components/Icons'
 
 // ── SSE event sequences ───────────────────────────────────────────────────────
 
@@ -250,8 +251,8 @@ export function ToolsPage() {
   const statusText: Record<Phase, string> = {
     idle: scenario === 'safe' ? '点击播放，查看安全工具调用流程' : '点击播放，查看危险工具确认门流程',
     playing: '事件播放中…',
-    waiting_confirm: '⚠️ 等待用户确认执行危险操作',
-    done: '流式完成 ✓',
+    waiting_confirm: '等待用户确认执行危险操作',
+    done: '流式完成',
   }
 
   const phaseColor: Record<Phase, string> = {
@@ -288,9 +289,9 @@ export function ToolsPage() {
         <div style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: 8, padding: 14, fontSize: 12 }}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>相关文档</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
-            <span>🔌 <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/app-plugin-system.md" style={{ color: 'var(--color-accent)' }}>应用插件系统</a> — ToolDefinition 格式完整说明</span>
-            <span>📡 <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/streaming-protocol.md" style={{ color: 'var(--color-accent)' }}>SSE 协议规范</a> — tool_call / tool_result 事件定义</span>
-            <span>🏗️ <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/capability-system.md" style={{ color: 'var(--color-accent)' }}>能力系统</a> — Tool / Skill / Resource 的区别</span>
+            <span><PlugIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/app-plugin-system.md" style={{ color: 'var(--color-accent)' }}>应用插件系统</a> — ToolDefinition 格式完整说明</span>
+            <span><SatelliteDishIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/streaming-protocol.md" style={{ color: 'var(--color-accent)' }}>SSE 协议规范</a> — tool_call / tool_result 事件定义</span>
+            <span><BuildingIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/capability-system.md" style={{ color: 'var(--color-accent)' }}>能力系统</a> — Tool / Skill / Resource 的区别</span>
           </div>
         </div>
 
@@ -336,6 +337,9 @@ export function ToolsPage() {
               padding: '5px 14px',
               borderRadius: 6,
               border: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
               background: phase === 'idle' || phase === 'done' ? 'var(--color-accent)' : 'var(--color-border)',
               color: phase === 'idle' || phase === 'done' ? '#fff' : 'var(--color-text-secondary)',
               fontSize: 12,
@@ -344,7 +348,7 @@ export function ToolsPage() {
               fontFamily: 'inherit',
             }}
           >
-            {phase === 'idle' ? '▶ 播放' : phase === 'done' ? '⟳ 重播' : '⏹ 重置'}
+            {phase === 'idle' ? (<><PlayIcon size={12} /> 播放</>) : phase === 'done' ? (<><RotateCcwIcon size={12} /> 重播</>) : (<><SquareIcon size={12} /> 重置</>)}
           </button>
         </div>
 

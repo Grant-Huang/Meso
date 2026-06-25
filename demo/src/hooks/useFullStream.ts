@@ -279,20 +279,20 @@ export function useFullStream() {
         resource_read_id: 'rr1',
         contents: [{ type: 'text', text: buildMcpContent(topic) }],
         duration_ms: 430,
-        narration: `✓ MCP 返回 2400 字`
+        narration: `MCP 返回 2400 字`
       } }))
       emit(ev({ type: 'tool_result', payload: {
         tool_call_id: 'tc1',
         output: buildKbResult(topic),
         metadata: { resultCount: 8 },
         duration_ms: 450,
-        narration: `✓ 知识库命中 8 条`
+        narration: `知识库命中 8 条`
       } }))
 
       // workflow 节点完成
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'mcp_fetch', name: 'MCP 文档', parent_id: 'orchestrator', state: 'done', duration_ms: 430, metadata: { chars: 2400 } } }))
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'kb_search', name: 'KB 检索', parent_id: 'orchestrator', state: 'done', duration_ms: 450, metadata: { hits: 8 } } }))
-      emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'web_fetch', name: '网页抓取', parent_id: 'orchestrator', state: 'done', duration_ms: 510, metadata: { pages: 5 }, narration: `✓ 网页抓取 5 页` } }))
+      emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'web_fetch', name: '网页抓取', parent_id: 'orchestrator', state: 'done', duration_ms: 510, metadata: { pages: 5 }, narration: `网页抓取 5 页` } }))
       emit(ev({ type: 'workflow_node', payload: { run_id: 'r1', node_id: 'orchestrator', name: '采集编排', state: 'done', duration_ms: 510 } }))
 
       // citation（extension 事件）
@@ -336,7 +336,7 @@ export function useFullStream() {
       emit(ev({ type: 'memory_saved', payload: { id: 'mem1', category: 'research', preview: `完成"${topic}"深度研究并发布` } }))
 
       // ── 收尾总结陈词（闭环回顾，动态生成） ──
-      emit(ev({ type: 'text', payload: { delta: `\n\n---\n\n✅ **研究完成**：围绕「${topic}」已走完「记忆召回 → 多源采集（MCP / 知识库 / 网页）→ 综合生成 → 发布」全流程，结构化研究报告已生成并发布到团队空间。如需就某个方向深入展开，告诉我即可继续追加研究。` } }))
+      emit(ev({ type: 'text', payload: { delta: `\n\n---\n\n**研究完成**：围绕「${topic}」已走完「记忆召回 → 多源采集（MCP / 知识库 / 网页）→ 综合生成 → 发布」全流程，结构化研究报告已生成并发布到团队空间。如需就某个方向深入展开，告诉我即可继续追加研究。` } }))
 
       emit(ev({ type: 'done', payload: {} }))
     } catch (err) {

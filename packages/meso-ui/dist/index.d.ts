@@ -36,6 +36,8 @@ export { ArtifactPaneShell } from './components/ArtifactPaneShell';
 export type { ArtifactPaneShellProps, ArtifactTab } from './components/ArtifactPaneShell';
 export { StatusIcon } from './components/StatusIcon';
 export type { StatusIconProps, StatusIconStatus } from './components/StatusIcon';
+export { ChevronIcon } from './components/ChevronIcon';
+export type { ChevronIconProps } from './components/ChevronIcon';
 export { LogLine } from './components/LogLine';
 export type { LogLineProps } from './components/LogLine';
 export { useSSEStream } from './hooks/useSSEStream';

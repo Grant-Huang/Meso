@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { ToolCallBlock } from '../ToolCallBlock'
+import { StatusIcon } from '../StatusIcon'
+import { ChevronIcon } from '../ChevronIcon'
 import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
+import { toolCallStatusToIcon } from '../../utils/statusMapping'
 import type { StreamState, ToolCallState } from '../../runtime'
 import './CollapsibleToolTrace.css'
 
@@ -71,20 +74,19 @@ export function CollapsibleToolTrace({
     onToolClick?.(id)
   }
 
-  const renderToolSummary = (tc: ToolCallState, index: number): string => {
-    const { call, result, status } = tc
+  const renderToolText = (tc: ToolCallState, index: number): string => {
+    const { call, result } = tc
     if (renderSummary) {
       return String(renderSummary(tc, index) ?? '')
     }
 
-    const icon = status === 'error' ? '✗' : '✓'
     const name = call.name
     const summary = result?.metadata?.resultCount
       ? ` — ${result.metadata.resultCount} 项`
       : ''
     const duration = result?.duration_ms ? ` (${result.duration_ms}ms)` : ''
 
-    return `${icon} ${name}${summary}${duration}`
+    return `${name}${summary}${duration}`
   }
 
   if (visibleToolIds.length === 0) return null
@@ -106,10 +108,13 @@ export function CollapsibleToolTrace({
               aria-expanded={isExpanded}
             >
               <span className="meso-collapsible-tool__toggle">
-                {isExpanded ? '▼' : '▶'}
+                <ChevronIcon open={isExpanded} size={13} />
+              </span>
+              <span className="meso-collapsible-tool__status">
+                <StatusIcon status={toolCallStatusToIcon(status)} size={13} />
               </span>
               <span className="meso-collapsible-tool__text">
-                {renderToolSummary(tc, index)}
+                {renderToolText(tc, index)}
               </span>
             </button>
 

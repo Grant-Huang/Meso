@@ -62,7 +62,7 @@ function buildSummary(stream: StreamState): string {
   return parts.length > 0 ? parts.join(' · ') : '执行过程'
 }
 
-function renderDefaultPhase(phase: PhaseRecord, streaming: boolean): ReactNode {
+function renderDefaultPhase(phase: PhaseRecord, streaming: boolean, simplify?: SimplifyOptions): ReactNode {
   const hasThink = Boolean(phase.thinkContent || phase.pinnedThink)
   return (
     <div className="meso-process-trace__phase" data-testid={`meso-phase-${phase.id}`}>
@@ -77,6 +77,7 @@ function renderDefaultPhase(phase: PhaseRecord, streaming: boolean): ReactNode {
           streaming={streaming && phase.state === 'running'}
           collapseWhen="never"
           defaultOpen={true}
+          simplify={simplify}
         />
       )}
       {phase.body && (
@@ -169,6 +170,7 @@ export function ProcessTrace({
               collapseWhen="never"
               defaultOpen={true}
               turnStreaming={turnStreaming}
+              simplify={simplify}
             />
           )}
 
@@ -183,7 +185,7 @@ export function ProcessTrace({
                 }
                 return (
                   <div key={phaseId}>
-                    {renderDefaultPhase(phase, streaming)}
+                    {renderDefaultPhase(phase, streaming, simplify)}
                   </div>
                 )
               })}
@@ -195,7 +197,7 @@ export function ProcessTrace({
               {stream.resourceReadOrder.map(id => {
                 const rr = stream.resourceReads[id]
                 if (!rr) return null
-                return <ResourceReadBlock key={id} resourceRead={rr} />
+                return <ResourceReadBlock key={id} resourceRead={rr} simplify={simplify} />
               })}
             </div>
           )}

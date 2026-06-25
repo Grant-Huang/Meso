@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { MessageList, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState, ExtensionEvent } from '@meso.ai/types'
+import { PlugIcon, PaletteIcon, PackageIcon, ClipboardIcon, PlayIcon } from '../components/Icons'
 
 const evt = (type: string, payload: object) =>
   `data: ${JSON.stringify({ type, schema_version: '1.0', payload })}`
@@ -185,7 +186,15 @@ function ProgressTracker({ steps, current, status }: { steps: string[]; current:
           <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
             {i > 0 && <div style={{ width: 20, height: 1, background: done ? 'var(--color-accent)' : 'var(--color-border)', flexShrink: 0 }} />}
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20, background: done ? 'var(--color-accent)' : active ? 'var(--color-accent)20' : 'transparent', border: `1px solid ${done || active ? 'var(--color-accent)' : 'var(--color-border)'}` }}>
-              <span style={{ fontSize: 11 }}>{done && !active ? '✓' : active ? '◉' : '○'}</span>
+              <span style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center' }}>
+                {done && !active ? (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
+                ) : active ? (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6" /></svg>
+                ) : (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="8" /></svg>
+                )}
+              </span>
               <span style={{ fontSize: 11.5, fontWeight: 600, color: done ? '#fff' : active ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>{step}</span>
             </div>
           </div>
@@ -318,13 +327,13 @@ function renderExtension(
           <div style={{ border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-bg-elevated)', padding: '12px 14px' }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 10 }}>设计原则</div>
             {[
-              { icon: '🔌', title: '协议稳定性', desc: '业务变化只改 extension 的 data，不改核心协议' },
-              { icon: '🎨', title: '渲染自由度', desc: 'renderExtension 可返回任意 React 组件' },
-              { icon: '📦', title: '版本共存', desc: 'name + version 双字段，多版本并行演进' },
-              { icon: '📋', title: '日志可查', desc: 'extensionLog 保存完整历史，便于调试' },
+              { icon: <PlugIcon size={16} />, title: '协议稳定性', desc: '业务变化只改 extension 的 data，不改核心协议' },
+              { icon: <PaletteIcon size={16} />, title: '渲染自由度', desc: 'renderExtension 可返回任意 React 组件' },
+              { icon: <PackageIcon size={16} />, title: '版本共存', desc: 'name + version 双字段，多版本并行演进' },
+              { icon: <ClipboardIcon size={16} />, title: '日志可查', desc: 'extensionLog 保存完整历史，便于调试' },
             ].map(item => (
-              <div key={item.title} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+              <div key={item.title} style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 16, flexShrink: 0, color: 'var(--color-accent)', display: 'inline-flex', marginTop: 1 }}>{item.icon}</span>
                 <div>
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)' }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>{item.desc}</div>
@@ -382,7 +391,7 @@ function renderExtension(
                 background: isStreaming ? 'var(--color-border)' : 'var(--color-accent)',
                 color: isStreaming ? 'var(--color-text-muted)' : '#fff',
                 transition: 'background .15s',
-              }}>{phase === 'done' ? '▶ 再次播放' : isStreaming ? '流式中…' : '▶ 播放演示'}</button>
+              }}>{phase === 'done' ? (<><PlayIcon size={12} /> 再次播放</>) : isStreaming ? '流式中…' : (<><PlayIcon size={12} /> 播放演示</>)}</button>
             </div>
           </div>
 

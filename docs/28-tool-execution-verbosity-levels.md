@@ -48,25 +48,44 @@
 
 ---
 
+## Resource Read & Think Block Verbosity (v3.2+)
+
+Verbosity now controls `ResourceReadBlock` content expansion and `ThinkBlock` collapse behavior, threaded via the same `simplify` prop.
+
+| Element | Compact | Standard | Detailed |
+|---|---|---|---|
+| **Resource content** (`ResourceReadBlock`) | Collapsed | Collapsed | **Expanded** |
+| **Think block** (`ThinkBlock` defaultOpen) | `false` (collapsed) | `true` (open) | `true` (open) |
+| **Think block auto-collapse** (`collapseWhen`) | — | `streamEnd` (auto-collapse 1.5s after stream ends) | `never` (stays open) |
+| **Frozen tools** (blend mode history) | `none` (collapsed) | `none` (collapsed, click to expand) | `all` (expanded) |
+
+**Implementation**: `simplify` is threaded from `MessageList` → `InterleavedStreamingContent` → `ResourceReadBlock` / `ThinkBlock`. Both components derive `defaultOpen` from `simplify.verbosity` via `resolveVerbosity()` (`packages/meso-ui/src/utils/verbosity.ts`). Explicit `defaultOpen` / `collapseWhen` props on `ThinkBlock` still override the verbosity-derived defaults.
+
+**Note on block mode**: As of v3.2, `LinearStreamingTools` (block mode) now threads `simplify` (previously hardcoded `undefined`). Verbosity selection works in both blend and block modes.
+
+---
+
 ## Visual Examples
 
 ### Compact Mode
 ```
-▶ ✓ web_search — 8 项 (245ms)
-  ✓ 知识库命中 8 条结果
+▶ [●] web_search — 8 项 (245ms)
+  知识库命中 8 条结果            ← narration（纯文本，无符号前缀）
   
   [展开时显示：]
   ▶ Input Parameters
   ▶ Output  
   ▶ Metadata
   
-▶ ✓ knowledge_base — 3 项 (180ms)
-  ✓ 返回 3 条相关文献
+▶ [●] knowledge_base — 3 项 (180ms)
+  返回 3 条相关文献
 ```
+
+> 图例：`[●]` = StatusIcon(done) 绿色圆+勾（SVG，非 Unicode 字符）；`▶`/`▼` = ChevronIcon。
 
 **特点**：
 - 摘要行展示关键信息（名称、数量、耗时）
-- 旁白/提示总是可见（数据驱动的执行描述）
+- 旁白/narration 为纯文本，状态由 StatusIcon 表达
 - 确认门按钮在 awaiting_confirm 时显示
 - 点击摘要行展开，所有内容折叠（参数、输出、元数据都需点击才展开）
 
@@ -74,8 +93,8 @@
 
 ### Standard Mode (Recommended Default)
 ```
-▼ ✓ web_search — 8 项 (245ms) [safe] — MCP
-  ✓ 知识库命中 8 条结果
+▼ [●] web_search — 8 项 (245ms) [safe] — MCP
+  知识库命中 8 条结果            ← narration（纯文本）
   
   Input Parameters
     ▶ query: "AI Agent框架"
@@ -85,13 +104,13 @@
     ▶ resultCount: 8
       category: web_search
     
-▶ ✓ knowledge_base — 3 项 (180ms) [safe] — builtin
-  ✓ 返回 3 条相关文献
+▶ [●] knowledge_base — 3 项 (180ms) [safe] — builtin
+  返回 3 条相关文献
 ```
 
 **特点**：
 - 摘要行展示完整信息（名称、数量、耗时、风险等级、Provider）
-- 旁白/提示总是可见
+- narration 纯文本，状态由 StatusIcon 表达
 - 参数、输出、元数据默认折叠（点击展开）
 - 第二层信息（参数值、输出内容、字段值）也默认折叠
 
@@ -99,8 +118,8 @@
 
 ### Detailed Mode
 ```
-▼ ✓ web_search — 8 项 (245ms) [safe] — MCP
-  ✓ 知识库命中 8 条，精度 0.94
+▼ [●] web_search — 8 项 (245ms) [safe] — MCP
+  知识库命中 8 条，精度 0.94      ← narration（纯文本）
   
   ▼ Input Parameters
     query: "AI Agent框架"
@@ -122,8 +141,8 @@
   ▼ Execution Timeline
     Duration: 245ms
     
-▶ ✓ knowledge_base — 3 项 (180ms) [safe] — builtin
-  ✓ 返回 3 条相关文献
+▶ [●] knowledge_base — 3 项 (180ms) [safe] — builtin
+  返回 3 条相关文献          ← narration（纯文本）
 ```
 
 **特点**：
@@ -222,19 +241,27 @@ function ToolCallBlock({ toolCall, simplify = {} }: ToolCallBlockProps) {
 export interface CollapsibleToolTraceProps {
   stream: StreamState
   streaming?: boolean
-  defaultExpanded?: 'all' | 'current' | 'none'
+
+  /** Expansion strategy: 'none' | 'current' | 'all' | 'last-n' */
+  defaultExpanded?: 'all' | 'current' | 'none' | 'last-n'
+  /** Number of items to expand when defaultExpanded='last-n' (default: 2) */
+  expandCount?: number
+
+  /** Show only the most recent tool call */
   onlyShowCurrent?: boolean
-  
-  // ← NEW: Verbosity control
-  verbosity?: 'compact' | 'standard' | 'detailed'
-  
-  // ← NEW: Control which tools expand by default
-  expandStrategy?: 'none' | 'current' | 'all' | 'last-n'
-  expandCount?: number  // for 'last-n' strategy
-  
+
+  /** Verbosity and display options (threaded into ToolCallBlock) */
   simplify?: SimplifyOptions
+
   onToolClick?: (toolCallId: string) => void
   onToolConfirm?: (toolCallId: string) => void
+  onToolCancel?: (toolCallId: string) => void
+
+  renderSummary?: (tc: ToolCallState, index: number) => ReactNode
+}
+```
+
+> **Note**: Verbosity is controlled exclusively via `simplify: { verbosity }`. There is no separate top-level `verbosity` prop. The blend mode derives `defaultExpanded` for frozen tools from verbosity (see Resource/Think Verbosity section above).
   onToolCancel?: (toolCallId: string) => void
   renderSummary?: (tc: ToolCallState, index: number) => ReactNode
 }
@@ -244,19 +271,21 @@ export interface CollapsibleToolTraceProps {
 
 ## Summary Line Variants
 
+> `[●]` represents the StatusIcon (SVG rendered by `CollapsibleToolTrace`), not a Unicode character.
+
 ### Compact
 ```
-✓ web_search
+[●] web_search
 ```
 
 ### Standard
 ```
-✓ web_search — 8 项 (245ms) [safe]
+[●] web_search — 8 项 (245ms) [safe]
 ```
 
 ### Detailed
 ```
-✓ web_search — 8 项 (245ms) [safe] — builtin
+[●] web_search — 8 项 (245ms) [safe] — builtin
 ```
 
 ---

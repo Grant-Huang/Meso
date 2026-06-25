@@ -5,7 +5,9 @@ import { SoulIndicator } from '../SoulIndicator'
 import { SkillIndicator } from '../SkillIndicator'
 import { CollapsibleToolTrace } from '../CollapsibleToolTrace'
 import { ThinkBlock } from '../ThinkBlock'
+import { StreamingCursor } from '../StreamingCursor'
 import { ResourceReadBlock } from '../ResourceReadBlock'
+import { resolveVerbosity } from '../../utils/verbosity'
 import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
 import type { StreamState, ExtensionEvent } from '../../runtime'
 import type { ArtifactDef } from '@meso.ai/types'
@@ -89,10 +91,12 @@ function LinearStreamingTools({
   stream,
   onToolConfirm,
   onToolCancel,
+  simplify,
 }: {
   stream: StreamState
   onToolConfirm?: (toolCallId: string) => void
   onToolCancel?: (toolCallId: string) => void
+  simplify?: SimplifyOptions
 }) {
   const { frozenIds, currentId } = useMemo(
     () => splitToolCalls(stream),
@@ -113,7 +117,7 @@ function LinearStreamingTools({
             }}
             streaming={false}
             defaultExpanded="all"
-            simplify={undefined}
+            simplify={simplify}
             // 已完成的工具不需要交互回调
           />
         </div>
@@ -129,7 +133,7 @@ function LinearStreamingTools({
             }}
             streaming={stream.status === 'streaming'}
             defaultExpanded="all"
-            simplify={undefined}
+            simplify={simplify}
             onToolConfirm={onToolConfirm}
             onToolCancel={onToolCancel}
           />
@@ -278,6 +282,7 @@ function InterleavedStreamingContent({
           streaming={streaming && !stream.thinkDone}
           collapseWhen="streamEnd"
           defaultOpen={true}
+          simplify={simplify}
         />
       )}
 
@@ -293,7 +298,7 @@ function InterleavedStreamingContent({
               ) : (
                 <>
                   {item.text}
-                  {isTail && <span className="meso-bubble__cursor" aria-hidden="true">▋</span>}
+                  {isTail && <StreamingCursor />}
                 </>
               )}
             </div>
@@ -305,6 +310,8 @@ function InterleavedStreamingContent({
           if (!tc) return null
           // committed (streaming=false): 全部折叠、无 current；live: 最后一个为 current
           const isCurrent = streaming && item.id === currentId
+          // frozen tool expansion derives from verbosity: detailed → all, else none
+          const frozenExpanded = resolveVerbosity(simplify) === 'detailed' ? 'all' : 'none'
           return (
             <div
               key={item.key}
@@ -314,7 +321,7 @@ function InterleavedStreamingContent({
               <CollapsibleToolTrace
                 stream={{ ...stream, toolCallOrder: [item.id] }}
                 streaming={isCurrent && stream.status === 'streaming'}
-                defaultExpanded={isCurrent ? 'all' : 'none'}
+                defaultExpanded={isCurrent ? 'all' : frozenExpanded}
                 simplify={simplify}
                 onToolConfirm={isCurrent ? onToolConfirm : undefined}
                 onToolCancel={isCurrent ? onToolCancel : undefined}
@@ -328,7 +335,7 @@ function InterleavedStreamingContent({
           if (!rr) return null
           return (
             <div key={item.key} className="meso-event-resource" data-streaming-role="content">
-              <ResourceReadBlock resourceRead={rr} />
+              <ResourceReadBlock resourceRead={rr} simplify={simplify} />
             </div>
           )
         }
@@ -518,6 +525,7 @@ export function MessageList({
                       stream={streaming}
                       onToolConfirm={onToolConfirm}
                       onToolCancel={onToolCancel}
+                      simplify={simplify}
                     />
 
                     {renderExtension && streaming.extensionLog.length > 0 && (

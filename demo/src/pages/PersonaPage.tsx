@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { MessageList, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState } from '@meso.ai/types'
+import { BrainIcon, TheaterIcon, GearIcon, PlayIcon } from '../components/Icons'
 
 const evt = (type: string, payload: object) =>
   `data: ${JSON.stringify({ type, schema_version: '1.0', payload })}`
@@ -37,8 +38,8 @@ const SCENARIO_A: string[] = [
   evt('think', { delta: '分析用户的 React Hook，' }),
   evt('think', { delta: '检查依赖数组完整性与闭包陷阱。', done: true }),
   evt('text', { delta: '## 代码审查结果\n\n' }),
-  evt('text', { delta: '### ✅ 通过\n- Cleanup 函数完整，无内存泄漏\n- 类型声明规范，无 `any` 滥用\n\n' }),
-  evt('text', { delta: '### ⚠️ 发现问题\n\n' }),
+  evt('text', { delta: '### 通过\n- Cleanup 函数完整，无内存泄漏\n- 类型声明规范，无 `any` 滥用\n\n' }),
+  evt('text', { delta: '### 发现问题\n\n' }),
   evt('text', { delta: '**1. `useEffect` 依赖缺失**\n```tsx\n// ❌ 缺少 onSubmit\nuseEffect(() => { onSubmit() }, [])\n// ✅ 正确\nuseEffect(() => { onSubmit() }, [onSubmit])\n```\n\n' }),
   evt('text', { delta: '**2. 闭包陷阱**：`handleClick` 捕获了过期的 `count`，建议改用 `useCallback`' }),
   evt('done', {}),
@@ -128,7 +129,7 @@ export default function PersonaPage() {
       {/* Header */}
       <div style={{ padding: '28px 32px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <span style={{ fontSize: 22 }}>🎭</span>
+          <span style={{ fontSize: 22, color: 'var(--color-accent)', display: 'inline-flex' }}><TheaterIcon size={22} /></span>
           <h1 style={{ margin: 0, fontSize: 20, fontWeight: 650, color: 'var(--color-text)' }}>
             Soul · Skill · Capabilities
           </h1>
@@ -151,17 +152,17 @@ export default function PersonaPage() {
           {/* Event cards */}
           {[
             {
-              emoji: '🧠', name: 'capabilities', badge: '会话开始时',
+              icon: <BrainIcon size={15} />, name: 'capabilities', badge: '会话开始时',
               desc: '宣告本次会话可用的工具、技能、MCP 资源列表。前端据此动态渲染工具栏。',
               json: `{\n  "type": "capabilities",\n  "payload": {\n    "tools": [\n      { "id": "search", "risk": "safe" }\n    ],\n    "skills": ["code-review"],\n    "mcp_servers": ["filesystem"]\n  }\n}`,
             },
             {
-              emoji: '🎭', name: 'soul', badge: '人格激活',
+              icon: <TheaterIcon size={15} />, name: 'soul', badge: '人格激活',
               desc: '激活特定 AI 人格。携带名称、版本、头像和性格特征，由 SoulIndicator 渲染。',
               json: `{\n  "type": "soul",\n  "payload": {\n    "id": "aria-v2",\n    "name": "Aria",\n    "version": "2.0",\n    "avatar": "🤖",\n    "traits": ["专业", "直接"]\n  }\n}`,
             },
             {
-              emoji: '⚙️', name: 'skill_active', badge: '工作模式',
+              icon: <GearIcon size={15} />, name: 'skill_active', badge: '工作模式',
               desc: '切换操作技能。focus 数组声明本次分析的关注维度，由 SkillIndicator 渲染。',
               json: `{\n  "type": "skill_active",\n  "payload": {\n    "id": "code-review",\n    "name": "代码审查",\n    "provider": "builtin",\n    "focus": ["安全", "规范"]\n  }\n}`,
             },
@@ -173,7 +174,7 @@ export default function PersonaPage() {
             }}>
               <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid var(--color-border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 15 }}>{card.emoji}</span>
+                  <span style={{ fontSize: 15, color: 'var(--color-accent)', display: 'inline-flex' }}>{card.icon}</span>
                   <code style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-accent)' }}>{card.name}</code>
                   <span style={{
                     marginLeft: 'auto', fontSize: 10, fontWeight: 600,
@@ -264,7 +265,7 @@ import { SoulIndicator, SkillIndicator } from '@meso.ai/ui'
                   transition: 'background .15s',
                 }}
               >
-                {phase === 'done' ? '▶ 再次播放' : isStreaming ? '播放中…' : '▶ 播放演示'}
+                {phase === 'done' ? (<><PlayIcon size={12} /> 再次播放</>) : isStreaming ? '播放中…' : (<><PlayIcon size={12} /> 播放演示</>)}
               </button>
             </div>
           </div>

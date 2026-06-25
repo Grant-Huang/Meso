@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useFullStream } from '../hooks/useFullStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
+import { CheckIcon, AlertTriangleIcon } from '../components/Icons'
 
 const EXAMPLE_TOPICS = [
   'AI Agent 框架对比',
@@ -213,7 +214,7 @@ export function FullStreamPage() {
             cursor: 'pointer',
           }}
         >
-          {hasKey ? '✓ API Key 已配置' : '⚠ 配置 API Key'}
+          {hasKey ? (<><CheckIcon size={12} /> API Key 已配置</>) : (<><AlertTriangleIcon size={12} /> 配置 API Key</>)}
         </button>
 
         {state.status === 'streaming' && (

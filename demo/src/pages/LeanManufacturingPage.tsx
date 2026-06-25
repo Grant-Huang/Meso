@@ -1,12 +1,25 @@
 import { MessageList, ChatComposer } from '@meso.ai/ui'
 import type { Message, ExtensionEvent } from '@meso.ai/ui'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLeanStream, SYS_NAMES } from '../hooks/useLeanStream'
 import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
 import { useArtifactContext } from '../components/ArtifactContext'
 import type { SharedArtifact } from '../components/ArtifactContext'
+import { CheckIcon, AlertTriangleIcon, FactoryIcon } from '../components/Icons'
 import { marked } from 'marked'
+
+/**
+ * Convert [[artifact:id|label]] tokens into clickable HTML links.
+ * The data-artifact-id attribute is read by a delegated click handler.
+ */
+function renderArtifactTokens(text: string): string {
+  return text.replace(
+    /\[\[artifact:([^|\]]+)\|([^\]]+)\]\]/g,
+    (_m, id: string, label: string) =>
+      `<a href="#" class="meso-artifact-link" data-artifact-id="${id.trim()}">${label.trim()}</a>`,
+  )
+}
 
 const EXAMPLE_COMPLAINTS = [
   'A 线本周 OEE 从 85% 跌到 71%',
@@ -72,7 +85,26 @@ function renderCitation(event: ExtensionEvent) {
 export function LeanManufacturingPage() {
   const { state, send, abort, reset, confirmTool, cancelTool } = useLeanStream()
   const [messages, setMessages] = useState<Message[]>([])
-  const { setArtifacts, clearArtifacts } = useArtifactContext()
+  const { setArtifacts, clearArtifacts, openArtifactTab } = useArtifactContext()
+
+  // Render markdown, expanding [[artifact:id|label]] tokens into clickable links.
+  const renderMarkdown = useCallback((content: string) => {
+    return marked(renderArtifactTokens(content)) as string
+  }, [])
+
+  // Delegated click handler: any .meso-artifact-link click opens the right-pane tab.
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const link = target.closest('.meso-artifact-link') as HTMLElement | null
+      if (!link) return
+      e.preventDefault()
+      const id = link.dataset.artifactId
+      if (id) openArtifactTab(id)
+    }
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [openArtifactTab])
   const [input, setInput] = useState('')
   const [provider, setProvider] = useState<LlmProvider>(PROVIDERS[0])
   const [apiKey, setApiKey] = useState(() => ENV_KEYS[PROVIDERS[0].id] ?? '')
@@ -244,7 +276,7 @@ export function LeanManufacturingPage() {
             cursor: 'pointer',
           }}
         >
-          {hasKey ? '✓ API Key 已配置' : '⚠ 配置 API Key'}
+          {hasKey ? (<><CheckIcon size={12} /> API Key 已配置</>) : (<><AlertTriangleIcon size={12} /> 配置 API Key</>)}
         </button>
 
         {state.status === 'streaming' && (
@@ -347,11 +379,11 @@ export function LeanManufacturingPage() {
             URL.revokeObjectURL(url)
           }}
           renderExtension={renderCitation}
-          renderMarkdown={content => marked(content) as string}
+          renderMarkdown={renderMarkdown}
           simplify={{ verbosity }}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🏭</div>
+              <div style={{ fontSize: 32, marginBottom: 12, color: 'var(--color-text-muted)' }}><FactoryIcon size={32} /></div>
               <div style={{ fontSize: 15, marginBottom: 6, fontWeight: 500 }}>精益生产 OEE 诊断</div>
               <div style={{ fontSize: 12, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.6 }}>
                 描述一条产线异常，系统将从 MES/MOM/ERP/PLM/智能采集 5 个 MCP 多源取证，结合精益知识库生成 HTML 诊断报告、

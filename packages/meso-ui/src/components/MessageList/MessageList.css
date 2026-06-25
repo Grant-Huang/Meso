@@ -114,19 +114,14 @@
   gap: 4px;
 }
 
-/* 已完成工具的参数/结果默认折叠 */
+/* 融合模式：已完成工具的展开/折叠由 verbosity 规则统一控制
+   （CollapsibleToolTrace.defaultExpanded + ToolCallBlock <details open>），
+   不再用 CSS 强制隐藏。保留视觉上的极简化样式。 */
 .meso-message-list--mode-blend .meso-event-tool--frozen .meso-tool__params-details,
 .meso-message-list--mode-blend .meso-event-tool--frozen .meso-tool__result-details {
   border: none;
   background: none;
   margin-top: 4px;
-  display: none;
-}
-
-/* 已完成工具展开时显示详情 */
-.meso-message-list--mode-blend .meso-event-tool--frozen.expanded .meso-tool__params-details,
-.meso-message-list--mode-blend .meso-event-tool--frozen.expanded .meso-tool__result-details {
-  display: block;
 }
 
 /* 当前工具保持大框（等待确认时可见） */

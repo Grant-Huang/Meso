@@ -71,7 +71,7 @@
      emit(ev({ type: 'resource_content', payload: {
        resource_read_id: 'rr1',
        contents: resourceData,
-       narration: `✓ MES 数据：OEE ${oee}%，可用率 ${availability}%`
+       narration: `MES 数据：OEE ${oee}%，可用率 ${availability}%`
      }}))
      ```
 
@@ -134,7 +134,7 @@ emit(ev({ type: 'tool_result', payload: {
   output: JSON.stringify(result),
   metadata: { resultCount: result.length },  // ← Platform uses this
   duration_ms: 234,
-  narration: `✓ 知识库命中 ${result.length} 条`  // ← App layer
+  narration: `知识库命中 ${result.length} 条`  // ← App layer
 }}))
 ```
 
@@ -147,7 +147,7 @@ emit(ev({ type: 'resource_content', payload: {
   resource_read_id: 'rr1',
   contents: [{ type: 'text', text: JSON.stringify(mes) }],
   duration_ms: 280,
-  narration: `✓ MES 现场数据：OEE ${mes.oee_now}%`  // ← App layer
+  narration: `MES 现场数据：OEE ${mes.oee_now}%`  // ← App layer
 }}))
 ```
 
@@ -162,7 +162,7 @@ emit(ev({ type: 'resource_content', payload: {
 export function applyEvent(state, event) {
   if (event.type === 'tool_result' && event.payload.metadata?.resultCount) {
     // Platform generates business-specific text?
-    const narration = `✓ 返回 ${event.payload.metadata.resultCount} 条结果`
+    const narration = `返回 ${event.payload.metadata.resultCount} 条结果`
     state = applyEvent(state, { type: 'text', delta: narration })
   }
   // ...
@@ -190,7 +190,7 @@ export function applyEvent(state, event) {
 // Application provides the narration
 emit(ev({ type: 'tool_result', payload: {
   output: result,
-  narration: `✓ 返回 ${result.length} 条结果`  // ← App decides
+  narration: `返回 ${result.length} 条结果`  // ← App decides
 }}))
 ```
 

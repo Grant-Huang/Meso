@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import type { ResourceReadState } from '../../runtime'
 import { StatusIcon } from '../StatusIcon'
+import { ChevronIcon } from '../ChevronIcon'
 import { resourceReadStatusToIcon } from '../../utils/statusMapping'
+import { resolveVerbosity } from '../../utils/verbosity'
+import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
 import './ResourceReadBlock.css'
 
 export interface ResourceReadBlockProps {
   resourceRead: ResourceReadState
   className?: string
+  /** Verbosity controls default content expansion: detailed → open, others → collapsed. */
+  simplify?: SimplifyOptions
 }
 
-export function ResourceReadBlock({ resourceRead, className }: ResourceReadBlockProps) {
-  const [contentOpen, setContentOpen] = useState(false)
+export function ResourceReadBlock({ resourceRead, className, simplify }: ResourceReadBlockProps) {
+  const verbosity = resolveVerbosity(simplify)
+  const [contentOpen, setContentOpen] = useState(verbosity === 'detailed')
   const { read, content, status } = resourceRead
 
   const label = read.name ?? read.uri
@@ -36,7 +42,7 @@ export function ResourceReadBlock({ resourceRead, className }: ResourceReadBlock
             aria-expanded={contentOpen}
             aria-label={contentOpen ? '折叠内容' : '展开内容'}
           >
-            {contentOpen ? '▾' : '▸'} {status === 'error' ? '错误' : '内容'}
+            <ChevronIcon open={contentOpen} size={13} /> {status === 'error' ? '错误' : '内容'}
           </button>
         )}
       </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { ProcessTrace, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState } from '@meso.ai/ui'
+import { PlayIcon, PauseIcon, RotateCcwIcon, ArrowRightIcon } from '../components/Icons'
 
 // ── Static scenario definitions ───────────────────────────────────────────────
 
@@ -172,10 +174,11 @@ function PlayControls({ running, done, onPlay, onPause, onStep, onReset, idx, to
   onPlay: () => void; onPause: () => void; onStep: () => void; onReset: () => void
   idx: number; total: number
 }) {
-  const btn = (label: string, onClick: () => void, disabled = false, accent = false) => (
+  const btn = (label: ReactNode, onClick: () => void, disabled = false, accent = false) => (
     <button onClick={onClick} disabled={disabled} style={{
       padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: disabled ? 'not-allowed' : 'pointer',
       border: '1px solid var(--color-border)', fontFamily: 'inherit',
+      display: 'inline-flex', alignItems: 'center', gap: 4,
       background: accent ? 'var(--color-accent)' : 'var(--color-bg-elevated)',
       color: accent ? '#fff' : disabled ? 'var(--color-text-muted)' : 'var(--color-text)',
       opacity: disabled ? 0.5 : 1, transition: 'background .15s',
@@ -183,9 +186,9 @@ function PlayControls({ running, done, onPlay, onPause, onStep, onReset, idx, to
   )
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-      {running ? btn('⏸ 暂停', onPause) : btn('▶ 播放', onPlay, done, !done)}
-      {btn('→ 单步', onStep, done || running)}
-      {btn('↺ 重置', onReset)}
+      {running ? btn(<><PauseIcon size={12} /> 暂停</>, onPause) : btn(<><PlayIcon size={12} /> 播放</>, onPlay, done, !done)}
+      {btn(<><ArrowRightIcon size={12} /> 单步</>, onStep, done || running)}
+      {btn(<><RotateCcwIcon size={12} /> 重置</>, onReset)}
       <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 4 }}>
         {idx < 0 ? '未开始' : done ? '完成' : `事件 ${idx + 1} / ${total}`}
       </span>

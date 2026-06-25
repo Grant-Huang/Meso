@@ -125,7 +125,7 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
 emit(ev({ type: 'phase', payload: { id: 'collect', name: '采集', state: 'running' } }))
 emit(ev({ type: 'text', payload: { delta: `现在采集数据...` } }))
 await executeCollection()
-emit(ev({ type: 'text', payload: { delta: `✓ 采集完成：${count} 条` } }))
+emit(ev({ type: 'text', payload: { delta: `采集完成：${count} 条` } }))
 
 // After (self-describing)
 emit(ev({ type: 'phase', payload: {
@@ -139,7 +139,7 @@ emit(ev({ type: 'phase', payload: {
   id: 'collect',
   name: '采集',
   state: 'done',
-  narration: `✓ 采集完成：${count} 条`  // ← accurate, data-driven
+  narration: `采集完成：${count} 条`  // ← accurate, data-driven, no symbol prefix
 } }))
 ```
 
@@ -170,7 +170,12 @@ emit(ev({ type: 'phase', payload: {
 - applyEvent (platform layer) handles conversion
 - Backends never hardcode "when to show what"
 
-### 4. Extensible
+### 4. Pure Prose — Status Symbols Belong to the UI
+- `narration` text must be **pure prose** without status symbol prefixes (✓ / ✗ / ✅ / ❌)
+- Status (success / error / warning) is conveyed by the **UI layer** via `StatusIcon` (SVG), never duplicated as text characters
+- Rationale: a single source of truth for status prevents the "double display" problem — narration rendered both inline (with ✓) and as a tool-card status icon. State is owned by the component, prose is owned by the orchestrator.
+
+### 5. Extensible
 - **Phase 1 (current)**: Orchestrator fills narration statically
 - **Phase 2 (future)**: narration computed from metadata
 - **Phase 3 (optional)**: LLM-generated cross-node insights
@@ -194,7 +199,7 @@ emit({ type: 'tool_result', payload: {
   tool_call_id: 'search_1',
   output: JSON.stringify(results),
   metadata: { resultCount: results.length },
-  narration: `✓ 找到 ${results.length} 个结果`  // ← data-driven
+  narration: `找到 ${results.length} 个结果`  // ← data-driven
 }})
 
 // Step 3: Phase complete with synthesis
@@ -214,7 +219,7 @@ for (const source of sources) {
     resource_read_id: source.id,
     contents: [{ type: 'text', text: source.data }],
     duration_ms: source.elapsed,
-    narration: `✓ ${source.name}：${source.recordCount} 条记录`  // ← context
+    narration: `${source.name}：${source.recordCount} 条记录`  // ← context
   }})
 }
 ```
@@ -252,7 +257,7 @@ emit({ type: 'tool_result', payload: {
     confidence: 0.95,
   }
   // Narration is optional — UI can fallback to template
-  // narration: `✓ 返回 42 个结果（信度 95%）`
+  // narration: `返回 42 个结果（信度 95%）`
 }})
 ```
 
@@ -264,7 +269,7 @@ function renderNarration(event) {
   }
   // Fallback template
   if (event.type === 'tool_result' && event.payload.metadata?.resultCount) {
-    return `✓ ${event.payload.name} — ${event.payload.metadata.resultCount} results`
+    return `${event.payload.name} — ${event.payload.metadata.resultCount} results`
   }
 }
 ```

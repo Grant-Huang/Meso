@@ -9,6 +9,7 @@
 import { useState, useCallback } from 'react'
 import { ProcessTrace, CollapsibleToolTrace, applyEvent, createInitialStreamState, parseSSELine } from '@meso.ai/ui'
 import type { StreamState } from '@meso.ai/ui'
+import { PlayIcon, ClipboardIcon, PackageIcon } from '../components/Icons'
 
 const SSE_EVENTS = [
   `data: {"type":"capabilities","schema_version":"1.0","payload":{"tools":[{"name":"web_search","description":"搜索网络信息","provider":"mcp","risk":"safe"},{"name":"code_generator","description":"生成代码片段","provider":"mcp","risk":"safe"},{"name":"database_query","description":"查询数据库","provider":"api","risk":"safe"}]}}`,
@@ -156,12 +157,15 @@ export function ProcessTraceEnhancementsPage() {
               fontSize: '12px',
               borderRadius: '4px',
               border: '1px solid #ddd',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
               background: isStreaming ? '#fff' : '#f5f5f5',
               cursor: isStreaming ? 'pointer' : 'not-allowed',
               opacity: isStreaming ? 1 : 0.6,
             }}
           >
-            ▶ 下一步 ({eventCount}/{SSE_EVENTS.length})
+            <><PlayIcon size={12} /> 下一步 ({eventCount}/{SSE_EVENTS.length})</>
           </button>
           <span style={{ fontSize: '12px', color: '#999' }}>
             {isStreaming && '流式中...'}
@@ -184,9 +188,9 @@ export function ProcessTraceEnhancementsPage() {
                 fontWeight: selectedDemo === demo ? 600 : 400,
               }}
             >
-              {demo === 'detailed' && '📋 详细模式'}
-              {demo === 'simplified' && '📄 简化模式'}
-              {demo === 'collapsible' && '📦 可折叠模式'}
+              {demo === 'detailed' && (<><ClipboardIcon size={12} /> 详细模式</>)}
+              {demo === 'simplified' && '简化模式'}
+              {demo === 'collapsible' && (<><PackageIcon size={12} /> 可折叠模式</>)}
             </button>
           ))}
         </div>

@@ -9,6 +9,7 @@
 import { useSSEStream, MessageList } from '@meso.ai/ui'
 import type { Message } from '@meso.ai/ui'
 import { useState, useEffect, useRef } from 'react'
+import { ClipboardIcon, SatelliteDishIcon, PackageIcon, BuildingIcon } from '../components/Icons'
 
 const CODE_INSTALL = `npm install @meso.ai/ui @meso.ai/types`
 
@@ -201,10 +202,10 @@ export function QuickstartPage() {
         }}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>相关文档</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, color: 'var(--color-text-secondary)' }}>
-            <span>📋 <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/integration-guide.md" style={{ color: 'var(--color-accent)' }}>完整接入指南</a> — 含框架集成、验收清单</span>
-            <span>📡 <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/streaming-protocol.md" style={{ color: 'var(--color-accent)' }}>SSE 协议规范</a> — 16 种事件类型完整定义</span>
-            <span>📦 <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/consuming.md" style={{ color: 'var(--color-accent)' }}>消费指南</a> — npm / tarball / file: 安装对比</span>
-            <span>🏗️ <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/architecture.md" style={{ color: 'var(--color-accent)' }}>架构总览</a> — 系统分层与能力模型</span>
+            <span><ClipboardIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/integration-guide.md" style={{ color: 'var(--color-accent)' }}>完整接入指南</a> — 含框架集成、验收清单</span>
+            <span><SatelliteDishIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/streaming-protocol.md" style={{ color: 'var(--color-accent)' }}>SSE 协议规范</a> — 16 种事件类型完整定义</span>
+            <span><PackageIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/consuming.md" style={{ color: 'var(--color-accent)' }}>消费指南</a> — npm / tarball / file: 安装对比</span>
+            <span><BuildingIcon size={13} /> <a href="https://github.com/Grant-Huang/Meso/blob/main/docs/architecture.md" style={{ color: 'var(--color-accent)' }}>架构总览</a> — 系统分层与能力模型</span>
           </div>
         </div>
       </div>

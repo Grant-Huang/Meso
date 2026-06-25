@@ -239,14 +239,16 @@ Stage 区域在 `done` 事件后 `1500ms` 自动折叠收起，不永久占据�
 
 ### 阶段进度条（Stage）
 
+阶段进度条由 `<StatusIcon>` 渲染各阶段状态（done=绿色实心带勾、running=accent 旋转、pending=空心、error=红色、warning=琥珀），配合 `StageTimeline` 布局。
+
 ```
-● 召回记忆 [done]  ← done：绿点
-● 检索知识 [done]
-~ 分析中...        ← active：旋转点 + 文字
-○ 生成结果          ← pending：空心灰点
+✓ 召回记忆 [done]   ← done：StatusIcon(done) 绿色圆+勾
+✓ 检索知识 [done]
+◐ 分析中...          ← running：StatusIcon(running) accent 旋转动画
+○ 生成结果           ← pending：StatusIcon(pending) 灰色空心圆
 ```
 
-时间轴样式：左侧 `1px` 竖线 + 节点圆点。
+时间轴样式：左侧 `1px` 竖线 + 节点圆点（由 StatusIcon 提供，非 Unicode 字符）。
 
 ---
 
@@ -263,6 +265,17 @@ stroke-linejoin: round
 fill: none
 常用尺寸: 14px、16px、18px（对应 width/height 属性）
 ```
+
+**符号使用约定（统一规则）**：
+
+| 场景 | 组件 | 禁止 |
+|---|---|---|
+| 工具/资源/phase 状态 | `<StatusIcon>`（running/done/error/pending/warning 五态 SVG） | 硬编码 `✓` / `✗` Unicode 字符 |
+| 折叠/展开三角 | `<ChevronIcon open={...}>`（统一 chevron，open 朝下、closed 朝右） | `▾` / `▸` / `▶` / `▼` Unicode 字符混用 |
+| 流式光标 | `<StreamingCursor>` | 内联 `▋` 字符 |
+| narration 文本 | 纯文本，**不含任何状态符号前缀**（状态由 StatusIcon 渲染） | `✓ web_search...` / `✗ 失败` |
+
+**理由**：状态符号单一来源（StatusIcon），避免"工具卡片内嵌 narration 带 ✓ + 卡片状态图标 ✓"的双重显示。
 
 ---
 

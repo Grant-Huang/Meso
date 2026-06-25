@@ -6,6 +6,7 @@ import { PROVIDERS, ENV_KEYS } from '../hooks/providers'
 import type { LlmProvider } from '../hooks/providers'
 import { useArtifactContext } from '../components/ArtifactContext'
 import type { SharedArtifact } from '../components/ArtifactContext'
+import { marked } from 'marked'
 
 const EXAMPLE_COMPLAINTS = [
   'A 线本周 OEE 从 85% 跌到 71%',
@@ -346,6 +347,7 @@ export function LeanManufacturingPage() {
             URL.revokeObjectURL(url)
           }}
           renderExtension={renderCitation}
+          renderMarkdown={content => marked(content) as string}
           simplify={{ verbosity }}
           emptyState={
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '60px 32px' }}>

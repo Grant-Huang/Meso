@@ -1,4 +1,5 @@
-import type { SSEEvent } from './protocol'
+import type { SSEEvent, ArtifactItem } from './protocol'
+import { resolveExtensionAlias } from './protocol'
 import type { StreamState } from './streamState'
 
 /**
@@ -24,7 +25,7 @@ function extractEventId(event: SSEEvent): string {
     case 'text':
       return `text-${extractEventMetadata(event).textChunkIndex}`
     case 'extension':
-      return `ext-${(payload.name as string) ?? 'unknown'}`
+      return `ext-${resolveExtensionAlias((payload.name as string) ?? 'unknown')}`
     default:
       return event.type
   }
@@ -329,15 +330,82 @@ export function applyEvent(state: StreamState, event: SSEEvent): StreamState {
       break
 
     case 'extension': {
-      const { name } = event.payload
-      nextState = {
+      const rawName = event.payload.name
+      const canonicalName = resolveExtensionAlias(rawName)
+
+      // 1. Fill extensions (canonical) + extensionLog (raw, for audit)
+      let next: StreamState = {
         ...state,
         extensions: {
           ...state.extensions,
-          [name]: [...(state.extensions[name] ?? []), event],
+          [canonicalName]: [
+            ...(state.extensions[canonicalName] ?? []),
+            { ...event, payload: { ...event.payload, name: canonicalName } },
+          ],
         },
         extensionLog: [...state.extensionLog, event],
       }
+
+      // 2. Semantic reduction for preset names
+      const data = (event.payload.data ?? {}) as Record<string, unknown>
+
+      switch (canonicalName) {
+        case 'precondition_unmet': {
+          next = {
+            ...next,
+            preconditionGaps: Array.isArray(data.missingDomains)
+              ? (data.missingDomains as string[])
+              : [],
+            preconditionSummary:
+              typeof data.finalText === 'string' ? data.finalText : null,
+          }
+          // status NOT changed — backend must follow with an error event
+          break
+        }
+        case 'artifacts': {
+          const items = Array.isArray(data.items) ? (data.items as ArtifactItem[]) : []
+          const artifacts = { ...next.artifacts }
+          const artifactOrder = [...next.artifactOrder]
+          for (const item of items) {
+            if (!item?.id) continue // defensive: skip items missing id (type requires it)
+            if (!artifactOrder.includes(item.id)) artifactOrder.push(item.id)
+            artifacts[item.id] = {
+              id: item.id,
+              lang: item.type ?? 'unknown',
+              content: item.description ?? '',
+              done: true,
+            }
+          }
+          next = { ...next, artifacts, artifactOrder }
+          break
+        }
+        case 'react_result': {
+          const usage = (data.usage ?? {}) as {
+            inputTokens?: number
+            outputTokens?: number
+            totalTokens?: number
+          }
+          const prev = next.totalUsage ?? { inputTokens: 0, outputTokens: 0, totalTokens: 0 }
+          next = {
+            ...next,
+            totalUsage: {
+              inputTokens: (prev.inputTokens ?? 0) + (usage.inputTokens ?? 0),
+              outputTokens: (prev.outputTokens ?? 0) + (usage.outputTokens ?? 0),
+              totalTokens: (prev.totalTokens ?? 0) + (usage.totalTokens ?? 0),
+            },
+            lastFinishReason:
+              typeof data.finishReason === 'string' ? data.finishReason : null,
+          }
+          break
+        }
+        case 'step_trace': {
+          // No extra reduction; canonical name already applied in step 1.
+          break
+        }
+        // default: custom name — no extra reduction (step 1 already passed through)
+      }
+
+      nextState = next
       break
     }
 

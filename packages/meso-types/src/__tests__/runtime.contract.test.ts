@@ -10,6 +10,12 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { describe, it, expect } from 'vitest'
 import { parseSSELine, applyEvent, createInitialStreamState } from '../index'
+import {
+  PROTOCOL_VERSION,
+  EXTENSION_PRESETS,
+  isPresetExtension,
+  resolveExtensionAlias,
+} from '../index'
 import type { StreamState } from '../streamState'
 
 const FIXTURES = resolve(__dirname, '../__fixtures__')
@@ -772,5 +778,243 @@ describe('eventLog contract', () => {
     for (let i = 0; i < state.eventLog.length; i++) {
       expect(state.eventLog[i].timestamp).toBe(i)
     }
+  })
+})
+
+// ── Preset extension reduction (v2.2.0) ─────────────────────────────────────
+//
+// Ground-truth tests for the preset extension contracts. See
+// docs/30-preset-extensions.md for the full spec.
+
+describe('preset extension reduction', () => {
+  const initial = createInitialStreamState()
+
+  it('precondition_unmet populates gaps and summary, does NOT change status', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'precondition_unmet',
+        version: '1.0',
+        data: {
+          finishReason: 'precondition_unmet',
+          finalText: '缺 OEE 数据',
+          missingDomains: ['OEE'],
+        },
+      },
+    })
+    expect(state.preconditionGaps).toEqual(['OEE'])
+    expect(state.preconditionSummary).toBe('缺 OEE 数据')
+    expect(state.status).toBe('idle') // extension does NOT change status
+  })
+
+  it('precondition_unmet without missingDomains yields empty gaps', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'precondition_unmet',
+        data: { finishReason: 'precondition_unmet' },
+      },
+    })
+    expect(state.preconditionGaps).toEqual([])
+    expect(state.preconditionSummary).toBeNull()
+  })
+
+  it('artifacts merges into state.artifacts by item.id', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'artifacts',
+        version: '1.0',
+        data: {
+          items: [
+            { id: 'r1', type: 'report_html', title: 'OEE 报告', description: '7月数据' },
+          ],
+        },
+      },
+    })
+    expect(state.artifactOrder).toEqual(['r1'])
+    expect(state.artifacts['r1'].lang).toBe('report_html')
+    expect(state.artifacts['r1'].content).toBe('7月数据')
+    expect(state.artifacts['r1'].done).toBe(true)
+  })
+
+  it('artifacts re-emit with same id overwrites (idempotent)', () => {
+    const s1 = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'artifacts',
+        data: { items: [{ id: 'r1', type: 'html preview', title: 'A' }] },
+      },
+    })
+    const s2 = applyEvent(s1, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'artifacts',
+        data: {
+          items: [{ id: 'r1', type: 'html preview', title: 'A v2', description: 'updated' }],
+        },
+      },
+    })
+    expect(s2.artifactOrder).toEqual(['r1']) // not duplicated
+    expect(s2.artifacts['r1'].content).toBe('updated')
+  })
+
+  it('react_result accumulates usage per stream', () => {
+    let state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'react_result',
+        data: {
+          finishReason: 'finalize_tool',
+          stepCount: 5,
+          usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+        },
+      },
+    })
+    state = applyEvent(state, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'react_result',
+        data: {
+          finishReason: 'finalize_tool',
+          stepCount: 3,
+          usage: { inputTokens: 200, totalTokens: 300 },
+        },
+      },
+    })
+    expect(state.totalUsage.totalTokens).toBe(450)
+    expect(state.totalUsage.inputTokens).toBe(300)
+    expect(state.totalUsage.outputTokens).toBe(50)
+    expect(state.lastFinishReason).toBe('finalize_tool')
+  })
+
+  it('step_trace reduces to canonical name only', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: { name: 'step_trace', data: { stepTrace: [], finalText: '' } },
+    })
+    expect(state.extensions['step_trace']).toHaveLength(1)
+    expect(state.extensions['react_step_trace']).toBeUndefined()
+  })
+})
+
+describe('alias mapping', () => {
+  const initial = createInitialStreamState()
+
+  it('nexus_artifacts → artifacts (canonical in extensions, raw in log)', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: {
+        name: 'nexus_artifacts',
+        data: { items: [{ id: 'r1', type: 'html', title: 'A' }] },
+      },
+    })
+    expect(state.extensions['artifacts']).toHaveLength(1)
+    expect(state.extensions['nexus_artifacts']).toBeUndefined()
+    // raw name preserved in extensionLog for audit
+    expect(state.extensionLog[0].payload.name).toBe('nexus_artifacts')
+    // reduction still applies
+    expect(state.artifacts['r1']).toBeDefined()
+  })
+
+  it('react_step_trace → step_trace', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: { name: 'react_step_trace', data: { stepTrace: [], finalText: '' } },
+    })
+    expect(state.extensions['step_trace']).toHaveLength(1)
+    expect(state.extensions['react_step_trace']).toBeUndefined()
+  })
+
+  it('isPresetExtension recognizes presets and aliases', () => {
+    expect(isPresetExtension('artifacts')).toBe(true)
+    expect(isPresetExtension('precondition_unmet')).toBe(true)
+    expect(isPresetExtension('react_result')).toBe(true)
+    expect(isPresetExtension('step_trace')).toBe(true)
+    expect(isPresetExtension('nexus_artifacts')).toBe(true)
+    expect(isPresetExtension('react_step_trace')).toBe(true)
+  })
+
+  it('isPresetExtension rejects custom names', () => {
+    expect(isPresetExtension('custom_xxx')).toBe(false)
+    expect(isPresetExtension('citation')).toBe(false)
+  })
+
+  it('resolveExtensionAlias returns canonical for aliases, identity otherwise', () => {
+    expect(resolveExtensionAlias('nexus_artifacts')).toBe('artifacts')
+    expect(resolveExtensionAlias('react_step_trace')).toBe('step_trace')
+    expect(resolveExtensionAlias('artifacts')).toBe('artifacts')
+    expect(resolveExtensionAlias('custom')).toBe('custom')
+  })
+
+  it('EXTENSION_PRESETS has expected shape', () => {
+    expect(EXTENSION_PRESETS.artifacts.aliases).toEqual(['nexus_artifacts'])
+    expect(EXTENSION_PRESETS.step_trace.aliases).toEqual(['react_step_trace'])
+    expect(EXTENSION_PRESETS.precondition_unmet.version).toBe('1.0')
+    expect(EXTENSION_PRESETS.react_result.version).toBe('1.0')
+  })
+})
+
+describe('custom name transparency', () => {
+  const initial = createInitialStreamState()
+
+  it('custom name passes through unchanged, no semantic reduction', () => {
+    const state = applyEvent(initial, {
+      type: 'extension',
+      schema_version: '1.0',
+      payload: { name: 'my_app_widget', data: { foo: 'bar' } },
+    })
+    expect(state.extensions['my_app_widget']).toHaveLength(1)
+    expect((state.extensions['my_app_widget'][0].payload as { data: unknown }).data).toEqual({
+      foo: 'bar',
+    })
+    // no semantic reduction triggered
+    expect(state.totalUsage.totalTokens).toBe(0)
+    expect(state.artifactOrder).toHaveLength(0)
+    expect(state.preconditionGaps).toEqual([])
+  })
+})
+
+describe('backward compat with 2.1.1', () => {
+  it('PROTOCOL_VERSION stays "1.0"', () => {
+    expect(PROTOCOL_VERSION).toBe('1.0')
+  })
+
+  it('StreamState without new fields still works', () => {
+    const legacyState = { ...createInitialStreamState() }
+    delete (legacyState as Partial<StreamState>).totalUsage
+    delete (legacyState as Partial<StreamState>).preconditionGaps
+    const state = applyEvent(legacyState as StreamState, {
+      type: 'text',
+      schema_version: '1.0',
+      payload: { delta: 'hi' },
+    })
+    expect(state.textContent).toBe('hi')
+  })
+
+  it('createInitialStreamState includes new defaults', () => {
+    const s = createInitialStreamState()
+    expect(s.preconditionGaps).toEqual([])
+    expect(s.preconditionSummary).toBeNull()
+    expect(s.totalUsage).toEqual({ inputTokens: 0, outputTokens: 0, totalTokens: 0 })
+    expect(s.lastFinishReason).toBeNull()
+  })
+
+  it('existing citation extension still transparent (regression)', () => {
+    const state = replayFixture('extension-stream.txt')
+    expect(state.extensionLog).toHaveLength(2)
+    expect(state.extensions['citation']).toHaveLength(2)
+    // no semantic reduction for citation
+    expect(state.artifactOrder).toHaveLength(0)
   })
 })

@@ -511,6 +511,134 @@ export interface ExtensionPayload {
 /** Third-party extension event — consumed via MessageList's renderExtension prop. */
 export type ExtensionEvent = Envelope<'extension', ExtensionPayload>
 
+// ── Preset extension payloads (v2.2.0) ───────────────────────────────────────
+//
+// These are RECOMMENDED contracts — backends emit them with the preset name,
+// and applyEvent performs semantic reduction. Custom names remain transparent.
+
+/**
+ * Precondition unmet — emitted when finalize is blocked by evidence gaps.
+ *
+ * Termination contract: after emitting this extension, the backend MUST
+ * follow with an `error` event carrying code="PRECONDITION_UNMET" so the
+ * stream transitions to status="error". The extension itself does NOT
+ * change StreamState.status.
+ */
+export interface PreconditionUnmetData {
+  /** Machine-readable reason: "precondition_unmet" (reserved for future codes). */
+  finishReason: string
+  /** LLM-generated user-facing summary of what's missing. */
+  finalText?: string
+  /** Token usage so far (for billing/analytics). */
+  usage?: {
+    inputTokens?: number
+    outputTokens?: number
+    totalTokens?: number
+  }
+  /**
+   * Optional list of missing evidence domains (e.g. ["OEE", "downtime"]).
+   * Backends may omit this if domain knowledge isn't structured.
+   */
+  missingDomains?: string[]
+}
+
+/**
+ * Single artifact descriptor in an `artifacts` extension payload.
+ * `id` is REQUIRED and must be stable across re-emits (used as state key).
+ */
+export interface ArtifactItem {
+  /**
+   * Stable unique id for this artifact within the stream.
+   * Used as the key in `state.artifacts`; re-emitting an item with the
+   * same id overwrites the previous entry (consistent with the `artifact`
+   * event stream behavior). Backends MUST supply this — frontend cannot
+   * synthesize a stable id from title/index alone.
+   */
+  id: string
+  /** Content type/lang: "html preview" | "mermaid" | "python" | "report_html" | ... */
+  type: string
+  /** Human-readable title. */
+  title: string
+  /** Short description (≤ 120 chars); optional. */
+  description?: string
+}
+
+export interface ArtifactsData {
+  items: ArtifactItem[]
+}
+
+/**
+ * ReAct session summary — emitted on finalize.
+ * Carries finish reason, step count, and aggregate usage. Non-rendering;
+ * consumed by analytics/state for per-stream usage accumulation.
+ */
+export interface ReactResultData {
+  /** "finalize_tool" | "precondition_unmet" | "step_count" | "no_tool_call" | "error" | ... */
+  finishReason: string
+  /** Number of ReAct steps executed. */
+  stepCount: number
+  /** Aggregate token usage for this stream. */
+  usage: {
+    inputTokens?: number
+    outputTokens?: number
+    totalTokens?: number
+  }
+}
+
+/**
+ * Full step trace for multi-turn follow-up.
+ * Persisted but NOT rendered; consumed by backend's previous-context loader
+ * to reconstruct compressed history for the next turn.
+ *
+ * Note: `finalText` is informational only. For visible text content, the
+ * backend MUST emit `text` events separately — applyEvent does NOT promote
+ * `finalText` into `state.textContent`.
+ */
+export interface StepTraceData {
+  /** Step trace array (backend-specific shape; frontend treats as opaque). */
+  stepTrace: unknown[]
+  /** Final LLM text from this turn (informational; not promoted to textContent). */
+  finalText: string
+}
+
+/**
+ * Registry of preset extension names. Backends emitting these names get
+ * semantic reduction by applyEvent; custom names remain transparent.
+ *
+ * `version` is informational only — it declares the EXTENSION's data-shape
+ * semver (independent of PROTOCOL_VERSION). applyEvent does NOT enforce it;
+ * consumers may read it for diagnostics. No runtime gating.
+ */
+type PresetEntry = { version: string; aliases?: string[] }
+
+export const EXTENSION_PRESETS: Readonly<Record<string, PresetEntry>> = {
+  precondition_unmet: { version: '1.0' },
+  artifacts: { version: '1.0', aliases: ['nexus_artifacts'] },
+  react_result: { version: '1.0' },
+  step_trace: { version: '1.0', aliases: ['react_step_trace'] },
+}
+
+export type PresetExtensionName = keyof typeof EXTENSION_PRESETS
+
+/** Type guard: is this name a preset OR an alias of one? */
+export function isPresetExtension(name: string): name is PresetExtensionName {
+  if (name in EXTENSION_PRESETS) return true
+  return Object.values(EXTENSION_PRESETS).some(
+    (p) => Array.isArray(p.aliases) && p.aliases.includes(name),
+  )
+}
+
+/** Resolve an alias to its canonical preset name. Returns the input if not an alias. */
+export function resolveExtensionAlias(name: string): string {
+  if (name in EXTENSION_PRESETS) return name
+  for (const [canonical, preset] of Object.entries(EXTENSION_PRESETS)) {
+    if (Array.isArray(preset.aliases) && preset.aliases.includes(name)) {
+      return canonical
+    }
+  }
+  return name
+}
+
 // ── Union ────────────────────────────────────────────────────────────────────
 
 export type SSEEvent =

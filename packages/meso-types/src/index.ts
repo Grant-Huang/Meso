@@ -1,4 +1,4 @@
-export { PROTOCOL_VERSION } from './protocol'
+export { PROTOCOL_VERSION, EXTENSION_PRESETS, isPresetExtension, resolveExtensionAlias } from './protocol'
 export type {
   ProtocolVersion,
   CapabilityProvider,
@@ -51,6 +51,12 @@ export type {
   PhaseState,
   PhasePayload,
   PhaseEvent,
+  PreconditionUnmetData,
+  ArtifactItem,
+  ArtifactsData,
+  ReactResultData,
+  StepTraceData,
+  PresetExtensionName,
 } from './protocol'
 
 export type {

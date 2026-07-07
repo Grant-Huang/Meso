@@ -149,10 +149,31 @@ export interface StreamState {
   /**
    * Extension events keyed by name for lookup (e.g. extensions["citation"]).
    * For time-ordered rendering, use extensionLog instead.
+   *
+   * Preset extension names (artifacts, precondition_unmet, react_result,
+   * step_trace) are reduced to canonical names; legacy aliases are mapped
+   * here (e.g. "nexus_artifacts" stored under "artifacts").
    */
   extensions: Record<string, ExtensionEvent[]>
   /** All extension events in arrival order — use when sequential rendering matters. */
   extensionLog: ExtensionEvent[]
+
+  // ── Preset extension reduction results (v2.2.0) ────────────────────────────
+  /** Missing evidence domains (from precondition_unmet extension). Empty if not applicable. */
+  preconditionGaps?: string[]
+  /** User-facing summary when precondition_unmet fires. null if not applicable. */
+  preconditionSummary?: string | null
+  /**
+   * Aggregate token usage across all react_result extensions in this stream.
+   * Per-stream accumulation — new stream resets via createInitialStreamState.
+   */
+  totalUsage?: {
+    inputTokens: number
+    outputTokens: number
+    totalTokens: number
+  }
+  /** Last finish reason (from the most recent react_result extension). */
+  lastFinishReason?: string | null
 
   // ── Context-Blend event sequencing ─────────────────────────────────────────
   /**
@@ -206,6 +227,10 @@ export function createInitialStreamState(): StreamState {
     extensionLog: [],
     eventLog: [],
     textChunks: [],
+    preconditionGaps: [],
+    preconditionSummary: null,
+    totalUsage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+    lastFinishReason: null,
     errorMessage: null,
     errorCode: null,
   }

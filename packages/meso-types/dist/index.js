@@ -1,5 +1,22 @@
-const f = "1.0";
-function h() {
+const y = "1.0", k = {
+  precondition_unmet: { version: "1.0" },
+  artifacts: { version: "1.0", aliases: ["nexus_artifacts"] },
+  react_result: { version: "1.0" },
+  step_trace: { version: "1.0", aliases: ["react_step_trace"] }
+};
+function R(r) {
+  return r in k ? !0 : Object.values(k).some(
+    (e) => Array.isArray(e.aliases) && e.aliases.includes(r)
+  );
+}
+function m(r) {
+  if (r in k) return r;
+  for (const [e, i] of Object.entries(k))
+    if (Array.isArray(i.aliases) && i.aliases.includes(r))
+      return e;
+  return r;
+}
+function _() {
   return {
     status: "idle",
     availableCapabilities: null,
@@ -24,78 +41,82 @@ function h() {
     extensionLog: [],
     eventLog: [],
     textChunks: [],
+    preconditionGaps: [],
+    preconditionSummary: null,
+    totalUsage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+    lastFinishReason: null,
     errorMessage: null,
     errorCode: null
   };
 }
-function b(r, o) {
-  const d = new Set((o == null ? void 0 : o.excludeLangs) ?? []);
-  return r.artifactOrder.some((a) => {
-    const i = r.artifacts[a];
-    return i != null && !d.has(i.lang) && !!i.content.trim();
+function T(r, e) {
+  const i = new Set((e == null ? void 0 : e.excludeLangs) ?? []);
+  return r.artifactOrder.some((n) => {
+    const p = r.artifacts[n];
+    return p != null && !i.has(p.lang) && !!p.content.trim();
   });
 }
-function g(r) {
-  const o = {}, d = [];
-  for (const a of r)
-    o[a.id] = { id: a.id, lang: a.lang, content: a.content, done: !0 }, d.push(a.id);
+function x(r) {
+  const e = {}, i = [];
+  for (const n of r)
+    e[n.id] = { id: n.id, lang: n.lang, content: n.content, done: !0 }, i.push(n.id);
   return {
-    ...h(),
+    ..._(),
     status: "done",
-    artifacts: o,
-    artifactOrder: d
+    artifacts: e,
+    artifactOrder: i
   };
 }
-function m(r) {
-  const o = r.payload;
+function w(r) {
+  const e = r.payload;
   switch (r.type) {
     case "tool_call":
-      return o.id ?? "unknown";
+      return e.id ?? "unknown";
     case "tool_result":
-      return o.tool_call_id ?? "unknown";
+      return e.tool_call_id ?? "unknown";
     case "resource_read":
-      return o.id ?? "unknown";
+      return e.id ?? "unknown";
     case "resource_content":
-      return o.resource_read_id ?? "unknown";
+      return e.resource_read_id ?? "unknown";
     case "artifact":
-      return o.id ?? "unknown";
+      return e.id ?? "unknown";
     case "phase":
-      return o.id ?? "unknown";
+      return e.id ?? "unknown";
     case "workflow_node":
-      return o.node_id ?? "unknown";
+      return e.node_id ?? "unknown";
     case "text":
-      return `text-${w(r).textChunkIndex}`;
+      return `text-${O(r).textChunkIndex}`;
     case "extension":
-      return `ext-${o.name ?? "unknown"}`;
+      return `ext-${m(e.name ?? "unknown")}`;
     default:
       return r.type;
   }
 }
-function w(r) {
+function O(r) {
   return {
     textChunkIndex: 0,
     // will be updated when processing text events
     ...r.payload
   };
 }
-function C(r, o, d) {
-  var i;
-  const a = {
+function b(r, e, i) {
+  var p;
+  const n = {
     timestamp: r.eventLog.length,
-    type: o.type,
-    id: d,
-    data: o.payload ?? {}
+    type: e.type,
+    id: i,
+    data: e.payload ?? {}
   };
-  if (o.type === "text" && typeof ((i = o.payload) == null ? void 0 : i.delta) == "string") {
-    const e = o.payload.delta, n = `text-${r.textChunks.length}`;
+  if (e.type === "text" && typeof ((p = e.payload) == null ? void 0 : p.delta) == "string") {
+    const o = e.payload.delta, a = `text-${r.textChunks.length}`;
     return {
       ...r,
-      eventLog: [...r.eventLog, { ...a, id: n }],
+      eventLog: [...r.eventLog, { ...n, id: a }],
       textChunks: [
         ...r.textChunks,
         {
-          id: n,
-          delta: e,
+          id: a,
+          delta: o,
           position: r.eventLog.length
         }
       ]
@@ -103,97 +124,97 @@ function C(r, o, d) {
   }
   return {
     ...r,
-    eventLog: [...r.eventLog, a]
+    eventLog: [...r.eventLog, n]
   };
 }
-function _(r, o) {
-  const d = o.payload;
-  d && typeof d.narration == "string" && d.narration.length > 0 && (r = _(r, {
+function C(r, e) {
+  const i = e.payload;
+  i && typeof i.narration == "string" && i.narration.length > 0 && (r = C(r, {
     type: "text",
     schema_version: "1.0",
-    payload: { delta: d.narration + `
+    payload: { delta: i.narration + `
 
 ` }
   }));
-  let a;
-  switch (o.type) {
+  let n;
+  switch (e.type) {
     case "capabilities":
-      a = { ...r, availableCapabilities: o.payload };
+      n = { ...r, availableCapabilities: e.payload };
       break;
     case "memory":
-      a = { ...r, memorySnippets: o.payload.snippets };
+      n = { ...r, memorySnippets: e.payload.snippets };
       break;
     case "memory_saved":
-      a = { ...r, memorySaved: [...r.memorySaved, o.payload] };
+      n = { ...r, memorySaved: [...r.memorySaved, e.payload] };
       break;
     case "soul":
-      a = { ...r, activeSoul: o.payload };
+      n = { ...r, activeSoul: e.payload };
       break;
     case "skill_active":
-      a = { ...r, activeSkill: o.payload };
+      n = { ...r, activeSkill: e.payload };
       break;
     case "tool_call": {
-      const { id: e, groupId: n, groupKind: t, risk: s, requires_confirm: c } = o.payload, p = c === !0 || s === "destructive" || s === "write" ? "awaiting_confirm" : "pending";
-      a = {
+      const { id: o, groupId: a, groupKind: t, risk: d, requires_confirm: l } = e.payload, u = l === !0 || d === "destructive" || d === "write" ? "awaiting_confirm" : "pending";
+      n = {
         ...r,
-        toolCallOrder: r.toolCallOrder.includes(e) ? r.toolCallOrder : [...r.toolCallOrder, e],
+        toolCallOrder: r.toolCallOrder.includes(o) ? r.toolCallOrder : [...r.toolCallOrder, o],
         toolCalls: {
           ...r.toolCalls,
-          [e]: { call: o.payload, status: p, groupId: n, groupKind: t }
+          [o]: { call: e.payload, status: u, groupId: a, groupKind: t }
         }
       };
       break;
     }
     case "tool_status": {
-      const { id: e, status: n } = o.payload, t = r.toolCalls[e];
+      const { id: o, status: a } = e.payload, t = r.toolCalls[o];
       if (!t) return r;
-      a = {
+      n = {
         ...r,
         toolCalls: {
           ...r.toolCalls,
-          [e]: { ...t, status: n }
+          [o]: { ...t, status: a }
         }
       };
       break;
     }
     case "tool_result": {
-      const { tool_call_id: e } = o.payload, n = r.toolCalls[e], t = o.payload.error ? "error" : "done";
-      a = {
+      const { tool_call_id: o } = e.payload, a = r.toolCalls[o], t = e.payload.error ? "error" : "done";
+      n = {
         ...r,
         toolCalls: {
           ...r.toolCalls,
-          [e]: {
-            call: (n == null ? void 0 : n.call) ?? { id: e, name: "(unknown)", args: {} },
-            result: o.payload,
+          [o]: {
+            call: (a == null ? void 0 : a.call) ?? { id: o, name: "(unknown)", args: {} },
+            result: e.payload,
             status: t,
-            groupId: n == null ? void 0 : n.groupId,
-            groupKind: n == null ? void 0 : n.groupKind
+            groupId: a == null ? void 0 : a.groupId,
+            groupKind: a == null ? void 0 : a.groupKind
           }
         }
       };
       break;
     }
     case "resource_read": {
-      const { id: e } = o.payload;
-      a = {
+      const { id: o } = e.payload;
+      n = {
         ...r,
-        resourceReadOrder: r.resourceReadOrder.includes(e) ? r.resourceReadOrder : [...r.resourceReadOrder, e],
+        resourceReadOrder: r.resourceReadOrder.includes(o) ? r.resourceReadOrder : [...r.resourceReadOrder, o],
         resourceReads: {
           ...r.resourceReads,
-          [e]: { read: o.payload, status: "pending" }
+          [o]: { read: e.payload, status: "pending" }
         }
       };
       break;
     }
     case "resource_content": {
-      const { resource_read_id: e } = o.payload, n = r.resourceReads[e], t = o.payload.error ? "error" : "done";
-      a = {
+      const { resource_read_id: o } = e.payload, a = r.resourceReads[o], t = e.payload.error ? "error" : "done";
+      n = {
         ...r,
         resourceReads: {
           ...r.resourceReads,
-          [e]: {
-            read: (n == null ? void 0 : n.read) ?? { id: e, uri: "(unknown)" },
-            content: o.payload,
+          [o]: {
+            read: (a == null ? void 0 : a.read) ?? { id: o, uri: "(unknown)" },
+            content: e.payload,
             status: t
           }
         }
@@ -201,159 +222,202 @@ function _(r, o) {
       break;
     }
     case "think": {
-      const { delta: e, done: n, phase_id: t } = o.payload;
+      const { delta: o, done: a, phase_id: t } = e.payload;
       if (t) {
-        const s = r.phases[t];
-        if (!s) return r;
-        a = {
+        const d = r.phases[t];
+        if (!d) return r;
+        n = {
           ...r,
           phases: {
             ...r.phases,
             [t]: {
-              ...s,
-              thinkContent: s.thinkContent + e
+              ...d,
+              thinkContent: d.thinkContent + o
             }
           }
         };
       } else
-        a = {
+        n = {
           ...r,
-          thinkContent: r.thinkContent + e,
-          thinkDone: n ?? !1
+          thinkContent: r.thinkContent + o,
+          thinkDone: a ?? !1
         };
       break;
     }
     case "phase": {
-      const { id: e, name: n, state: t, body: s, pinned_think: c, started_at: u, ended_at: p } = o.payload, l = r.phases[e];
-      a = {
+      const { id: o, name: a, state: t, body: d, pinned_think: l, started_at: c, ended_at: u } = e.payload, s = r.phases[o];
+      n = {
         ...r,
-        phaseOrder: r.phaseOrder.includes(e) ? r.phaseOrder : [...r.phaseOrder, e],
+        phaseOrder: r.phaseOrder.includes(o) ? r.phaseOrder : [...r.phaseOrder, o],
         phases: {
           ...r.phases,
-          [e]: {
-            id: e,
-            name: n,
+          [o]: {
+            id: o,
+            name: a,
             state: t,
-            thinkContent: (l == null ? void 0 : l.thinkContent) ?? "",
-            pinnedThink: c ?? (l == null ? void 0 : l.pinnedThink),
-            body: s ?? (l == null ? void 0 : l.body),
-            startedAt: u ?? (l == null ? void 0 : l.startedAt),
-            endedAt: p ?? (l == null ? void 0 : l.endedAt)
+            thinkContent: (s == null ? void 0 : s.thinkContent) ?? "",
+            pinnedThink: l ?? (s == null ? void 0 : s.pinnedThink),
+            body: d ?? (s == null ? void 0 : s.body),
+            startedAt: c ?? (s == null ? void 0 : s.startedAt),
+            endedAt: u ?? (s == null ? void 0 : s.endedAt)
           }
         }
       };
       break;
     }
     case "text": {
-      a = { ...r, textContent: r.textContent + o.payload.delta };
+      n = { ...r, textContent: r.textContent + e.payload.delta };
       break;
     }
     case "artifact": {
-      const { id: e, lang: n, delta: t, done: s } = o.payload, c = r.artifacts[e], u = r.artifactOrder.includes(e) ? r.artifactOrder : [...r.artifactOrder, e];
-      a = {
+      const { id: o, lang: a, delta: t, done: d } = e.payload, l = r.artifacts[o], c = r.artifactOrder.includes(o) ? r.artifactOrder : [...r.artifactOrder, o];
+      n = {
         ...r,
-        artifactOrder: u,
+        artifactOrder: c,
         artifacts: {
           ...r.artifacts,
-          [e]: {
-            id: e,
-            lang: n,
-            content: ((c == null ? void 0 : c.content) ?? "") + t,
-            done: s ?? !1
+          [o]: {
+            id: o,
+            lang: a,
+            content: ((l == null ? void 0 : l.content) ?? "") + t,
+            done: d ?? !1
           }
         }
       };
       break;
     }
     case "workflow_node": {
-      const { run_id: e, node_id: n, parent_id: t, name: s, state: c, started_at: u, duration_ms: p, metadata: l } = o.payload, y = r.workflowRuns[e] ?? { nodes: {}, nodeOrder: [] }, k = y.nodeOrder.includes(n) ? y.nodeOrder : [...y.nodeOrder, n];
-      a = {
+      const { run_id: o, node_id: a, parent_id: t, name: d, state: l, started_at: c, duration_ms: u, metadata: s } = e.payload, f = r.workflowRuns[o] ?? { nodes: {}, nodeOrder: [] }, h = f.nodeOrder.includes(a) ? f.nodeOrder : [...f.nodeOrder, a];
+      n = {
         ...r,
-        workflowRunOrder: r.workflowRunOrder.includes(e) ? r.workflowRunOrder : [...r.workflowRunOrder, e],
+        workflowRunOrder: r.workflowRunOrder.includes(o) ? r.workflowRunOrder : [...r.workflowRunOrder, o],
         workflowRuns: {
           ...r.workflowRuns,
-          [e]: {
-            run_id: e,
+          [o]: {
+            run_id: o,
             nodes: {
-              ...y.nodes,
-              [n]: { node_id: n, run_id: e, parent_id: t, name: s, state: c, started_at: u, duration_ms: p, metadata: l }
+              ...f.nodes,
+              [a]: { node_id: a, run_id: o, parent_id: t, name: d, state: l, started_at: c, duration_ms: u, metadata: s }
             },
-            nodeOrder: k
+            nodeOrder: h
           }
         }
       };
       break;
     }
     case "done":
-      a = { ...r, status: "done" };
+      n = { ...r, status: "done" };
       break;
     case "error":
-      a = {
+      n = {
         ...r,
         status: "error",
-        errorMessage: o.payload.message,
-        errorCode: o.payload.code ?? null
+        errorMessage: e.payload.message,
+        errorCode: e.payload.code ?? null
       };
       break;
     case "extension": {
-      const { name: e } = o.payload;
-      a = {
+      const o = e.payload.name, a = m(o);
+      let t = {
         ...r,
         extensions: {
           ...r.extensions,
-          [e]: [...r.extensions[e] ?? [], o]
+          [a]: [
+            ...r.extensions[a] ?? [],
+            { ...e, payload: { ...e.payload, name: a } }
+          ]
         },
-        extensionLog: [...r.extensionLog, o]
+        extensionLog: [...r.extensionLog, e]
       };
+      const d = e.payload.data ?? {};
+      switch (a) {
+        case "precondition_unmet": {
+          t = {
+            ...t,
+            preconditionGaps: Array.isArray(d.missingDomains) ? d.missingDomains : [],
+            preconditionSummary: typeof d.finalText == "string" ? d.finalText : null
+          };
+          break;
+        }
+        case "artifacts": {
+          const l = Array.isArray(d.items) ? d.items : [], c = { ...t.artifacts }, u = [...t.artifactOrder];
+          for (const s of l)
+            s != null && s.id && (u.includes(s.id) || u.push(s.id), c[s.id] = {
+              id: s.id,
+              lang: s.type ?? "unknown",
+              content: s.description ?? "",
+              done: !0
+            });
+          t = { ...t, artifacts: c, artifactOrder: u };
+          break;
+        }
+        case "react_result": {
+          const l = d.usage ?? {}, c = t.totalUsage ?? { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+          t = {
+            ...t,
+            totalUsage: {
+              inputTokens: (c.inputTokens ?? 0) + (l.inputTokens ?? 0),
+              outputTokens: (c.outputTokens ?? 0) + (l.outputTokens ?? 0),
+              totalTokens: (c.totalTokens ?? 0) + (l.totalTokens ?? 0)
+            },
+            lastFinishReason: typeof d.finishReason == "string" ? d.finishReason : null
+          };
+          break;
+        }
+      }
+      n = t;
       break;
     }
     default:
       return r;
   }
-  const i = m(o);
-  return C(a, o, i);
+  const p = w(e);
+  return b(n, e, p);
 }
-function R(r) {
+function S(r) {
   if (!r.startsWith("data: ")) return null;
-  const o = r.slice(6).trim();
-  if (o === "[DONE]")
-    return { type: "done", schema_version: f, payload: {} };
-  let d;
+  const e = r.slice(6).trim();
+  if (e === "[DONE]")
+    return { type: "done", schema_version: y, payload: {} };
+  let i;
   try {
-    d = JSON.parse(o);
+    i = JSON.parse(e);
   } catch {
     return null;
   }
-  if (!d || typeof d != "object" || Array.isArray(d)) return null;
-  const a = d;
-  return typeof a.type != "string" || !a.payload || typeof a.payload != "object" || Array.isArray(a.payload) ? null : (a.schema_version || (a.schema_version = f), a);
+  if (!i || typeof i != "object" || Array.isArray(i)) return null;
+  const n = i;
+  return typeof n.type != "string" || !n.payload || typeof n.payload != "object" || Array.isArray(n.payload) ? null : (n.schema_version || (n.schema_version = y), n);
 }
-function O(r) {
-  const [o] = f.split(".").map(Number), [d] = (r.schema_version ?? "").split(".").map(Number);
-  return d === o;
+function g(r) {
+  const [e] = y.split(".").map(Number), [i] = (r.schema_version ?? "").split(".").map(Number);
+  return i === e;
 }
-function S(r) {
-  if (!O(r))
+function A(r) {
+  if (!g(r))
     throw new Error(
-      `Meso protocol version mismatch: runtime expects ${f}, received ${r.schema_version}. Upgrade @meso.ai/types or your backend.`
+      `Meso protocol version mismatch: runtime expects ${y}, received ${r.schema_version}. Upgrade @meso.ai/types or your backend.`
     );
 }
-function x(r) {
-  const o = r.state === "running" ? "active" : r.state === "pending" ? "pending" : r.state === "error" ? "error" : "done";
+function E(r) {
+  const e = r.state === "running" ? "active" : r.state === "pending" ? "pending" : r.state === "error" ? "error" : "done";
   return {
     id: r.id,
     label: r.name,
-    status: o
+    status: e
   };
 }
 export {
-  f as PROTOCOL_VERSION,
-  _ as applyEvent,
-  S as assertCompatibleVersion,
-  h as createInitialStreamState,
-  g as createStreamStateWithArtifacts,
-  O as isCompatibleVersion,
-  R as parseSSELine,
-  x as phaseRecordToStage,
-  b as streamStateHasArtifacts
+  k as EXTENSION_PRESETS,
+  y as PROTOCOL_VERSION,
+  C as applyEvent,
+  A as assertCompatibleVersion,
+  _ as createInitialStreamState,
+  x as createStreamStateWithArtifacts,
+  g as isCompatibleVersion,
+  R as isPresetExtension,
+  S as parseSSELine,
+  E as phaseRecordToStage,
+  m as resolveExtensionAlias,
+  T as streamStateHasArtifacts
 };

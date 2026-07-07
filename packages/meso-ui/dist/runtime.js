@@ -1,5 +1,22 @@
-const y = "1.0";
-function h() {
+const f = "1.0", k = {
+  precondition_unmet: { version: "1.0" },
+  artifacts: { version: "1.0", aliases: ["nexus_artifacts"] },
+  react_result: { version: "1.0" },
+  step_trace: { version: "1.0", aliases: ["react_step_trace"] }
+};
+function C(e) {
+  return e in k ? !0 : Object.values(k).some(
+    (t) => Array.isArray(t.aliases) && t.aliases.includes(e)
+  );
+}
+function m(e) {
+  if (e in k) return e;
+  for (const [t, r] of Object.entries(k))
+    if (Array.isArray(r.aliases) && r.aliases.includes(e))
+      return t;
+  return e;
+}
+function _() {
   return {
     status: "idle",
     availableCapabilities: null,
@@ -24,29 +41,33 @@ function h() {
     extensionLog: [],
     eventLog: [],
     textChunks: [],
+    preconditionGaps: [],
+    preconditionSummary: null,
+    totalUsage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+    lastFinishReason: null,
     errorMessage: null,
     errorCode: null
   };
 }
-function O(e, t) {
-  const s = new Set((t == null ? void 0 : t.excludeLangs) ?? []);
+function x(e, t) {
+  const r = new Set((t == null ? void 0 : t.excludeLangs) ?? []);
   return e.artifactOrder.some((n) => {
-    const i = e.artifacts[n];
-    return i != null && !s.has(i.lang) && !!i.content.trim();
+    const c = e.artifacts[n];
+    return c != null && !r.has(c.lang) && !!c.content.trim();
   });
 }
-function C(e) {
-  const t = {}, s = [];
+function R(e) {
+  const t = {}, r = [];
   for (const n of e)
-    t[n.id] = { id: n.id, lang: n.lang, content: n.content, done: !0 }, s.push(n.id);
+    t[n.id] = { id: n.id, lang: n.lang, content: n.content, done: !0 }, r.push(n.id);
   return {
-    ...h(),
+    ..._(),
     status: "done",
     artifacts: t,
-    artifactOrder: s
+    artifactOrder: r
   };
 }
-function m(e) {
+function g(e) {
   const t = e.payload;
   switch (e.type) {
     case "tool_call":
@@ -64,33 +85,33 @@ function m(e) {
     case "workflow_node":
       return t.node_id ?? "unknown";
     case "text":
-      return `text-${_(e).textChunkIndex}`;
+      return `text-${v(e).textChunkIndex}`;
     case "extension":
-      return `ext-${t.name ?? "unknown"}`;
+      return `ext-${m(t.name ?? "unknown")}`;
     default:
       return e.type;
   }
 }
-function _(e) {
+function v(e) {
   return {
     textChunkIndex: 0,
     // will be updated when processing text events
     ...e.payload
   };
 }
-function g(e, t, s) {
+function O(e, t, r) {
   var n;
-  const i = {
+  const c = {
     timestamp: e.eventLog.length,
     type: t.type,
-    id: s,
+    id: r,
     data: t.payload ?? {}
   };
   if (t.type === "text" && typeof ((n = t.payload) == null ? void 0 : n.delta) == "string") {
     const a = t.payload.delta, o = `text-${e.textChunks.length}`;
     return {
       ...e,
-      eventLog: [...e.eventLog, { ...i, id: o }],
+      eventLog: [...e.eventLog, { ...c, id: o }],
       textChunks: [
         ...e.textChunks,
         {
@@ -103,15 +124,15 @@ function g(e, t, s) {
   }
   return {
     ...e,
-    eventLog: [...e.eventLog, i]
+    eventLog: [...e.eventLog, c]
   };
 }
-function v(e, t) {
-  const s = t.payload;
-  s && typeof s.narration == "string" && s.narration.length > 0 && (e = v(e, {
+function w(e, t) {
+  const r = t.payload;
+  r && typeof r.narration == "string" && r.narration.length > 0 && (e = w(e, {
     type: "text",
     schema_version: "1.0",
-    payload: { delta: s.narration + `
+    payload: { delta: r.narration + `
 
 ` }
   }));
@@ -133,31 +154,31 @@ function v(e, t) {
       n = { ...e, activeSkill: t.payload };
       break;
     case "tool_call": {
-      const { id: a, groupId: o, groupKind: r, risk: d, requires_confirm: u } = t.payload, c = u === !0 || d === "destructive" || d === "write" ? "awaiting_confirm" : "pending";
+      const { id: a, groupId: o, groupKind: s, risk: i, requires_confirm: d } = t.payload, u = d === !0 || i === "destructive" || i === "write" ? "awaiting_confirm" : "pending";
       n = {
         ...e,
         toolCallOrder: e.toolCallOrder.includes(a) ? e.toolCallOrder : [...e.toolCallOrder, a],
         toolCalls: {
           ...e.toolCalls,
-          [a]: { call: t.payload, status: c, groupId: o, groupKind: r }
+          [a]: { call: t.payload, status: u, groupId: o, groupKind: s }
         }
       };
       break;
     }
     case "tool_status": {
-      const { id: a, status: o } = t.payload, r = e.toolCalls[a];
-      if (!r) return e;
+      const { id: a, status: o } = t.payload, s = e.toolCalls[a];
+      if (!s) return e;
       n = {
         ...e,
         toolCalls: {
           ...e.toolCalls,
-          [a]: { ...r, status: o }
+          [a]: { ...s, status: o }
         }
       };
       break;
     }
     case "tool_result": {
-      const { tool_call_id: a } = t.payload, o = e.toolCalls[a], r = t.payload.error ? "error" : "done";
+      const { tool_call_id: a } = t.payload, o = e.toolCalls[a], s = t.payload.error ? "error" : "done";
       n = {
         ...e,
         toolCalls: {
@@ -165,7 +186,7 @@ function v(e, t) {
           [a]: {
             call: (o == null ? void 0 : o.call) ?? { id: a, name: "(unknown)", args: {} },
             result: t.payload,
-            status: r,
+            status: s,
             groupId: o == null ? void 0 : o.groupId,
             groupKind: o == null ? void 0 : o.groupKind
           }
@@ -186,7 +207,7 @@ function v(e, t) {
       break;
     }
     case "resource_content": {
-      const { resource_read_id: a } = t.payload, o = e.resourceReads[a], r = t.payload.error ? "error" : "done";
+      const { resource_read_id: a } = t.payload, o = e.resourceReads[a], s = t.payload.error ? "error" : "done";
       n = {
         ...e,
         resourceReads: {
@@ -194,24 +215,24 @@ function v(e, t) {
           [a]: {
             read: (o == null ? void 0 : o.read) ?? { id: a, uri: "(unknown)" },
             content: t.payload,
-            status: r
+            status: s
           }
         }
       };
       break;
     }
     case "think": {
-      const { delta: a, done: o, phase_id: r } = t.payload;
-      if (r) {
-        const d = e.phases[r];
-        if (!d) return e;
+      const { delta: a, done: o, phase_id: s } = t.payload;
+      if (s) {
+        const i = e.phases[s];
+        if (!i) return e;
         n = {
           ...e,
           phases: {
             ...e.phases,
-            [r]: {
-              ...d,
-              thinkContent: d.thinkContent + a
+            [s]: {
+              ...i,
+              thinkContent: i.thinkContent + a
             }
           }
         };
@@ -224,7 +245,7 @@ function v(e, t) {
       break;
     }
     case "phase": {
-      const { id: a, name: o, state: r, body: d, pinned_think: u, started_at: c, ended_at: k } = t.payload, l = e.phases[a];
+      const { id: a, name: o, state: s, body: i, pinned_think: d, started_at: u, ended_at: p } = t.payload, l = e.phases[a];
       n = {
         ...e,
         phaseOrder: e.phaseOrder.includes(a) ? e.phaseOrder : [...e.phaseOrder, a],
@@ -233,12 +254,12 @@ function v(e, t) {
           [a]: {
             id: a,
             name: o,
-            state: r,
+            state: s,
             thinkContent: (l == null ? void 0 : l.thinkContent) ?? "",
-            pinnedThink: u ?? (l == null ? void 0 : l.pinnedThink),
-            body: d ?? (l == null ? void 0 : l.body),
-            startedAt: c ?? (l == null ? void 0 : l.startedAt),
-            endedAt: k ?? (l == null ? void 0 : l.endedAt)
+            pinnedThink: d ?? (l == null ? void 0 : l.pinnedThink),
+            body: i ?? (l == null ? void 0 : l.body),
+            startedAt: u ?? (l == null ? void 0 : l.startedAt),
+            endedAt: p ?? (l == null ? void 0 : l.endedAt)
           }
         }
       };
@@ -249,24 +270,24 @@ function v(e, t) {
       break;
     }
     case "artifact": {
-      const { id: a, lang: o, delta: r, done: d } = t.payload, u = e.artifacts[a], c = e.artifactOrder.includes(a) ? e.artifactOrder : [...e.artifactOrder, a];
+      const { id: a, lang: o, delta: s, done: i } = t.payload, d = e.artifacts[a], u = e.artifactOrder.includes(a) ? e.artifactOrder : [...e.artifactOrder, a];
       n = {
         ...e,
-        artifactOrder: c,
+        artifactOrder: u,
         artifacts: {
           ...e.artifacts,
           [a]: {
             id: a,
             lang: o,
-            content: ((u == null ? void 0 : u.content) ?? "") + r,
-            done: d ?? !1
+            content: ((d == null ? void 0 : d.content) ?? "") + s,
+            done: i ?? !1
           }
         }
       };
       break;
     }
     case "workflow_node": {
-      const { run_id: a, node_id: o, parent_id: r, name: d, state: u, started_at: c, duration_ms: k, metadata: l } = t.payload, p = e.workflowRuns[a] ?? { nodes: {}, nodeOrder: [] }, f = p.nodeOrder.includes(o) ? p.nodeOrder : [...p.nodeOrder, o];
+      const { run_id: a, node_id: o, parent_id: s, name: i, state: d, started_at: u, duration_ms: p, metadata: l } = t.payload, y = e.workflowRuns[a] ?? { nodes: {}, nodeOrder: [] }, h = y.nodeOrder.includes(o) ? y.nodeOrder : [...y.nodeOrder, o];
       n = {
         ...e,
         workflowRunOrder: e.workflowRunOrder.includes(a) ? e.workflowRunOrder : [...e.workflowRunOrder, a],
@@ -275,10 +296,10 @@ function v(e, t) {
           [a]: {
             run_id: a,
             nodes: {
-              ...p.nodes,
-              [o]: { node_id: o, run_id: a, parent_id: r, name: d, state: u, started_at: c, duration_ms: k, metadata: l }
+              ...y.nodes,
+              [o]: { node_id: o, run_id: a, parent_id: s, name: i, state: d, started_at: u, duration_ms: p, metadata: l }
             },
-            nodeOrder: f
+            nodeOrder: h
           }
         }
       };
@@ -296,49 +317,89 @@ function v(e, t) {
       };
       break;
     case "extension": {
-      const { name: a } = t.payload;
-      n = {
+      const a = t.payload.name, o = m(a);
+      let s = {
         ...e,
         extensions: {
           ...e.extensions,
-          [a]: [...e.extensions[a] ?? [], t]
+          [o]: [
+            ...e.extensions[o] ?? [],
+            { ...t, payload: { ...t.payload, name: o } }
+          ]
         },
         extensionLog: [...e.extensionLog, t]
       };
+      const i = t.payload.data ?? {};
+      switch (o) {
+        case "precondition_unmet": {
+          s = {
+            ...s,
+            preconditionGaps: Array.isArray(i.missingDomains) ? i.missingDomains : [],
+            preconditionSummary: typeof i.finalText == "string" ? i.finalText : null
+          };
+          break;
+        }
+        case "artifacts": {
+          const d = Array.isArray(i.items) ? i.items : [], u = { ...s.artifacts }, p = [...s.artifactOrder];
+          for (const l of d)
+            l != null && l.id && (p.includes(l.id) || p.push(l.id), u[l.id] = {
+              id: l.id,
+              lang: l.type ?? "unknown",
+              content: l.description ?? "",
+              done: !0
+            });
+          s = { ...s, artifacts: u, artifactOrder: p };
+          break;
+        }
+        case "react_result": {
+          const d = i.usage ?? {}, u = s.totalUsage ?? { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+          s = {
+            ...s,
+            totalUsage: {
+              inputTokens: (u.inputTokens ?? 0) + (d.inputTokens ?? 0),
+              outputTokens: (u.outputTokens ?? 0) + (d.outputTokens ?? 0),
+              totalTokens: (u.totalTokens ?? 0) + (d.totalTokens ?? 0)
+            },
+            lastFinishReason: typeof i.finishReason == "string" ? i.finishReason : null
+          };
+          break;
+        }
+      }
+      n = s;
       break;
     }
     default:
       return e;
   }
-  const i = m(t);
-  return g(n, t, i);
+  const c = g(t);
+  return O(n, t, c);
 }
-function b(e) {
+function S(e) {
   if (!e.startsWith("data: ")) return null;
   const t = e.slice(6).trim();
   if (t === "[DONE]")
-    return { type: "done", schema_version: y, payload: {} };
-  let s;
+    return { type: "done", schema_version: f, payload: {} };
+  let r;
   try {
-    s = JSON.parse(t);
+    r = JSON.parse(t);
   } catch {
     return null;
   }
-  if (!s || typeof s != "object" || Array.isArray(s)) return null;
-  const n = s;
-  return typeof n.type != "string" || !n.payload || typeof n.payload != "object" || Array.isArray(n.payload) ? null : (n.schema_version || (n.schema_version = y), n);
+  if (!r || typeof r != "object" || Array.isArray(r)) return null;
+  const n = r;
+  return typeof n.type != "string" || !n.payload || typeof n.payload != "object" || Array.isArray(n.payload) ? null : (n.schema_version || (n.schema_version = f), n);
 }
-function w(e) {
-  const [t] = y.split(".").map(Number), [s] = (e.schema_version ?? "").split(".").map(Number);
-  return s === t;
+function b(e) {
+  const [t] = f.split(".").map(Number), [r] = (e.schema_version ?? "").split(".").map(Number);
+  return r === t;
 }
-function x(e) {
-  if (!w(e))
+function T(e) {
+  if (!b(e))
     throw new Error(
-      `Meso protocol version mismatch: runtime expects ${y}, received ${e.schema_version}. Upgrade @meso.ai/types or your backend.`
+      `Meso protocol version mismatch: runtime expects ${f}, received ${e.schema_version}. Upgrade @meso.ai/types or your backend.`
     );
 }
-function R(e) {
+function A(e) {
   const t = e.state === "running" ? "active" : e.state === "pending" ? "pending" : e.state === "error" ? "error" : "done";
   return {
     id: e.id,
@@ -347,13 +408,16 @@ function R(e) {
   };
 }
 export {
-  y as PROTOCOL_VERSION,
-  v as applyEvent,
-  x as assertCompatibleVersion,
-  h as createInitialStreamState,
-  C as createStreamStateWithArtifacts,
-  w as isCompatibleVersion,
-  b as parseSSELine,
-  R as phaseRecordToStage,
-  O as streamStateHasArtifacts
+  k as EXTENSION_PRESETS,
+  f as PROTOCOL_VERSION,
+  w as applyEvent,
+  T as assertCompatibleVersion,
+  _ as createInitialStreamState,
+  R as createStreamStateWithArtifacts,
+  b as isCompatibleVersion,
+  C as isPresetExtension,
+  S as parseSSELine,
+  A as phaseRecordToStage,
+  m as resolveExtensionAlias,
+  x as streamStateHasArtifacts
 };

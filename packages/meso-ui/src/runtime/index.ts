@@ -8,6 +8,9 @@
  */
 export {
   PROTOCOL_VERSION,
+  EXTENSION_PRESETS,
+  isPresetExtension,
+  resolveExtensionAlias,
   createInitialStreamState,
   createStreamStateWithArtifacts,
   streamStateHasArtifacts,
@@ -68,6 +71,12 @@ export type {
   PhaseState,
   PhasePayload,
   PhaseEvent,
+  PreconditionUnmetData,
+  ArtifactItem,
+  ArtifactsData,
+  ReactResultData,
+  StepTraceData,
+  PresetExtensionName,
   StreamState,
   StreamStatus,
   ArtifactState,

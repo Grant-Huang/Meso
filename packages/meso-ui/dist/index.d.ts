@@ -40,6 +40,8 @@ export { ChevronIcon } from './components/ChevronIcon';
 export type { ChevronIconProps } from './components/ChevronIcon';
 export { LogLine } from './components/LogLine';
 export type { LogLineProps } from './components/LogLine';
+export { PreconditionUnmetBanner } from './components/PreconditionUnmetBanner';
+export type { PreconditionUnmetBannerProps } from './components/PreconditionUnmetBanner';
 export { useSSEStream } from './hooks/useSSEStream';
 export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream';
 export { useTheme } from './hooks/useTheme';
@@ -50,5 +52,5 @@ export { MesoLocaleProvider, useMesoLabels, useMesoLocale } from './i18n/MesoLoc
 export type { MesoLocaleProviderProps } from './i18n/MesoLocaleProvider';
 export { zhCNLabels, enUSLabels, defaultLabelsByLocale } from './i18n/labels';
 export type { MesoLabels, MesoLocale } from './i18n/labels';
-export { PROTOCOL_VERSION, parseSSELine, applyEvent, createInitialStreamState, createStreamStateWithArtifacts, streamStateHasArtifacts, isCompatibleVersion, assertCompatibleVersion, phaseRecordToStage, } from './runtime';
-export type { CapabilityProvider, SSEEvent, CapabilitiesEvent, CapabilitiesPayload, ToolSpec, SkillSpec, ResourceSpec, MCPServerSpec, MemoryEvent, MemorySnippet, MemoryPayload, MemorySavedEvent, MemorySavedPayload, SoulEvent, SoulPayload, SkillActiveEvent, SkillPayload, ThinkEvent, ThinkPayload, TextEvent, TextPayload, ArtifactEvent, ArtifactPayload, ToolRisk, ToolAnnotations, ToolCallEvent, ToolCallPayload, ToolResultEvent, ToolResultPayload, ResourceReadEvent, ResourceReadPayload, ResourceContentEvent, ResourceContentPayload, ResourceContentItem, DoneEvent, ErrorEvent, ErrorPayload, ExtensionEvent, ExtensionPayload, WorkflowNodeState, WorkflowNodePayload, WorkflowNodeEvent, PhaseState, PhasePayload, PhaseEvent, StreamState, StreamStatus, ArtifactState, ArtifactDef, ToolCallStatus, ToolCallState, ResourceReadStatus, ResourceReadState, WorkflowNodeRecord, WorkflowRunState, PhaseRecord, } from './runtime';
+export { PROTOCOL_VERSION, EXTENSION_PRESETS, isPresetExtension, resolveExtensionAlias, parseSSELine, applyEvent, createInitialStreamState, createStreamStateWithArtifacts, streamStateHasArtifacts, isCompatibleVersion, assertCompatibleVersion, phaseRecordToStage, } from './runtime';
+export type { CapabilityProvider, SSEEvent, CapabilitiesEvent, CapabilitiesPayload, ToolSpec, SkillSpec, ResourceSpec, MCPServerSpec, MemoryEvent, MemorySnippet, MemoryPayload, MemorySavedEvent, MemorySavedPayload, SoulEvent, SoulPayload, SkillActiveEvent, SkillPayload, ThinkEvent, ThinkPayload, TextEvent, TextPayload, ArtifactEvent, ArtifactPayload, ToolRisk, ToolAnnotations, ToolCallEvent, ToolCallPayload, ToolResultEvent, ToolResultPayload, ResourceReadEvent, ResourceReadPayload, ResourceContentEvent, ResourceContentPayload, ResourceContentItem, DoneEvent, ErrorEvent, ErrorPayload, ExtensionEvent, ExtensionPayload, WorkflowNodeState, WorkflowNodePayload, WorkflowNodeEvent, PhaseState, PhasePayload, PhaseEvent, PreconditionUnmetData, ArtifactItem, ArtifactsData, ReactResultData, StepTraceData, PresetExtensionName, StreamState, StreamStatus, ArtifactState, ArtifactDef, ToolCallStatus, ToolCallState, ResourceReadStatus, ResourceReadState, WorkflowNodeRecord, WorkflowRunState, PhaseRecord, } from './runtime';

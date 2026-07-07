@@ -62,6 +62,9 @@ export type { ChevronIconProps } from './components/ChevronIcon'
 export { LogLine } from './components/LogLine'
 export type { LogLineProps } from './components/LogLine'
 
+export { PreconditionUnmetBanner } from './components/PreconditionUnmetBanner'
+export type { PreconditionUnmetBannerProps } from './components/PreconditionUnmetBanner'
+
 // Hooks
 export { useSSEStream } from './hooks/useSSEStream'
 export type { StreamOptions, StreamCallbacks } from './hooks/useSSEStream'
@@ -80,6 +83,9 @@ export type { MesoLabels, MesoLocale } from './i18n/labels'
 // Runtime (also available as @meso.ai/ui/runtime for React-free usage)
 export {
   PROTOCOL_VERSION,
+  EXTENSION_PRESETS,
+  isPresetExtension,
+  resolveExtensionAlias,
   parseSSELine,
   applyEvent,
   createInitialStreamState,
@@ -135,6 +141,12 @@ export type {
   PhaseState,
   PhasePayload,
   PhaseEvent,
+  PreconditionUnmetData,
+  ArtifactItem,
+  ArtifactsData,
+  ReactResultData,
+  StepTraceData,
+  PresetExtensionName,
   StreamState,
   StreamStatus,
   ArtifactState,

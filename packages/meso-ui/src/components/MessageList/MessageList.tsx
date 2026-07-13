@@ -12,6 +12,7 @@ import type { SimplifyOptions } from '../ProcessTrace/ProcessTrace'
 import type { StreamState, ExtensionEvent } from '../../runtime'
 import type { ArtifactDef } from '@meso.ai/types'
 import type { ArtifactType } from '../ArtifactPanel'
+import { buildBlendItems } from './buildBlendItems'
 import './MessageList.css'
 
 export interface Message {
@@ -141,66 +142,6 @@ function LinearStreamingTools({
       )}
     </>
   )
-}
-
-/**
- * Render item produced by walking eventLog. Consecutive text deltas are
- * coalesced into a single text run so prose flows naturally and Markdown can
- * be rendered on a complete run, while tool/artifact cards break the runs to
- * preserve interleaving (context-blend).
- */
-type BlendItem =
-  | { kind: 'text'; key: string; text: string }
-  | { kind: 'tool'; key: string; id: string }
-  | { kind: 'artifact'; key: string; id: string }
-  | { kind: 'resource'; key: string; id: string }
-  | { kind: 'extension'; key: string; index: number }
-
-function buildBlendItems(stream: StreamState, hiddenArtifactLangs?: string[]): BlendItem[] {
-  const items: BlendItem[] = []
-  let textBuf = ''
-  let textKey: string | null = null
-  let extIndex = 0
-
-  const flushText = () => {
-    if (textKey !== null && textBuf.length > 0) {
-      items.push({ kind: 'text', key: textKey, text: textBuf })
-    }
-    textBuf = ''
-    textKey = null
-  }
-
-  for (const entry of stream.eventLog) {
-    const { type, id } = entry
-    if (type === 'text') {
-      const chunk = stream.textChunks.find(tc => tc.id === id)
-      if (!chunk) continue
-      if (textKey === null) textKey = `text-${id}`
-      textBuf += chunk.delta
-    } else if (type === 'tool_call') {
-      if (!stream.toolCalls[id]) continue
-      flushText()
-      items.push({ kind: 'tool', key: `tool-${id}`, id })
-    } else if (type === 'resource_read') {
-      if (!stream.resourceReads[id]) continue
-      flushText()
-      items.push({ kind: 'resource', key: `resource-${id}`, id })
-    } else if (type === 'extension') {
-      // 按到达顺序内联渲染扩展事件（如 citation），而非堆在会话末尾
-      if (extIndex >= stream.extensionLog.length) continue
-      flushText()
-      items.push({ kind: 'extension', key: `ext-${extIndex}`, index: extIndex })
-      extIndex++
-    } else if (type === 'artifact') {
-      const art = stream.artifacts[id]
-      if (!art) continue
-      if (hiddenArtifactLangs?.includes(art.lang)) continue
-      flushText()
-      items.push({ kind: 'artifact', key: `artifact-${id}`, id })
-    }
-  }
-  flushText()
-  return items
 }
 
 /**

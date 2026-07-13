@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     dts({
       include: ['src'],
-      exclude: ['src/**/*.css', 'src/**/__tests__/**', 'src/__fixtures__/**'],
+      exclude: ['src/**/*.css', 'src/**/__tests__/**', 'src/**/*.test.*', 'src/__fixtures__/**'],
       insertTypesEntry: true,
       rollupTypes: false,
     }),

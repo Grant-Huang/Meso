@@ -6,6 +6,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [@meso.ai/client] 0.1.1 — 2026-08-06
+
+### FIXED
+
+- Replace `"@meso.ai/types": "workspace:*"` with `"^2.2.0"` so npm consumers no longer hit `EUNSUPPORTEDPROTOCOL`
+- CI / Release now fail if any packed package still ships `workspace:` in publishable dependency fields
+
+---
+
 ## [@meso.ai/ui] 2.0.0 · [@meso.ai/types] 1.1.0 — 2026-05-28
 
 ### ADDED (`@meso.ai/types`)

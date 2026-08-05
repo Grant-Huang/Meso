@@ -28,22 +28,55 @@ jobs:
       - name: Build @meso.ai/ui
         run: pnpm --filter @meso.ai/ui run build
 
+      - name: Build @meso.ai/client
+        run: pnpm --filter @meso.ai/client run build
+
       - name: Test @meso.ai/types
         run: pnpm --filter @meso.ai/types run test
 
       - name: Test @meso.ai/ui
         run: pnpm --filter @meso.ai/ui run test
 
+      - name: Test @meso.ai/client
+        run: pnpm --filter @meso.ai/client run test
+
       - name: Smoke test (pack + install + vite build)
         run: |
           mkdir -p /tmp/tarballs
           pnpm --filter @meso.ai/types pack --pack-destination /tmp/tarballs
           pnpm --filter @meso.ai/ui    pack --pack-destination /tmp/tarballs
+          pnpm --filter @meso.ai/client pack --pack-destination /tmp/tarballs
           ls /tmp/tarballs/
+
+          # Fail CI if any publishable dependency still uses workspace:
+          for tgz in /tmp/tarballs/*.tgz; do
+            tar -xOf "$tgz" package/package.json | node -e '
+              const fs = require("fs");
+              const pkg = JSON.parse(fs.readFileSync(0, "utf8"));
+              const sections = ["dependencies", "optionalDependencies", "peerDependencies"];
+              const bad = [];
+              for (const section of sections) {
+                const deps = pkg[section] || {};
+                for (const [name, range] of Object.entries(deps)) {
+                  if (String(range).startsWith("workspace:")) {
+                    bad.push(`${section}.${name}=${range}`);
+                  }
+                }
+              }
+              if (bad.length) {
+                console.error(`FAIL ${pkg.name}@${pkg.version}: workspace: protocol leaked:`);
+                for (const item of bad) console.error("  - " + item);
+                process.exit(1);
+              }
+              console.log(`OK ${pkg.name}@${pkg.version}`);
+            '
+          done
+
           # Install into a minimal vite project and verify it builds
           mkdir -p /tmp/smoke && cd /tmp/smoke
           TYPES_TGZ=$(ls /tmp/tarballs/meso.ai-types-*.tgz | head -1)
           UI_TGZ=$(ls /tmp/tarballs/meso.ai-ui-*.tgz | head -1)
+          CLIENT_TGZ=$(ls /tmp/tarballs/meso.ai-client-*.tgz | head -1)
           cat > package.json << EOF
           {
             "name": "smoke",
@@ -52,6 +85,7 @@ jobs:
             "dependencies": {
               "@meso.ai/types": "$TYPES_TGZ",
               "@meso.ai/ui": "$UI_TGZ",
+              "@meso.ai/client": "$CLIENT_TGZ",
               "react": "^18.3.1",
               "react-dom": "^18.3.1"
             },
@@ -71,8 +105,9 @@ jobs:
           import '@meso.ai/ui/tokens.css'
           import '@meso.ai/ui/style.css'
           import { createInitialStreamState, isCompatibleVersion, phaseRecordToStage } from '@meso.ai/ui'
+          import { createMesoSession } from '@meso.ai/client'
           const s = createInitialStreamState()
-          console.log(s.status, typeof isCompatibleVersion, typeof phaseRecordToStage)
+          console.log(s.status, typeof isCompatibleVersion, typeof phaseRecordToStage, typeof createMesoSession)
           EOF
           cat > index.html << 'EOF'
           <!doctype html><html><body><script type="module" src="/src/main.jsx"></script></body></html>

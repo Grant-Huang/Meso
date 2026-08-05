@@ -1,6 +1,6 @@
 {
   "name": "@meso.ai/client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Meso session layer — turn management, transport, tool confirm, replay",
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@meso.ai/types": "workspace:*"
+    "@meso.ai/types": "^2.2.0"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

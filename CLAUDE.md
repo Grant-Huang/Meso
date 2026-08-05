@@ -234,15 +234,20 @@ Smoke test 用 glob 查找 tarball（`meso.ai-types-*.tgz`），不要写死版�
 ### 版本 bump 步骤
 
 ```bash
-# 修改两个包的 package.json 版本号（minor = 新功能，patch = bug fix）
+# 修改要发布的包的 package.json 版本号（minor = 新功能，patch = bug fix）
 # packages/meso-types/package.json  → version: "x.y.z"
 # packages/meso-ui/package.json     → version: "x.y.z"
+# packages/meso-client/package.json → version: "x.y.z"
+#
+# 注意：@meso.ai/client 对 @meso.ai/types 必须使用具体 semver（如 ^2.2.0），
+# 不要写 workspace:* —— Release 用 npm publish，不会改写 workspace 协议。
 
 pnpm --filter @meso.ai/types run build
 pnpm --filter @meso.ai/ui run build
+pnpm --filter @meso.ai/client run build
 
-git add packages/meso-types/package.json packages/meso-ui/package.json packages/*/dist
-git commit -m "chore(release): bump @meso.ai/types@x.y.z and @meso.ai/ui@x.y.z"
+git add packages/meso-types/package.json packages/meso-ui/package.json packages/meso-client/package.json packages/*/dist
+git commit -m "chore(release): bump @meso.ai/types@x.y.z, @meso.ai/ui@x.y.z, @meso.ai/client@x.y.z"
 git push origin main
 
 git tag vx.y.z

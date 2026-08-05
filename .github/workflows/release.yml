@@ -54,6 +54,34 @@ jobs:
           pnpm --filter @meso.ai/client pack --pack-destination dist-tarballs
           ls dist-tarballs/
 
+      - name: Assert published deps have no workspace: protocol
+        run: |
+          set -euo pipefail
+          for tgz in dist-tarballs/*.tgz; do
+            echo "Checking $tgz"
+            pkg_json=$(tar -xOf "$tgz" package/package.json)
+            echo "$pkg_json" | node -e '
+              const fs = require("fs");
+              const pkg = JSON.parse(fs.readFileSync(0, "utf8"));
+              const sections = ["dependencies", "optionalDependencies", "peerDependencies"];
+              const bad = [];
+              for (const section of sections) {
+                const deps = pkg[section] || {};
+                for (const [name, range] of Object.entries(deps)) {
+                  if (String(range).startsWith("workspace:")) {
+                    bad.push(`${section}.${name}=${range}`);
+                  }
+                }
+              }
+              if (bad.length) {
+                console.error(`FAIL ${pkg.name}@${pkg.version}: workspace: protocol leaked into publish metadata:`);
+                for (const item of bad) console.error("  - " + item);
+                process.exit(1);
+              }
+              console.log(`OK ${pkg.name}@${pkg.version}`);
+            '
+          done
+
       - name: Publish to npm (OIDC Trusted Publishing)
         run: |
           publish_pkg() {
@@ -71,7 +99,6 @@ jobs:
           publish_pkg packages/meso-types
           publish_pkg packages/meso-ui
           publish_pkg packages/meso-client
-
       - name: Create GitHub Release with tarballs
         uses: softprops/action-gh-release@v2
         with:

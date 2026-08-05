@@ -34,7 +34,7 @@ const files = {
       preview: 'vite preview',
     },
     dependencies: {
-      '@meso.ai/client': '^0.1.0',
+      '@meso.ai/client': '^0.1.1',
       '@meso.ai/types': '^1.2.1',
       '@meso.ai/ui': '^2.1.1',
       react: '^18.3.1',

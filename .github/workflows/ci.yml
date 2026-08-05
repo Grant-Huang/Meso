@@ -48,29 +48,32 @@ jobs:
           pnpm --filter @meso.ai/client pack --pack-destination /tmp/tarballs
           ls /tmp/tarballs/
 
-          # Fail CI if any publishable dependency still uses workspace:
-          for tgz in /tmp/tarballs/*.tgz; do
-            tar -xOf "$tgz" package/package.json | node -e '
-              const fs = require("fs");
-              const pkg = JSON.parse(fs.readFileSync(0, "utf8"));
-              const sections = ["dependencies", "optionalDependencies", "peerDependencies"];
-              const bad = [];
-              for (const section of sections) {
-                const deps = pkg[section] || {};
-                for (const [name, range] of Object.entries(deps)) {
-                  if (String(range).startsWith("workspace:")) {
-                    bad.push(`${section}.${name}=${range}`);
-                  }
+          # Fail CI if any publishable dependency still uses workspace protocol
+          node <<'NODE'
+          const { execSync } = require('child_process')
+          const fs = require('fs')
+          const tarballs = fs.readdirSync('/tmp/tarballs').filter((f) => f.endsWith('.tgz'))
+          for (const tgz of tarballs) {
+            const path = `/tmp/tarballs/${tgz}`
+            const pkg = JSON.parse(execSync(`tar -xOf "${path}" package/package.json`, { encoding: 'utf8' }))
+            const sections = ['dependencies', 'optionalDependencies', 'peerDependencies']
+            const bad = []
+            for (const section of sections) {
+              const deps = pkg[section] || {}
+              for (const [name, range] of Object.entries(deps)) {
+                if (String(range).startsWith('workspace:')) {
+                  bad.push(`${section}.${name}=${range}`)
                 }
               }
-              if (bad.length) {
-                console.error(`FAIL ${pkg.name}@${pkg.version}: workspace: protocol leaked:`);
-                for (const item of bad) console.error("  - " + item);
-                process.exit(1);
-              }
-              console.log(`OK ${pkg.name}@${pkg.version}`);
-            '
-          done
+            }
+            if (bad.length) {
+              console.error(`FAIL ${pkg.name}@${pkg.version}: workspace protocol leaked:`)
+              for (const item of bad) console.error('  - ' + item)
+              process.exit(1)
+            }
+            console.log(`OK ${pkg.name}@${pkg.version}`)
+          }
+          NODE
 
           # Install into a minimal vite project and verify it builds
           mkdir -p /tmp/smoke && cd /tmp/smoke
